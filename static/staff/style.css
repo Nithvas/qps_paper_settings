@@ -1,0 +1,6 @@
+body { display:flex; font-family:Arial;}
+.sidebar { width:200px; background:#163e0b; color:white; height:100vh; padding:20px;}
+.sidebar a { display:rgb(29, 69, 2); color:white; margin:10px 0;}
+.main { padding:20px; width:100%;}
+table { width:100%; border-collapse:collapse;}
+td,th { border:1px solid #0c3d1b; padding:10px;}

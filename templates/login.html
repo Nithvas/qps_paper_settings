@@ -1,0 +1,617 @@
+{% load static %}
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>JMC Question Paper Portal</title>
+
+    <!-- Bootstrap -->
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
+          rel="stylesheet">
+
+    <!-- Google Font -->
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+
+    min-height:100vh;
+
+    overflow:hidden;
+
+    font-family:'Poppins',sans-serif;
+
+    background:
+    linear-gradient(
+    135deg,
+    #b7f6e6 0%,
+    #d1e9c6 40%,
+    #cef7bf 100%
+    );
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    position:relative;
+
+}
+
+/* BACKGROUND CIRCLES */
+
+.circle1,
+.circle2,
+.circle3{
+
+    position:absolute;
+
+    border-radius:50%;
+
+    filter:blur(80px);
+
+    opacity:.45;
+
+}
+
+.circle1{
+
+    width:300px;
+    height:300px;
+
+    background:#ffb7c5;
+
+    top:-100px;
+    left:-80px;
+
+}
+
+.circle2{
+
+    width:350px;
+    height:350px;
+
+    background:#f9c5d1;
+
+    bottom:-120px;
+    right:-100px;
+
+}
+
+.circle3{
+
+    width:220px;
+    height:220px;
+
+    background:#fce7ec;
+
+    top:40%;
+    left:45%;
+
+}
+
+/* MAIN LOGIN BOX */
+
+.login-wrapper{
+
+    width:670px;
+
+    padding:45px;
+
+    border-radius:35px;
+
+    background:
+    rgba(255,255,255,.35);
+
+    backdrop-filter:blur(25px);
+
+    border:
+    1px solid rgba(255,255,255,.5);
+
+    box-shadow:
+    0 25px 60px rgba(0,0,0,.10);
+
+    position:relative;
+
+    z-index:10;
+
+}
+
+/* TOP HEADER */
+
+.top-header{
+
+    text-align:center;
+
+    margin-bottom:35px;
+
+}
+
+/* LOGO */
+
+.logo-box{
+
+    width:110px;
+    height:110px;
+
+    border-radius:30px;
+
+    background:
+    rgba(255,255,255,.55);
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    margin:auto;
+
+    margin-bottom:20px;
+
+    box-shadow:
+    0 12px 25px rgba(0,0,0,.08);
+
+}
+
+.logo{
+
+    width:80px;
+    height:80px;
+
+    object-fit:contain;
+
+}
+
+/* COLLEGE NAME */
+
+.college-name{
+
+    font-size:28px;
+
+    font-weight:800;
+
+    color:#8a3040;
+
+    line-height:1.4;
+
+    margin-bottom:8px;
+
+}
+
+.college-sub{
+
+    color:#9d5c67;
+
+    font-size:14px;
+
+    font-weight:600;
+
+    letter-spacing:.4px;
+
+}
+
+/* PORTAL */
+
+.portal-title{
+
+    margin-top:30px;
+
+    font-size:30px;
+
+    font-weight:700;
+
+    color:#7e2b3a;
+
+}
+
+.portal-sub{
+
+    color:#9a5b65;
+
+    font-size:14px;
+
+    margin-top:6px;
+
+    margin-bottom:35px;
+
+}
+
+/* ALERT */
+
+.alert{
+
+    border:none;
+
+    border-radius:16px;
+
+    background:#ffe5ea;
+
+    color:#8b3041;
+
+    font-size:13px;
+
+    font-weight:600;
+
+}
+
+/* INPUT */
+
+.input-group{
+
+    height:58px;
+
+    border-radius:18px;
+
+    overflow:hidden;
+
+    background:
+    rgba(255,255,255,.60);
+
+    border:
+    1px solid rgba(255,255,255,.8);
+
+    margin-bottom:24px;
+
+    box-shadow:
+    0 5px 18px rgba(0,0,0,.05);
+
+    transition:.3s;
+
+}
+
+.input-group:focus-within{
+
+    transform:translateY(-2px);
+
+    border-color:#d98c97;
+
+    box-shadow:
+    0 8px 25px rgba(217,140,151,.18);
+
+}
+
+.input-group-text{
+
+    border:none !important;
+
+    background:transparent !important;
+
+    color:#a04558;
+
+    font-size:18px;
+
+    padding-left:18px;
+
+}
+
+.form-control{
+
+    border:none !important;
+
+    background:transparent !important;
+
+    box-shadow:none !important;
+
+    font-size:15px;
+
+    color:#7a2c3a !important;
+
+    font-weight:500;
+
+}
+
+.form-control::placeholder{
+
+    color:#a86b75;
+
+}
+
+/* LOGIN BUTTON */
+
+.login-btn{
+
+    width:100%;
+
+    height:58px;
+
+    border:none;
+
+    border-radius:18px;
+
+    background:
+    linear-gradient(
+    135deg,
+    #d98b95,
+    #ed8b99
+    );
+
+    color:#fff;
+
+    font-size:17px;
+
+    font-weight:700;
+
+    letter-spacing:.5px;
+
+    margin-top:10px;
+
+    transition:.35s;
+
+    box-shadow:
+    0 15px 30px rgba(184,92,106,.25);
+
+}
+
+.login-btn:hover{
+
+    transform:translateY(-3px);
+
+    background:
+    linear-gradient(
+    135deg,
+    #c96f7d,
+    #9d4150
+    );
+
+}
+
+/* FOOTER */
+
+.footer{
+
+    margin-top:28px;
+
+    text-align:center;
+
+    color:#8e5560;
+
+    font-size:13px;
+
+    font-weight:500;
+
+}
+
+.footer span{
+
+    color:#7d2e3c;
+
+    font-weight:700;
+
+}
+
+/* RESPONSIVE */
+
+@media(max-width:576px){
+
+    body{
+
+        overflow:auto;
+
+        padding:20px;
+
+    }
+
+    .login-wrapper{
+
+        width:100%;
+
+        padding:35px 25px;
+
+    }
+
+    .college-name{
+
+        font-size:22px;
+
+    }
+
+    .portal-title{
+
+        font-size:24px;
+
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- BACKGROUND -->
+
+<div class="circle1"></div>
+<div class="circle2"></div>
+<div class="circle3"></div>
+
+<!-- LOGIN -->
+
+<div class="login-wrapper">
+
+    <!-- HEADER -->
+
+    <div class="top-header">
+
+        <!-- LOGO -->
+
+        <div class="logo-box">
+
+            <img src="{% static 'images/logo.png' %}"
+                 class="logo">
+
+        </div>
+
+        <!-- COLLEGE NAME -->
+
+        <div class="college-name">
+
+            JAMAL MOHAMED COLLEGE (AUTONOMOUS),
+
+        </div>
+
+        <div class="college-sub">
+
+             TIRUCHIRAPPALLI - 620 020
+
+        </div>
+
+        <!-- PORTAL -->
+
+        <div class="portal-title">
+
+            Question Paper Portal
+
+        </div>
+
+        <div class="portal-sub">
+
+            
+        </div>
+
+    </div>
+
+    <!-- ALERT -->
+
+    {% if messages %}
+        {% for message in messages %}
+
+            <div class="alert alert-danger mb-4">
+
+                <i class="bi bi-exclamation-circle-fill me-2"></i>
+
+                {{ message }}
+
+            </div>
+
+        {% endfor %}
+    {% endif %}
+
+    <!-- LOGIN FORM -->
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        <!-- USERNAME -->
+
+        <div class="input-group">
+
+            <span class="input-group-text">
+
+                <i class="bi bi-person-fill"></i>
+
+            </span>
+
+            <input type="text"
+                   name="username"
+                   class="form-control"
+                   placeholder="Enter Username"
+                   required>
+
+        </div>
+
+        <!-- PASSWORD -->
+
+        <div class="input-group">
+
+            <span class="input-group-text">
+
+                <i class="bi bi-lock-fill"></i>
+
+            </span>
+
+            <input type="password"
+                   id="password"
+                   name="password"
+                   class="form-control"
+                   placeholder="Enter Password"
+                   required>
+
+            <span class="input-group-text"
+                  style="cursor:pointer;"
+                  onclick="togglePassword()">
+
+                <i class="bi bi-eye-fill"
+                   id="toggleIcon"></i>
+
+            </span>
+
+        </div>
+
+        <!-- BUTTON -->
+
+        <button class="login-btn">
+
+            <i class="bi bi-box-arrow-in-right me-2"></i>
+
+            LOGIN NOW
+
+        </button>
+
+    </form>
+
+   
+
+</div>
+
+<!-- SCRIPT -->
+
+<script>
+
+function togglePassword(){
+
+    let password =
+        document.getElementById("password");
+
+    let icon =
+        document.getElementById("toggleIcon");
+
+    if(password.type === "password"){
+
+        password.type = "text";
+
+        icon.classList.remove("bi-eye-fill");
+
+        icon.classList.add("bi-eye-slash-fill");
+
+    }
+
+    else{
+
+        password.type = "password";
+
+        icon.classList.remove("bi-eye-slash-fill");
+
+        icon.classList.add("bi-eye-fill");
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>

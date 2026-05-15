@@ -1,0 +1,1370 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+    --primary:#b85c6a;
+    --primary-light:#d98b95;
+    --secondary:#7e2b3a;
+    --bg1:#fff8f9;
+    --bg2:#fff4f5;
+    --text:#5f3340;
+    --muted:#9b5d67;
+    --white:#ffffff;
+    --border:rgba(255,255,255,.7);
+    --shadow:0 10px 18px rgba(184,92,106,0.10);
+    --radius:20px;
+}
+
+/* BODY */
+body{
+    background:linear-gradient(135deg
+    #b7f6e6 0%,
+    #d1e9c6 40%,
+    #cef7bf 100%);
+    font-family:'Outfit',sans-serif;
+    color:var(--text);
+}
+
+/* CONTAINER */
+.container-fluid{
+    padding:8px;
+}
+
+/* ALERT */
+.alert{
+    border:none;
+    border-radius:12px;
+    background:rgba(255,255,255,.72);
+    backdrop-filter:blur(16px);
+    box-shadow:var(--shadow);
+    color:var(--secondary);
+    font-weight:600;
+    padding:6px 10px;
+}
+
+/* HEADER */
+
+.page-header{
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255,255,255,.75),
+            rgba(255,255,255,.55)
+        );
+
+    backdrop-filter:blur(20px);
+
+    border:
+        1px solid rgba(255,255,255,.7);
+    border-radius:20px;
+    padding:14px 16px;
+    margin-bottom:5px;
+    box-shadow:var(--shadow);
+    position:relative;
+    overflow:hidden;
+
+}
+
+.page-header::before{
+    content:'';
+    position:absolute;
+    width:180px;
+    height:50px;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(237, 193, 199, 0.22),
+            transparent 70%
+        );
+    top:-50px;
+    right:-60px;
+
+}
+
+.page-title{
+    margin:0;
+    font-size:26px;
+    font-weight:700;
+    color:var(--secondary);
+    position:relative;
+    z-index:2;
+    display:flex;
+    align-items:center;
+    gap:10px;
+
+}
+
+.page-title i{
+    width:58px;
+    height:32px;
+    border-radius:20px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:
+        linear-gradient(
+            135deg,
+            #d98b95,
+            #b85c6a
+        );
+
+    color:white;
+
+    font-size:22px;
+
+    box-shadow:
+        0 10px 24px rgba(184,92,106,0.18);
+
+}
+
+/* CARDS */
+
+.custom-card,
+.filter-box,
+.search-box{
+
+    background:
+        rgba(255,255,255,.68);
+
+    backdrop-filter:blur(18px);
+
+    border:
+        1px solid rgba(255,255,255,.7);
+
+    border-radius:15px;
+
+    box-shadow:var(--shadow);
+
+    position:relative;
+
+    overflow:hidden;
+
+}
+
+.custom-card::before,
+.filter-box::before,
+.search-box::before{
+
+    content:'';
+
+    position:absolute;
+
+    width:120px;
+    height:120px;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(217,139,149,.15),
+            transparent 70%
+        );
+
+    top:-50px;
+    right:-40px;
+
+}
+
+.custom-card > *,
+.filter-box > *,
+.search-box > *{
+
+    position:relative;
+    padding:8px
+    z-index:2;
+
+}
+
+.filter-box{
+
+    padding:10px;
+
+    margin-bottom:10px;
+
+}
+
+.search-box{
+
+    padding:8px;
+
+    margin-bottom:10px;
+
+}
+
+/* SECTION TITLE */
+
+.section-title{
+
+    font-size:16px;
+
+    font-weight:700;
+
+    color:var(--secondary);
+
+    margin-bottom:10px;
+
+}
+
+/* BUTTONS */
+
+.btn{
+
+    border:none;
+
+    border-radius:16px;
+
+    font-weight:600;
+
+    padding:6px 8px;
+
+    transition:.3s;
+
+    letter-spacing:.3px;
+
+}
+
+.btn:hover{
+
+    transform:translateY(-2px);
+
+}
+
+.btn-success{
+
+    background:
+        linear-gradient(
+            135deg,
+            #d98b95,
+            #b85c6a
+        );
+
+    color:white;
+
+    box-shadow:
+        0 10px 22px rgba(184,92,106,0.18);
+
+}
+
+.btn-success:hover{
+
+    background:
+        linear-gradient(
+            135deg,
+            #c97280,
+            #9f4454
+        );
+
+}
+
+.btn-outline-success{
+
+    background:
+        rgba(255,255,255,.85);
+
+    color:var(--secondary);
+
+    border:
+        1px solid rgba(184,92,106,.15);
+
+}
+
+.btn-outline-success:hover{
+
+    background:
+        linear-gradient(
+            135deg,
+            #d98b95,
+            #b85c6a
+        );
+
+    color:white;
+
+}
+
+.btn-secondary{
+
+    background:
+        linear-gradient(
+            135deg,
+            #b48b92,
+            #9b5d67
+        );
+
+}
+
+.btn-warning{
+
+    background:
+        linear-gradient(
+            135deg,
+            #f7b267,
+            #f4845f
+        );
+
+    color:white;
+
+}
+
+.btn-danger{
+
+    background:
+        linear-gradient(
+            135deg,
+            #ef6f6c,
+            #c44536
+        );
+
+    color:white;
+
+}
+
+/* FORM */
+
+.form-control,
+.form-select{
+
+    min-height:28px;
+
+    border:none;
+
+    border-radius:6px;
+
+    background:
+        rgba(255,255,255,.88);
+
+    color:var(--secondary);
+
+    font-weight:500;
+
+    box-shadow:
+        inset 0 0 0 1px rgba(184,92,106,.12);
+
+}
+
+.form-control:focus,
+.form-select:focus{
+
+    background:white;
+
+    box-shadow:
+        0 0 0 4px rgba(243, 152, 165, 0.12) !important;
+
+}
+
+/* BADGE */
+
+.badge{
+
+    padding:12px 20px;
+
+    border-radius:16px;
+
+    font-size:14px;
+
+    font-weight:600;
+
+    background:
+        linear-gradient(
+            135deg,
+            #d98b95,
+            #b85c6a
+        ) !important;
+
+    box-shadow:
+        0 10px 22px rgba(184,92,106,0.16);
+
+}
+
+/* TABLE */
+
+.table-container{
+
+    max-height:540px;
+
+    overflow:auto;
+    white-space:nowrap;
+    border-radius:22px;
+
+}
+
+.table{
+
+    margin:0;
+
+    min-width:1700px;
+
+    border-collapse:separate;
+
+    border-spacing:0;
+
+}
+
+.table thead th{
+
+    position:sticky;
+
+    top:0;
+
+    z-index:5;
+
+}
+
+.custom-header th{
+    background: #f8f9fa;   /* light background */
+    color: #7e2b3a;        /* dark text for visibility */
+    text-align:center;
+    font-size:15px;
+    font-weight:700;
+    padding:16px 14px;
+    border:1px solid #eee;
+    white-space:nowrap;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.custom-header th:hover{
+
+    background:
+        linear-gradient(
+            135deg,
+            #c97280,
+            #8c3646
+        );
+
+}
+
+.sort-icon{
+
+    margin-left:6px;
+
+    font-size:11px;
+
+    opacity:.8;
+
+}
+
+.table tbody td{
+
+    text-align:center;
+
+    vertical-align:middle;
+
+    padding:14px 12px;
+
+    border-color:#f6e7ea;
+
+    background:
+        rgba(255,255,255,.75);
+
+    color:var(--text);
+
+    font-weight:500;
+
+}
+
+.table-striped tbody tr:nth-of-type(odd) td{
+
+    background:
+        rgba(255,248,249,.88);
+
+}
+
+.table tbody tr{
+
+    transition:.28s;
+
+}
+
+.table tbody tr:hover td{
+
+    background:
+        linear-gradient(
+            135deg,
+            #fff4f5,
+            #fffafb
+        );
+
+}
+
+/* ACTION BUTTON */
+
+.action-btn{
+
+    width:38px;
+    height:38px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    border-radius:12px;
+
+    padding:0;
+
+}
+
+.action-btn i{
+
+    font-size:14px;
+
+}
+
+/* FILE UPLOAD */
+
+.upload-form{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    flex-wrap:nowrap;
+
+}
+
+/* PAGINATION */
+
+.pagination-wrapper{
+
+    margin-top:14px;
+
+    padding:22px;
+
+    border-radius:24px;
+
+    background:
+        rgba(255,255,255,.68);
+
+    backdrop-filter:blur(18px);
+
+    border:
+        1px solid rgba(255,255,255,.7);
+
+    box-shadow:var(--shadow);
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    flex-wrap:nowrap;
+
+    gap:20px;
+
+}
+
+.pagination-info{
+
+    font-size:14px;
+
+    font-weight:600;
+
+    color:var(--muted);
+
+}
+
+.pagination-info span{
+
+    color:var(--secondary);
+
+    font-weight:700;
+
+}
+
+.pagination-center{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    flex-wrap:nowrap;
+
+}
+
+.page-btn{
+
+    width:42px;
+    height:42px;
+
+    border-radius:14px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    background:
+        rgba(255,255,255,.85);
+
+    color:var(--secondary);
+
+    text-decoration:none;
+
+    font-weight:700;
+
+    box-shadow:
+        0 6px 16px rgba(184,92,106,.08);
+
+    transition:.3s;
+
+}
+
+.page-btn:hover{
+
+    background:
+        linear-gradient(
+            135deg,
+            #d98b95,
+            #b85c6a
+        );
+
+    color:white;
+
+}
+
+.page-form{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+}
+
+.page-input{
+
+    width:90px;
+    height:42px;
+
+    border:none;
+
+    border-radius:14px;
+
+    text-align:center;
+
+    font-weight:700;
+
+    background:
+        rgba(255,255,255,.9);
+
+    color:var(--secondary);
+
+    box-shadow:
+        inset 0 0 0 1px rgba(184,92,106,.15);
+
+}
+
+.go-btn{
+
+    height:42px;
+
+    border:none;
+
+    padding:0 18px;
+
+    border-radius:14px;
+
+    color:white;
+
+    font-weight:600;
+
+    background:
+        linear-gradient(
+            135deg,
+            #d98b95,
+            #b85c6a
+        );
+
+}
+
+/* SCROLLBAR */
+
+.table-container::-webkit-scrollbar{
+
+    height:10px;
+    width:10px;
+
+}
+
+.table-container::-webkit-scrollbar-thumb{
+
+    background:
+        linear-gradient(
+            135deg,
+            #d98b95,
+            #b85c6a
+        );
+
+    border-radius:20px;
+
+}
+
+.table-container::-webkit-scrollbar-track{
+
+    background:#fff2f4;
+
+}
+
+/* RESPONSIVE */
+
+@media(max-width:768px){
+
+    .container-fluid{
+
+        padding:14px;
+
+    }
+
+    .page-title{
+
+        font-size:22px;
+
+    }
+
+    .page-title i{
+
+        width:56px;
+        height:56px;
+
+        font-size:24px;
+
+    }
+
+    .page-header,
+    .filter-box,
+    .search-box{
+
+        padding:16px;
+
+    }
+
+}
+
+</style>
+
+<div class="container-fluid">
+
+   {% if messages %}
+    {% for message in messages %}
+
+        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center justify-content-between"
+             role="alert">
+
+            <div>
+                <i class="bi bi-check-circle-fill me-2"></i>
+                {{ message }}
+            </div>
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Close">
+            </button>
+
+        </div>
+
+    {% endfor %}
+{% endif %}
+    <!-- HEADER -->
+    <div class="page-header">
+
+        <div class="d-flex justify-content-between align-items-center flex-nowrap gap-3">
+
+            <h3 class="page-title">
+                <i class="bi bi-people-fill"></i>
+                Course Management
+            </h3>
+
+            <a href="{% url 'course:course_add' %}" class="btn btn-success">
+    <i class="bi bi-plus-circle-fill me-2"></i>
+    Add Course
+</a>
+        </div>
+
+    </div>
+
+    <!-- TOP BUTTONS -->
+    <div class="custom-card p-4 mb-4">
+
+        <div class="section-title">
+            </div>
+
+        <div class="d-flex gap-3 flex-nowrap align-items-center">
+
+            <a href="{% url 'course:course_sample' %}"
+               class="btn btn-outline-success"
+               onclick="return downloadSampleFile(event, this)">
+               <i class="bi bi-file-earmark-arrow-down me-2"></i>
+             Sample File
+            </a>
+                        
+
+            <a href="{% url 'course:course_export' %}"
+               class="btn btn-outline-success">
+
+                <i class="bi bi-download me-2"></i>
+                Download Excel
+
+            </a>
+
+            <form method="post"
+           +       enctype="multipart/form-data"
+                  action="{% url 'course:course_upload' %}"
+                  class="upload-form">
+
+                {% csrf_token %}
+
+                <input type="file"
+                       name="file"
+                       class="form-control"
+                       required>
+
+                <button class="btn btn-success">
+                    <i class="bi bi-upload me-2"></i>
+                    Upload
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- FILTER -->
+    <div class="filter-box">
+
+        <div class="section-title">
+            Filter Course Details
+        </div>
+
+        <form method="get">
+
+            <div class="row g-3">
+
+                <div class="col-lg-2 col-md-6">
+                    <select id="program"
+                            name="program"
+                            class="form-select">
+
+                        <option value="">All Programs</option>
+
+                        {% for p in programs %}
+                            <option value="{{ p }}"
+                                {% if p == selected_program %}
+                                    selected
+                                {% endif %}>
+                                {{ p }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <select id="course_id"
+                            name="course_id"
+                            class="form-select">
+
+                        <option value="">All Course_ids</option>
+
+                        {% for p in course_ids %}
+                            <option value="{{ p }}"
+                                {% if p == selected_course_id %}
+                                    selected
+                                {% endif %}>
+                                {{ p }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <select id="semester"
+                            name="semester"
+                            class="form-select">
+
+                        <option value="">All Semesters</option>
+
+                        {% for p in semesters %}
+                            <option value="{{ p }}"
+                                {% if p == selected_semester %}
+                                    selected
+                                {% endif %}>
+                                {{ p }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+                          
+
+                <div class="col-lg-2 col-md-6">
+                    <select id="course_code"
+                            name="course_code"
+                            class="form-select">
+
+                        <option value="">All Course_codes</option>
+
+                        {% for p in course_codes %}
+                            <option value="{{ p }}"
+                                {% if p == selected_course_code %}
+                                    selected
+                                {% endif %}>
+                                {{ p }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <button class="btn btn-success w-100">
+                        <i class="bi bi-funnel-fill me-2"></i>
+                        Apply
+                    </button>
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <a href="{% url 'course:course_list' %}"
+                       class="btn btn-secondary w-100">
+
+                        <i class="bi bi-arrow-clockwise me-2"></i>
+                        Reset
+
+                    </a>
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+  <!-- SEARCH -->
+<div class="search-box">
+
+    <form method="get">
+
+        <div class="input-group">
+
+            <input type="text"
+                   name="search"
+                   value="{{ search }}"
+                   class="form-control"
+                   placeholder="Search course details...">
+
+            <button class="btn btn-success px-4">
+
+                <i class="bi bi-search me-2"></i>
+
+                Search
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+    <!-- TOTAL -->
+    <div class="mb-3">
+
+        <span class="badge">
+
+            <i class="bi bi-bar-chart-fill me-2"></i>
+            Total Course : {{ total_count }}
+
+        </span>
+
+    </div>
+
+    <!-- TABLE -->
+    <div class="custom-card">
+
+        <div class="table-container">
+
+            <table class="table table-bordered table-striped align-middle"
+                   id="CourseTable">
+
+<thead class="custom-header">
+<tr>
+<th onclick="sortTable(0,this)">Slno <i class="bi bi-arrow-down-up sort-icon"></i></th>
+<th onclick="sortTable(1,this)">Program <i class="bi bi-arrow-down-up sort-icon"></i></th>
+<th onclick="sortTable(2,this)">Course_id <i class="bi bi-arrow-down-up sort-icon"></i></th>
+<th onclick="sortTable(3,this)">Department <i class="bi bi-arrow-down-up sort-icon"></i></th>
+<th onclick="sortTable(4,this)">Semester <i class="bi bi-arrow-down-up sort-icon"></i></th>
+<th onclick="sortTable(5,this)">Course_code <i class="bi bi-arrow-down-up sort-icon"></i></th>
+<th onclick="sortTable(6,this)">Course_title <i class="bi bi-arrow-down-up sort-icon"></i></th>
+<th onclick="sortTable(7,this)">External_mark <i class="bi bi-arrow-down-up sort-icon"></i></th>
+<th onclick="sortTable(8,this)">Examiner_int_ext <i class="bi bi-arrow-down-up sort-icon"></i></th>
+<th>Action</th>
+</tr>
+</thead>
+
+                <tbody id="courseTableBody">
+
+                    {% for s in course %}
+
+                    <tr>
+
+                        <td>{{ s.slno }}</td>
+                        <td>{{ s.program }}</td>
+                        <td>{{ s.course_id }}</td>
+                        <td>{{ s.department }}</td>
+                        <td>{{ s.semester }}</td>
+                        <td>{{ s.course_code }}</td>
+                        <td>{{ s.course_title }}</td>
+                        <td>{{ s.external_mark }}</td>
+                        <td>{{ s.examiner_int_ext }}</td>
+                        <td>
+
+                        
+    <div class="d-flex justify-content-center gap-2">
+
+        <a href="{% url 'course:course_edit' s.id %}"
+           class="btn btn-warning btn-sm action-btn">
+
+            <i class="bi bi-pencil-fill"></i>
+
+        </a>
+
+        <form method="post"
+              action="{% url 'course:course_delete' s.id %}"
+              onsubmit="return confirm('Are you sure you want to delete this course?');">
+
+            {% csrf_token %}
+
+            <button type="submit"
+                    class="btn btn-danger btn-sm action-btn">
+
+                <i class="bi bi-trash-fill"></i>
+
+            </button>
+
+        </form>
+
+    </div>
+
+    </td>
+
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="16"
+                            class="py-5 fw-semibold text-secondary">
+
+                            <i class="bi bi-database-x fs-4 d-block mb-2"></i>
+                            No data found
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <!-- PAGINATION -->
+
+    {% if course.has_other_pages %}
+
+    <div class="pagination-wrapper">
+
+        <div class="pagination-info">
+
+            Showing
+
+            <span>{{ course.start_index }}</span>
+
+            to
+
+            <span>{{ course.end_index }}</span>
+
+            of
+
+            <span>{{ course.paginator.count }}</span>
+
+            Entries
+
+        </div>
+
+        <div class="pagination-center">
+
+            {% if course.has_previous %}
+
+                <a href="?page=1"
+                   class="page-btn">
+
+                    <i class="bi bi-chevron-double-left"></i>
+
+                </a>
+
+                <a href="?page={{ course.previous_page_number }}"
+                   class="page-btn">
+
+                    <i class="bi bi-chevron-left"></i>
+
+                </a>
+
+            {% endif %}
+
+            <form method="get"
+                  class="page-form">
+
+                <input type="number"
+                       name="page"
+                       min="1"
+                       max="{{ course.paginator.num_pages }}"
+                       value="{{ course.number }}"
+                       class="page-input">
+
+                <button class="go-btn">
+                    Go
+                </button>
+
+            </form>
+
+            <span class="fw-semibold text-secondary">
+
+                of {{ course.paginator.num_pages }}
+
+            </span>
+
+            {% if course.has_next %}
+
+                <a href="?page={{ course.next_page_number }}"
+                   class="page-btn">
+
+                    <i class="bi bi-chevron-right"></i>
+
+                </a>
+
+                <a href="?page={{ course.paginator.num_pages }}"
+                   class="page-btn">
+
+                    <i class="bi bi-chevron-double-right"></i>
+
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+<form method="post"
+      enctype="multipart/form-data"
+      action="{% url 'course:course_upload' %}"
+      class="upload-form">
+
+<form method="post"
+      enctype="multipart/form-data"
+      action="{% url 'course:course_upload' %}"
+      class="upload-form">
+
+
+<script>
+
+let sortDirections = {};
+
+function sortTable(columnIndex, element){
+
+    let table=document.querySelector("#courseTableBody");
+    let rows=Array.from(table.querySelectorAll("tr"));
+
+    rows=rows.filter(
+        row=>row.children.length>1
+    );
+
+    if(!sortDirections[columnIndex]){
+        sortDirections[columnIndex]="asc";
+    }
+
+    let direction=sortDirections[columnIndex];
+
+    rows.sort(function(a,b){
+
+        let aText=a.children[columnIndex]
+        .innerText.trim().toLowerCase();
+
+        let bText=b.children[columnIndex]
+        .innerText.trim().toLowerCase();
+
+        let aNum=parseFloat(aText);
+        let bNum=parseFloat(bText);
+
+        if(!isNaN(aNum) && !isNaN(bNum)){
+            return direction==="asc"
+            ? aNum-bNum
+            : bNum-aNum;
+        }
+
+        return direction==="asc"
+        ? aText.localeCompare(bText)
+        : bText.localeCompare(aText);
+
+    });
+
+    rows.forEach(row=>table.appendChild(row));
+
+    document.querySelectorAll(".sort-icon")
+    .forEach(icon=>{
+        icon.className=
+        "bi bi-arrow-down-up sort-icon";
+    });
+
+    let icon=element.querySelector(".sort-icon");
+
+    if(direction==="asc"){
+
+        icon.className=
+        "bi bi-sort-alpha-down sort-icon";
+
+        sortDirections[columnIndex]="desc";
+
+    }else{
+
+        icon.className=
+        "bi bi-sort-alpha-up sort-icon";
+
+        sortDirections[columnIndex]="asc";
+
+    }
+}
+
+function loadDropdowns(changedField){
+
+    let program=document.getElementById("program").value;
+    let course_id=document.getElementById("course_id").value;
+    let semester=document.getElementById("semester").value;
+    let course_code=document.getElementById("course_code").value;
+
+    fetch(`/course/ajax/filter/?program=${program}&course_id=${course_id}&semester=${semester}&course_code=${course_code}`)
+
+    .then(response=>response.json())
+
+    .then(data=>{
+
+        updateDropdown(
+        "course_id",
+        data.course_ids,
+        course_id,
+        "All Course_ids"
+        );
+
+        updateDropdown(
+        "semester",
+        data.semesters,
+        semester,
+        "All Semesters"
+        );
+
+        updateDropdown(
+        "course_code",
+        data.course_codes,
+        course_code,
+        "All Course_codes"
+        );
+
+    });
+}
+
+function updateDropdown(
+id,
+values,
+selectedValue,
+defaultText
+){
+
+let dropdown=document.getElementById(id);
+
+dropdown.innerHTML=
+`<option value="">${defaultText}</option>`;
+
+values.forEach(function(item){
+
+let selected=
+item==selectedValue
+? "selected"
+: "";
+
+dropdown.innerHTML+=
+`<option value="${item}" ${selected}>${item}</option>`;
+
+});
+}
+
+document.getElementById("program")
+.addEventListener(
+"change",
+()=>loadDropdowns("program")
+);
+
+document.getElementById("course_id")
+.addEventListener(
+"change",
+()=>loadDropdowns("course_id")
+);
+
+document.getElementById("semester")
+.addEventListener(
+"change",
+()=>loadDropdowns("semester")
+);
+
+document.getElementById("course_code")
+.addEventListener(
+"change",
+()=>loadDropdowns("course_code")
+);
+
+function downloadSampleFile(event,el){
+
+event.preventDefault();
+
+let ok=confirm(
+"Sample Excel file download"
+);
+
+if(ok){
+window.location.href=el.href;
+}
+
+return false;
+
+}
+
+</script>
+
+
+
+{% endblock %}
