@@ -1,11 +1,18 @@
-from django.urls import path
-from . import views
+from django.contrib import admin
 from django.urls import path, include
+from core import views as core_views
 
 urlpatterns = [
-    path('', views.dashboard, name='dashboard'),
-    path('staff/', views.staff_list, name='staff'),
+    path('admin/', admin.site.urls),
+
+    # Authentication
+    path('', core_views.login_view, name='login'),
+    path('login/', core_views.login_view, name='login'),
+
+    # Dashboard
+    path('dashboard/', core_views.dashboard, name='dashboard'),
+
+    # Apps
     path('staff/', include('staff.urls')),
-    path('course/', views.course_list, name='course'),
     path('course/', include('course.urls')),
 ]
