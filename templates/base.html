@@ -1,470 +1,227 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>
-        QPS Management System
-    </title>
-
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
-
-    <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
-          rel="stylesheet">
-
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
-          rel="stylesheet">
-
-<style>
-
-/* =========================
-   GLOBAL
-========================= */
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
-:root{
-
-    --primary:#d98b95;
-    --secondary:#b85c6a;
-
-    --bg:#fff5f7;
-    --bg2:#fdecef;
-
-    --white:#ffffff;
-
-    --text:#7e2b3a;
-    --text-light:#9b5d67;
-
-    --border:#f3d7dc;
-
-    --shadow:
-        0 15px 35px rgba(184,92,106,0.10);
-
-}
-
-body{
-
-    font-family:'Outfit',sans-serif;
-
-    background:
-        linear-gradient(
-            135deg,
-            #b7f6e6 0%,
-            #d1e9c6 40%,
-            #cef7bf 100%
-        );
-
-    color:var(--text);
-
-    overflow-x:hidden;
-
-    position:relative;
-
-}
-
-/* BACKGROUND EFFECT */
-
-body::before{
-
-    content:'';
-
-    position:fixed;
-
-    width:320px;
-    height:320px;
-
-    background:#ffccd5;
-
-    border-radius:50%;
-
-    top:-100px;
-    left:-80px;
-
-    filter:blur(90px);
-
-    opacity:.5;
-
-    z-index:-1;
-
-}
-
-body::after{
-
-    content:'';
-
-    position:fixed;
-
-    width:350px;
-    height:350px;
-
-    background:#f5b8c4;
-
-    border-radius:50%;
-
-    bottom:-120px;
-    right:-100px;
-
-    filter:blur(100px);
-
-    opacity:.5;
-
-    z-index:-1;
-
-}
-
-/* =========================
-   SIDEBAR
-========================= */
-
-.sidebar{
-
-    width:290px;
-
-    height:100vh;
-
-    position:fixed;
-
-    left:0;
-    top:0;
-
-    background:
-        rgba(255,255,255,.55);
-
-    backdrop-filter:blur(20px);
-
-    border-right:
-        1px solid rgba(255,255,255,.7);
-
-    padding:24px 18px;
-
-    overflow-y:auto;
-
-    z-index:1000;
-
-    box-shadow:
-        10px 0 35px rgba(184,92,106,0.08);
-
-}
-
-/* LOGO */
-
-.logo-box{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:16px;
-
-    margin-bottom:45px;
-
-}
-
-.logo-icon{
-
-    width:64px;
-    height:64px;
-
-    border-radius:22px;
-
-    background:
-        linear-gradient(
-            135deg,
-            #d98b95,
-            #b85c6a
-        );
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    color:white;
-
-    font-size:26px;
-
-    box-shadow:
-        0 15px 30px rgba(184,92,106,0.20);
-
-}
-
-.logo-text h3{
-
-    margin:0;
-
-    font-size:28px;
-
-    font-weight:700;
-
-    color:#7e2b3a;
-
-}
-
-.logo-text span{
-
-    color:#9b5d67;
-
-    font-size:11px;
-
-    letter-spacing:2px;
-
-}
-
-/* =========================
-   MENU
-========================= */
-
-.menu-title{
-
-    color:#b07a84;
-
-    font-size:11px;
-
-    text-transform:uppercase;
-
-    letter-spacing:2px;
-
-    margin:
-        28px 0 12px 10px;
-
-}
-
-.menu-item{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:15px;
-
-    padding:15px 18px;
-
-    border-radius:18px;
-
-    text-decoration:none;
-
-    color:#7e2b3a;
-
-    margin-bottom:12px;
-
-    transition:0.3s;
-
-    font-size:15px;
-
-    font-weight:500;
-
-}
-
-.menu-item i{
-
-    font-size:20px;
-
-}
-
-.menu-item:hover{
-
-    background:
-        linear-gradient(
-            135deg,
-            #ffe5ea,
-            #fff1f3
-        );
-
-    color:#b85c6a;
-
-    transform:translateX(6px);
-
-}
-
-.active-menu{
-
-    background:
-        linear-gradient(
-            135deg,
-            #d98b95,
-            #b85c6a
-        );
-
-    color:white;
-
-    box-shadow:
-        0 12px 24px rgba(184,92,106,0.22);
-
-}
-
-/* =========================
-   MAIN CONTENT
-========================= */
-
-.main-content{
-
-    margin-left:290px;
-
-    min-height:100vh;
-
-    padding:30px;
-
-}
-
-/* =========================
-   MOBILE
-========================= */
-
-@media(max-width:992px){
-
-    .sidebar{
-
-        width:100%;
-
-        height:auto;
-
-        position:relative;
-
-    }
-
-    .main-content{
-
-        margin-left:0;
-
-    }
-
-}
-
-</style>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>JMC QPS Portal | Management Dashboard</title>
+    
+    <!-- Tailwind CSS v3 + Inter Font + Bootstrap Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'jmc-maroon': '#8b1e3f',
+                        'jmc-maroon-dark': '#6b142f',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        a { text-decoration: none !important; }
+    </style>
 </head>
+<body class="bg-[#f8fafc] font-sans antialiased text-slate-900 text-[14px] min-h-screen">
 
-<body>
-
-<!-- SIDEBAR -->
-
-<div class="sidebar">
-
-    <!-- LOGO -->
-
-    <div class="logo-box">
-
-        <div class="logo-icon">
-
-            <i class="bi bi-grid-1x2-fill"></i>
-
+    <aside class="w-full md:w-64 bg-white border-r border-slate-200 shadow-sm md:fixed md:inset-y-0 md:left-0 z-30 flex flex-col">
+        <!-- Institution Branding Box -->
+        <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+            <div class="flex items-center gap-3">
+                <img src="{% static 'images/logo.png' %}" class="w-10 h-10 object-contain" alt="JMC Logo">
+                <div class="overflow-hidden">
+                    <h1 class="text-[13px] font-bold text-jmc-maroon tracking-wider truncate">JAMAL MOHAMED COLLEGE</h1>
+                    <span class="text-[11px] font-medium text-slate-500 block uppercase tracking-widest">QPS Admin Portal</span>
+                </div>
+            </div>
         </div>
 
-        <div class="logo-text">
+        <!-- Navigation Directories -->
+        <div class="flex-1 p-4 space-y-7 overflow-y-auto">
+            <div>
+                <p class="text-[11px] font-bold uppercase tracking-widest text-slate-400 px-3 mb-3">Core Operations</p>
+                <nav class="space-y-2">
+                    <a href="{% url 'dashboard' %}" class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-semibold bg-jmc-maroon text-white shadow-sm transition-colors">
+                        <i class="bi bi-columns-gap text-base"></i>
+                        <span>System Dashboard</span>
+                    </a>
+                    <a href="{% url 'staff:staff_list' %}" class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-jmc-maroon transition-colors">
+                        <i class="bi bi-person-workspace text-base"></i>
+                        <span>Staff Directory</span>
+                    </a>
+                    <a href="{% url 'course:course_list' %}" class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-jmc-maroon transition-colors">
+                        <i class="bi bi-journal-code text-base"></i>
+                        <span>Course Ledger</span>
+                    </a>
+                    <a href="#" class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-jmc-maroon transition-colors">
+                        <i class="bi bi-file-earmark-text text-base"></i>
+                        <span>Syllabus Registries</span>
+                    </a>
+                    <a href="#" class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-jmc-maroon transition-colors">
+                        <i class="bi bi-ui-checks-grid text-base"></i>
+                        <span>Task Allocations</span>
+                    </a>
+                </nav>
+            </div>
 
-            <h3>QPS</h3>
-
-            <span>
-                MANAGEMENT SYSTEM
-            </span>
-
+            <div>
+                <p class="text-[11px] font-bold uppercase tracking-widest text-slate-400 px-3 mb-3">Administrative</p>
+                <nav class="space-y-1">
+                    <a href="#" class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-jmc-maroon transition-colors">
+                        <i class="bi bi-person-plus text-base"></i>
+                        <span>Provision Identity</span>
+                    </a>
+                    <a href="#" class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-jmc-maroon transition-colors">
+                        <i class="bi bi-key text-base"></i>
+                        <span>Credential Policy</span>
+                    </a>
+                    <a href="#" class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium text-red-600 hover:bg-red-50/60 transition-colors">
+                        <i class="bi bi-power text-base"></i>
+                        <span>Terminate Session</span>
+                    </a>
+                </nav>
+            </div>
         </div>
+        
+        <!-- Environment Metadata Footer -->
+        <div class="p-4 border-t border-slate-100 bg-slate-50/50 text-[11px] text-slate-400 font-mono tracking-tight flex items-center justify-between">
+            <span>SECURE SERVER v2.0</span>
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-500" title="System Status: Operational"></span>
+        </div>
+    </aside>
 
-    </div>
+    <main class="md:ml-64 min-h-screen flex flex-col">
 
-    <!-- MENU -->
+        <!-- Dynamic Page Injector Container -->
+        <div class="p-6 md:p-8 flex-1 max-w-7xl w-full mx-auto">
+            {% block content %}
+            <div class="space-y-6">
+                <!-- Action / Metric Context Header -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold tracking-tight text-slate-900">System Dashboard</h2>
+                        <p class="text-slate-500 text-sm mt-0.5">Summary of centralized indicators and active generation logs.</p>
+                    </div>
+                    <div class="flex items-center gap-2.5">
+                        <button class="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-50 rounded-md text-slate-700 font-semibold text-xs tracking-tight shadow-sm transition">
+                            Export Manifest
+                        </button>
+                        <button class="px-4 py-2 bg-jmc-maroon hover:bg-jmc-maroon-dark text-white rounded-md font-semibold text-xs tracking-tight shadow-sm transition">
+                            Create Assignment
+                        </button>
+                    </div>
+                </div>
 
-    <div class="menu-title">
-        MAIN MENU
-    </div>
+                <!-- Metrics Component Matrix -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-slate-400 font-bold text-[11px] tracking-wider uppercase">Aggregated Papers</p>
+                                <p class="text-3xl font-bold text-slate-900 tracking-tight mt-1.5">1,284</p>
+                            </div>
+                            <span class="text-[11px] font-mono font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">+12% YTD</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+                        <p class="text-slate-400 font-bold text-[11px] tracking-wider uppercase">Active Academic Staff</p>
+                        <p class="text-3xl font-bold text-slate-900 tracking-tight mt-1.5">47</p>
+                    </div>
+                    
+                    <div class="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+                        <p class="text-slate-400 font-bold text-[11px] tracking-wider uppercase">Registered Courses</p>
+                        <p class="text-3xl font-bold text-slate-900 tracking-tight mt-1.5">24</p>
+                    </div>
+                    
+                    <div class="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-slate-400 font-bold text-[11px] tracking-wider uppercase">Pending Directives</p>
+                                <p class="text-3xl font-bold text-slate-900 tracking-tight mt-1.5">8</p>
+                            </div>
+                            <span class="w-2 h-2 rounded-full bg-amber-500 mt-2"></span>
+                        </div>
+                    </div>
+                </div>
 
-    <a href="{% url 'dashboard' %}"
-       class="menu-item active-menu">
+                <!-- Tabular Log Stream Component -->
+                <div class="bg-white border border-slate-200 rounded-lg shadow-sm">
+                    <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+                        <h3 class="font-bold text-xs uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                            <i class="bi bi-clock-history text-slate-400"></i> Operation Audit Stream
+                        </h3>
+                        <span class="text-[11px] font-mono text-slate-400">Live Infrastructure Logging</span>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-[13px] text-slate-600 border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 font-semibold text-slate-500">
+                                    <th class="p-4 pl-5">Status Event</th>
+                                    <th class="p-4">Functional Context</th>
+                                    <th class="p-4 text-right pr-5">Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 font-medium">
+                                <tr class="hover:bg-slate-50/30">
+                                    <td class="p-4 pl-5 flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                        <span class="text-slate-900">Upload Composed</span>
+                                    </td>
+                                    <td class="p-4 text-slate-500">Question paper for B.Sc Computer Science (Apr 2026) submitted</td>
+                                    <td class="p-4 text-right pr-5 text-slate-400 font-mono text-[12px]">2h ago</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50/30">
+                                    <td class="p-4 pl-5 flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                        <span class="text-slate-900">Staff Linkage Added</span>
+                                    </td>
+                                    <td class="p-4 text-slate-500">Dr. S. Geetha synchronized with Department of Mathematics</td>
+                                    <td class="p-4 text-right pr-5 text-slate-400 font-mono text-[12px]">1d ago</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50/30">
+                                    <td class="p-4 pl-5 flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                                        <span class="text-slate-900">Allocation Closed</span>
+                                    </td>
+                                    <td class="p-4 text-slate-500">QPS Allocation workflow for Even Semester 2026 finalized</td>
+                                    <td class="p-4 text-right pr-5 text-slate-400 font-mono text-[12px]">2d ago</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endblock %}
+        </div>
+    </main>
 
-        <i class="bi bi-grid-fill"></i>
-        Dashboard
-
-    </a>
-
-    <a href="{% url 'staff:staff_list' %}"
-       class="menu-item">
-
-        <i class="bi bi-people-fill"></i>
-        Staff Management
-
-    </a>
-
-    <a href="{% url 'course:course_list' %}"
-       class="menu-item">
-
-        <i class="bi bi-people-fill"></i>
-        Course Management
-
-    </a>
-
-    <a href="#"
-       class="menu-item">
-
-        <i class="bi bi-journal-richtext"></i>
-        Syllabus Management
-
-    </a>
-
-    <a href="#"
-       class="menu-item">
-
-        <i class="bi bi-diagram-3-fill"></i>
-        QPS Allocation
-
-    </a>
-
-    <!-- SETTINGS -->
-
-    <div class="menu-title">
-        SETTINGS
-    </div>
-
-    <a href="#"
-       class="menu-item">
-
-        <i class="bi bi-person-plus-fill"></i>
-        Create User
-
-    </a>
-
-    <a href="#"
-       class="menu-item">
-
-        <i class="bi bi-shield-lock-fill"></i>
-        Password Change
-
-    </a>
-
-    <a href="#"
-       class="menu-item">
-
-        <i class="bi bi-box-arrow-right"></i>
-        Logout
-
-    </a>
-      
-</div>
-
-<!-- MAIN CONTENT -->
-
-<div class="main-content">
-
-    {% block content %}
-    {% endblock %}
-
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Client Link Tracker Synchronization Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const menuLinks = document.querySelectorAll('.menu-item');
+            menuLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && href !== '#' && currentPath.includes(href)) {
+                    menuLinks.forEach(l => {
+                        l.classList.remove('bg-jmc-maroon', 'text-white', 'font-semibold');
+                        l.classList.add('text-slate-600', 'font-medium', 'hover:bg-slate-50');
+                    });
+                    link.classList.add('bg-jmc-maroon', 'text-white', 'font-semibold');
+                    link.classList.remove('text-slate-600', 'font-medium', 'hover:bg-slate-50');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

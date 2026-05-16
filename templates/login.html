@@ -1,617 +1,152 @@
 {% load static %}
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>JMC Question Paper Portal</title>
-
-    <!-- Bootstrap -->
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-          rel="stylesheet">
-
-    <!-- Bootstrap Icons -->
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
-          rel="stylesheet">
-
-    <!-- Google Font -->
-
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
-          rel="stylesheet">
-
-<style>
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
-body{
-
-    min-height:100vh;
-
-    overflow:hidden;
-
-    font-family:'Poppins',sans-serif;
-
-    background:
-    linear-gradient(
-    135deg,
-    #b7f6e6 0%,
-    #d1e9c6 40%,
-    #cef7bf 100%
-    );
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    position:relative;
-
-}
-
-/* BACKGROUND CIRCLES */
-
-.circle1,
-.circle2,
-.circle3{
-
-    position:absolute;
-
-    border-radius:50%;
-
-    filter:blur(80px);
-
-    opacity:.45;
-
-}
-
-.circle1{
-
-    width:300px;
-    height:300px;
-
-    background:#ffb7c5;
-
-    top:-100px;
-    left:-80px;
-
-}
-
-.circle2{
-
-    width:350px;
-    height:350px;
-
-    background:#f9c5d1;
-
-    bottom:-120px;
-    right:-100px;
-
-}
-
-.circle3{
-
-    width:220px;
-    height:220px;
-
-    background:#fce7ec;
-
-    top:40%;
-    left:45%;
-
-}
-
-/* MAIN LOGIN BOX */
-
-.login-wrapper{
-
-    width:670px;
-
-    padding:45px;
-
-    border-radius:35px;
-
-    background:
-    rgba(255,255,255,.35);
-
-    backdrop-filter:blur(25px);
-
-    border:
-    1px solid rgba(255,255,255,.5);
-
-    box-shadow:
-    0 25px 60px rgba(0,0,0,.10);
-
-    position:relative;
-
-    z-index:10;
-
-}
-
-/* TOP HEADER */
-
-.top-header{
-
-    text-align:center;
-
-    margin-bottom:35px;
-
-}
-
-/* LOGO */
-
-.logo-box{
-
-    width:110px;
-    height:110px;
-
-    border-radius:30px;
-
-    background:
-    rgba(255,255,255,.55);
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    margin:auto;
-
-    margin-bottom:20px;
-
-    box-shadow:
-    0 12px 25px rgba(0,0,0,.08);
-
-}
-
-.logo{
-
-    width:80px;
-    height:80px;
-
-    object-fit:contain;
-
-}
-
-/* COLLEGE NAME */
-
-.college-name{
-
-    font-size:28px;
-
-    font-weight:800;
-
-    color:#8a3040;
-
-    line-height:1.4;
-
-    margin-bottom:8px;
-
-}
-
-.college-sub{
-
-    color:#9d5c67;
-
-    font-size:14px;
-
-    font-weight:600;
-
-    letter-spacing:.4px;
-
-}
-
-/* PORTAL */
-
-.portal-title{
-
-    margin-top:30px;
-
-    font-size:30px;
-
-    font-weight:700;
-
-    color:#7e2b3a;
-
-}
-
-.portal-sub{
-
-    color:#9a5b65;
-
-    font-size:14px;
-
-    margin-top:6px;
-
-    margin-bottom:35px;
-
-}
-
-/* ALERT */
-
-.alert{
-
-    border:none;
-
-    border-radius:16px;
-
-    background:#ffe5ea;
-
-    color:#8b3041;
-
-    font-size:13px;
-
-    font-weight:600;
-
-}
-
-/* INPUT */
-
-.input-group{
-
-    height:58px;
-
-    border-radius:18px;
-
-    overflow:hidden;
-
-    background:
-    rgba(255,255,255,.60);
-
-    border:
-    1px solid rgba(255,255,255,.8);
-
-    margin-bottom:24px;
-
-    box-shadow:
-    0 5px 18px rgba(0,0,0,.05);
-
-    transition:.3s;
-
-}
-
-.input-group:focus-within{
-
-    transform:translateY(-2px);
-
-    border-color:#d98c97;
-
-    box-shadow:
-    0 8px 25px rgba(217,140,151,.18);
-
-}
-
-.input-group-text{
-
-    border:none !important;
-
-    background:transparent !important;
-
-    color:#a04558;
-
-    font-size:18px;
-
-    padding-left:18px;
-
-}
-
-.form-control{
-
-    border:none !important;
-
-    background:transparent !important;
-
-    box-shadow:none !important;
-
-    font-size:15px;
-
-    color:#7a2c3a !important;
-
-    font-weight:500;
-
-}
-
-.form-control::placeholder{
-
-    color:#a86b75;
-
-}
-
-/* LOGIN BUTTON */
-
-.login-btn{
-
-    width:100%;
-
-    height:58px;
-
-    border:none;
-
-    border-radius:18px;
-
-    background:
-    linear-gradient(
-    135deg,
-    #d98b95,
-    #ed8b99
-    );
-
-    color:#fff;
-
-    font-size:17px;
-
-    font-weight:700;
-
-    letter-spacing:.5px;
-
-    margin-top:10px;
-
-    transition:.35s;
-
-    box-shadow:
-    0 15px 30px rgba(184,92,106,.25);
-
-}
-
-.login-btn:hover{
-
-    transform:translateY(-3px);
-
-    background:
-    linear-gradient(
-    135deg,
-    #c96f7d,
-    #9d4150
-    );
-
-}
-
-/* FOOTER */
-
-.footer{
-
-    margin-top:28px;
-
-    text-align:center;
-
-    color:#8e5560;
-
-    font-size:13px;
-
-    font-weight:500;
-
-}
-
-.footer span{
-
-    color:#7d2e3c;
-
-    font-weight:700;
-
-}
-
-/* RESPONSIVE */
-
-@media(max-width:576px){
-
-    body{
-
-        overflow:auto;
-
-        padding:20px;
-
-    }
-
-    .login-wrapper{
-
-        width:100%;
-
-        padding:35px 25px;
-
-    }
-
-    .college-name{
-
-        font-size:22px;
-
-    }
-
-    .portal-title{
-
-        font-size:24px;
-
-    }
-
-}
-
-</style>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>JMC Question Paper Portal | Secure Access</title>
+    
+    <!-- Tailwind CSS v3 + Inter Font + Bootstrap Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Tailwind custom config to extend theme (optional overrides) -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Additional subtle custom styling for multi-stop gradient background (preserving original look) */
+        body {
+            background: linear-gradient(135deg, #f9f4f5 0%, #f4e7ea 40%, #f7f3f4 100%);
+        }
+        /* Smooth transition for all interactive elements */
+        .transition-smooth {
+            transition: all 0.25s ease;
+        }
+    </style>
 </head>
+<body class="relative min-h-screen flex items-center justify-center p-5 md:p-8 overflow-x-hidden font-sans antialiased">
 
-<body>
+    <!-- BACKGROUND BLUR SHAPES (original style) -->
+    <div class="fixed w-72 h-72 md:w-[350px] md:h-[350px] bg-[#ffccd5] rounded-full blur-[80px] opacity-40 -top-24 -left-20 z-0"></div>
+    <div class="fixed w-80 h-80 md:w-[400px] md:h-[400px] bg-[#ffdce3] rounded-full blur-[90px] opacity-40 -bottom-28 -right-24 z-0"></div>
+    <div class="fixed w-64 h-64 md:w-[300px] md:h-[300px] bg-[#f7c8d4] rounded-full blur-[80px] opacity-30 top-1/3 left-1/3 z-0"></div>
 
-<!-- BACKGROUND -->
-
-<div class="circle1"></div>
-<div class="circle2"></div>
-<div class="circle3"></div>
-
-<!-- LOGIN -->
-
-<div class="login-wrapper">
-
-    <!-- HEADER -->
-
-    <div class="top-header">
-
-        <!-- LOGO -->
-
-        <div class="logo-box">
-
-            <img src="{% static 'images/logo.png' %}"
-                 class="logo">
-
-        </div>
-
-        <!-- COLLEGE NAME -->
-
-        <div class="college-name">
-
-            JAMAL MOHAMED COLLEGE (AUTONOMOUS),
-
-        </div>
-
-        <div class="college-sub">
-
-             TIRUCHIRAPPALLI - 620 020
-
-        </div>
-
-        <!-- PORTAL -->
-
-        <div class="portal-title">
-
-            Question Paper Portal
-
-        </div>
-
-        <div class="portal-sub">
-
+    <!-- MAIN LOGIN CARD: Glassmorphism + two-panel layout (Tailwind) -->
+    <div class="relative z-10 w-full max-w-[1100px] bg-white/70 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/40 overflow-hidden flex flex-col md:flex-row transition-all duration-300">
+        
+        <!-- LEFT PANEL: Branding / College Info (Gradient) -->
+        <div class="w-full md:w-6/12 bg-gradient-to-br from-[#8b1e3f] to-[#c44569] text-white p-8 md:p-12 flex flex-col justify-center items-center text-center relative overflow-hidden">
+            <!-- Decorative abstract circles (pseudo elements replaced with absolute divs) -->
+            <div class="absolute w-56 h-56 bg-white/10 rounded-full -top-20 -right-20"></div>
+            <div class="absolute w-48 h-48 bg-white/5 rounded-full -bottom-20 -left-20"></div>
             
+            <!-- Logo area -->
+            <div class="w-28 h-28 bg-white/15 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20 shadow-lg mb-7">
+                <img src="{% static 'images/logo.png' %}" class="w-20 h-20 object-contain" alt="JMC Logo">
+            </div>
+            
+            <!-- College Name -->
+            <h2 class="text-3xl md:text-3xl font-extrabold leading-tight tracking-tight">JAMAL MOHAMED COLLEGE</h2>
+            <div class="text-sm font-medium mt-2 opacity-90 space-y-1">
+                <p>(AUTONOMOUS)</p>
+                <p>Tiruchirappalli - 620 020</p>
+            </div>
+            
+            <!-- Description -->
+            <div class="mt-8 text-sm md:text-base leading-relaxed opacity-85 max-w-xs mx-auto">
+                Secure digital platform for managing and accessing university question papers efficiently and professionally.
+            </div>
         </div>
-
+        
+        <!-- RIGHT PANEL: Login Form -->
+        <div class="w-full md:w-6/12 p-8 md:p-12 bg-transparent flex flex-col justify-center">
+            <!-- Portal Title -->
+            <h1 class="text-3xl md:text-4xl font-extrabold text-[#8b1e3f] tracking-tight">Question Paper Portal</h1>
+            <p class="text-gray-500 text-sm mt-2 mb-6">Sign in to continue to the dashboard</p>
+            
+            <!-- Django Messages (Error / Success Alerts) -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="mb-5 px-4 py-3 rounded-xl bg-[#ffe8ed] text-[#9b1c3d] border-l-4 border-[#c44569] flex items-center gap-2 text-sm font-semibold">
+                        <i class="bi bi-exclamation-circle-fill text-base"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <!-- Login Form -->
+            <form method="POST" class="mt-2">
+                {% csrf_token %}
+                
+                <!-- Username Field -->
+                <div class="mb-5">
+                    <label class="block text-gray-700 text-sm font-semibold mb-3">Username</label>
+                    <div class="flex items-center bg-white border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#c44569]/30 focus-within:border-[#c44569] transition-all duration-200">
+                        <span class="pl-4 text-[#a23b5b]"><i class="bi bi-person-fill text-lg"></i></span>
+                        <input type="text" name="username" class="w-full py-3.5 px-3 outline-none bg-transparent text-gray-800 font-medium text-sm" placeholder="Enter your username" required autofocus>
+                    </div>
+                </div>
+                
+                <!-- Password Field with Toggle Visibility -->
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-semibold mb-3">Password</label>
+                    <div class="flex items-center bg-white border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#c44569]/30 focus-within:border-[#c44569] transition-all duration-200">
+                        <span class="pl-4 text-[#a23b5b]"><i class="bi bi-lock-fill text-lg"></i></span>
+                        <input type="password" id="password" name="password" class="w-full py-3.5 px-3 outline-none bg-transparent text-gray-800 font-medium text-sm" placeholder="Enter your password" required>
+                        <button type="button" onclick="togglePassword()" class="pr-4 text-gray-500 hover:text-[#c44569] transition-colors cursor-pointer">
+                            <i class="bi bi-eye-fill text-lg" id="toggleIcon"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Login Button -->
+                <button type="submit" class="w-full bg-gradient-to-r from-[#8b1e3f] to-[#c44569] hover:from-[#741732] hover:to-[#a83256] text-white font-bold py-3.5 rounded-xl shadow-lg shadow-[#8b1e3f]/20 transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 text-base tracking-wide mt-2">
+                    <i class="bi bi-box-arrow-in-right text-lg"></i>
+                    LOGIN
+                </button>
+            </form>
+            
+            <!-- Footer -->
+            <div class="mt-8 text-center text-gray-500 text-xs border-t border-gray-100 pt-6">
+                © 2026 <span class="font-bold text-[#8b1e3f]">JMC Portal</span> • All Rights Reserved
+            </div>
+        </div>
     </div>
 
-    <!-- ALERT -->
-
-    {% if messages %}
-        {% for message in messages %}
-
-            <div class="alert alert-danger mb-4">
-
-                <i class="bi bi-exclamation-circle-fill me-2"></i>
-
-                {{ message }}
-
-            </div>
-
-        {% endfor %}
-    {% endif %}
-
-    <!-- LOGIN FORM -->
-
-    <form method="POST">
-
-        {% csrf_token %}
-
-        <!-- USERNAME -->
-
-        <div class="input-group">
-
-            <span class="input-group-text">
-
-                <i class="bi bi-person-fill"></i>
-
-            </span>
-
-            <input type="text"
-                   name="username"
-                   class="form-control"
-                   placeholder="Enter Username"
-                   required>
-
-        </div>
-
-        <!-- PASSWORD -->
-
-        <div class="input-group">
-
-            <span class="input-group-text">
-
-                <i class="bi bi-lock-fill"></i>
-
-            </span>
-
-            <input type="password"
-                   id="password"
-                   name="password"
-                   class="form-control"
-                   placeholder="Enter Password"
-                   required>
-
-            <span class="input-group-text"
-                  style="cursor:pointer;"
-                  onclick="togglePassword()">
-
-                <i class="bi bi-eye-fill"
-                   id="toggleIcon"></i>
-
-            </span>
-
-        </div>
-
-        <!-- BUTTON -->
-
-        <button class="login-btn">
-
-            <i class="bi bi-box-arrow-in-right me-2"></i>
-
-            LOGIN NOW
-
-        </button>
-
-    </form>
-
-   
-
-</div>
-
-<!-- SCRIPT -->
-
-<script>
-
-function togglePassword(){
-
-    let password =
-        document.getElementById("password");
-
-    let icon =
-        document.getElementById("toggleIcon");
-
-    if(password.type === "password"){
-
-        password.type = "text";
-
-        icon.classList.remove("bi-eye-fill");
-
-        icon.classList.add("bi-eye-slash-fill");
-
-    }
-
-    else{
-
-        password.type = "password";
-
-        icon.classList.remove("bi-eye-slash-fill");
-
-        icon.classList.add("bi-eye-fill");
-
-    }
-
-}
-
-</script>
-
+    <!-- Simple JavaScript for Password Toggle -->
+    <script>
+        function togglePassword() {
+            const passwordField = document.getElementById('password');
+            const toggleIcon = document.getElementById('toggleIcon');
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleIcon.classList.remove('bi-eye-fill');
+                toggleIcon.classList.add('bi-eye-slash-fill');
+            } else {
+                passwordField.type = 'password';
+                toggleIcon.classList.remove('bi-eye-slash-fill');
+                toggleIcon.classList.add('bi-eye-fill');
+            }
+        }
+    </script>
 </body>
 </html>

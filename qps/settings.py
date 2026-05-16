@@ -57,9 +57,9 @@ TEMPLATES = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'qpms',   
+        'NAME': 'qps',   
         'USER': 'postgres',
-        'PASSWORD': 'admin123',
+        'PASSWORD': 'haneef9498',
         'HOST': 'localhost',
         'PORT': '5432',
 
