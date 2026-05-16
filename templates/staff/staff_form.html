@@ -1,515 +1,139 @@
-{% extends 'base.html' %}
+{% extends 'layout.html' %}
+{% load static %}
+
 {% block content %}
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-<style>
-
-body{
-    background:linear-gradient(
-    135deg,
-    #b7f6e6 0%,
-    #d1e9c6 40%,
-    #cef7bf 100%);
-    font-family:'Poppins',sans-serif;
-}
-
-.staff-container{
-    max-width:1150px;
-    margin:auto;
-}
-
-.staff-card{
-    background:#ffffff;
-    border-radius:24px;
-    overflow:hidden;
-    border:none;
-    box-shadow:0 10px 35px rgba(0,0,0,0.08);
-}
-
-.staff-header{
-    background:linear-gradient(
-    135deg,
-    #b7f6e6 0%,
-    #d1e9c6 40%,
-    #cef7bf 100%);
-    padding:30px;
-}
-
-.staff-header h2{
-    font-size:32px;
-    font-weight:700;
-    margin-bottom:8px;
-}
-
-.table{
-    margin-bottom:0;
-}
-
-.table thead{
-    background:#0f172a;
-}
-
-.table thead th{
-    color:#fff;
-    font-size:15px;
-    font-weight:600;
-    padding:18px;
-    border:none;
-}
-
-.table tbody td{
-    padding:18px;
-    vertical-align:middle;
-    border-color:#e9edf3;
-}
-
-.table tbody tr:hover{
-    background:#f8fbff;
-}
-
-.form-control{
-    border-radius:12px;
-    border:1px solid #d7dce5;
-    padding:12px 15px;
-    font-size:15px;
-    font-weight:500;
-    box-shadow:none !important;
-}
-
-.form-control:focus{
-    border-color:#2563eb;
-    box-shadow:0 0 0 4px rgba(37,99,235,.12) !important;
-}
-
-textarea.form-control{
-    resize:none;
-}
-
-.field-title{
-    font-weight:600;
-    color:#1f2937;
-    font-size:15px;
-}
-
-.action-area{
-    padding:25px 30px;
-    background:#f8fafc;
-    border-top:1px solid #e5e7eb;
-}
-
-.btn-save{
-    background:linear-gradient(135deg,#16a34a,#15803d);
-    border:none;
-    color:#fff;
-    font-weight:600;
-    padding:13px 35px;
-    border-radius:14px;
-}
-
-.btn-save:hover{
-    color:#fff;
-}
-
-.btn-reset{
-    border-radius:14px;
-    padding:13px 28px;
-    font-weight:600;
-}
-
-.badge-title{
-    display:inline-flex;
-    align-items:center;
-    gap:10px;
-    background:rgba(255,255,255,.4);
-    padding:10px 18px;
-    border-radius:14px;
-    margin-bottom:18px;
-    font-size:14px;
-    font-weight:500;
-}
-
-/* SUCCESS POPUP */
-.custom-popup{
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100vh;
-    background:rgba(0,0,0,0.25);
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    z-index:99999;
-
-    padding:20px;
-}
-
-.popup-box{
-    width:180px;
-    max-width:100%;
-    background:#fff;
-
-    border-radius:22px;
-
-    padding:35px 30px;
-
-    text-align:center;
-
-    position:relative;
-
-    box-shadow:0 15px 45px rgba(0,0,0,0.18);
-
-    animation:popupScale .3s ease;
-
-    margin:auto;
-}
-
-.popup-close{
-    position:absolute;
-    top:15px;
-    right:15px;
-    border:none;
-    background:none;
-    font-size:18px;
-    color:#6b7280;
-    cursor:pointer;
-}
-
-.popup-icon{
-    width:80px;
-    height:80px;
-    margin:auto;
-    border-radius:50%;
-    background:#dcfce7;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    margin-bottom:18px;
-}
-
-.popup-icon i{
-    font-size:42px;
-    color:#16a34a;
-}
-
-.popup-box h4{
-    font-size:28px;
-    font-weight:700;
-    margin-bottom:12px;
-    color:#111827;
-}
-
-.popup-box p{
-    color:#4b5563;
-    font-size:15px;
-    line-height:1.7;
-    margin-bottom:25px;
-}
-
-.popup-btn{
-    background:linear-gradient(135deg,#16a34a,#15803d);
-    color:#fff;
-    border:none;
-    padding:11px 38px;
-    border-radius:12px;
-    font-weight:600;
-    font-size:15px;
-}
-
-.popup-btn:hover{
-    opacity:.95;
-}
-
-@keyframes popupScale{
-    from{
-        transform:scale(.8);
-        opacity:0;
-    }
-    to{
-        transform:scale(1);
-        opacity:1;
-    }
-}
-
-@keyframes fadeIn{
-    from{
-        opacity:0;
-    }
-    to{
-        opacity:1;
-    }
-}
-
-@media(max-width:768px){
-
-    .staff-header{
-        padding:22px;
-    }
-
-    .staff-header h2{
-        font-size:24px;
-    }
-
-    .table{
-        min-width:850px;
-    }
-
-    .action-area{
-        padding:20px;
-    }
-
-    .popup-box{
-        width:90%;
-        padding:30px 20px;
-    }
-}
-
-</style>
-
-<div class="container py-5">
-
-    <div class="staff-container">
-
-        <div class="staff-card">
-
-            <!-- HEADER -->
-            <div class="staff-header">
-
-                <div class="badge-title">
-                    <i class="bi bi-person-workspace"></i>
-                    Staff Management System
-                </div>
-
-                <h2>
-                    <i class="bi bi-pencil-square"></i>
-
-                    {% if form.instance.id %}
-                        Edit Staff Details
-                    {% else %}
-                        Add Staff Details
-                    {% endif %}
-
-                </h2>
-
-            </div>
-
-            <!-- SUCCESS MESSAGE POPUP -->
-            {% if messages %}
-                {% for message in messages %}
-
-                    <div class="custom-popup" id="successPopup">
-
-                        <div class="popup-box">
-
-                            <button type="button"
-                                    class="popup-close"
-                                    onclick="closePopup()">
-
-                                <i class="bi bi-x-lg"></i>
-
-                            </button>
-
-                            <div class="popup-icon">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-
-                            <h4>Success</h4>
-
-                            <p>{{ message }}</p>
-
-                            <button class="popup-btn"
-                                    onclick="closePopup()">
-
-                                OK
-
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                {% endfor %}
-            {% endif %}
-
-            <!-- FORM -->
-            <form method="post">
-
-                {% csrf_token %}
-
-                <div class="table-responsive">
-
-                    <table class="table align-middle table-bordered">
-
-                        <!-- TABLE HEADER -->
-                        <thead>
-
-                            <tr>
-                                <th width="30%">
-                                    Staff Field
-                                </th>
-
-                                <th width="70%">
-                                    Enter Details
-                                </th>
-                            </tr>
-
-                        </thead>
-
-                        <!-- TABLE BODY -->
-                        <tbody>
-
-                            <tr>
-                                <td class="field-title">SL No</td>
-                                <td>{{ form.slno }}</td>
-                            </tr>
-
-                            <tr>
-                                <td class="field-title">Program</td>
-                                <td>{{ form.program }}</td>
-                            </tr>
-
-                            <tr>
-                                <td class="field-title">Department</td>
-                                <td>{{ form.department }}</td>
-                            </tr>
-
-                            <tr>
-                                <td class="field-title">Staff ID</td>
-                                <td>{{ form.staff_id }}</td>
-                            </tr>
-
-                            <tr>
-                                <td class="field-title">Name</td>
-                                <td>{{ form.name }}</td>
-                            </tr>
-
-                            <tr>
-                                <td class="field-title">Designation</td>
-                                <td>{{ form.designation }}</td>
-                            </tr>
-
-                            <tr>
-                                <td class="field-title">College</td>
-                                <td>{{ form.college }}</td>
-                            </tr>
-
-                            <tr>
-                                <td class="field-title">City</td>
-                                <td>{{ form.city }}</td>
-                            </tr>
-
-                            <tr>
-                                <td class="field-title">District</td>
-                                <td>{{ form.district }}</td>
-                            </tr>
-
-                            <tr>
-                                <td class="field-title">Date of Joining</td>
-                                <td>{{ form.doj }}</td>
-                            </tr>
-
-                            <tr>
-                                <td class="field-title">Date of Retirement</td>
-                                <td>{{ form.dor }}</td>
-                            </tr>
-
-                            <tr>
-                                <td class="field-title">Phone</td>
-                                <td>{{ form.phone }}</td>
-                            </tr>
-
-                            <tr>
-                                <td class="field-title">Email</td>
-                                <td>{{ form.email }}</td>
-                            </tr>
-
-                            <tr>
-                                <td class="field-title">Bank Account</td>
-                                <td>{{ form.bank_account }}</td>
-                            </tr>
-
-                            <tr>
-                                <td class="field-title">Bank Name</td>
-                                <td>{{ form.bank_name }}</td>
-                            </tr>
-
-                            <tr>
-                                <td class="field-title">IFSC Code</td>
-                                <td>{{ form.ifsc_code }}</td>
-                            </tr>
-
-                            <tr>
-                                <td class="field-title">Remark</td>
-                                <td>{{ form.remark }}</td>
-                            </tr>
-
-                        </tbody>
-
-                    </table>
-
-                </div>
-
-                <!-- BUTTON AREA -->
-                <div class="action-area d-flex justify-content-end gap-3">
-
-                    <button type="reset"
-                            class="btn btn-outline-secondary btn-reset">
-
-                        <i class="bi bi-arrow-counterclockwise"></i>
-                        Reset
-
-                    </button>
-
-                    <button type="submit"
-                            class="btn btn-save">
-
-                        <i class="bi bi-check-circle-fill"></i>
-
-                        {% if form.instance.id %}
-                            Update Staff
-                        {% else %}
-                            Save Staff Details
-                        {% endif %}
-
-                    </button>
-
-                </div>
-
-            </form>
-
-        </div>
-
+<div class="max-w-5xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+        <h2 class="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2">
+            <i class="bi bi-person-badge text-jmc-maroon"></i>
+            {% if form.instance.id %}Edit Staff{% else %}Add New Staff{% endif %}
+        </h2>
+        <p class="text-slate-500 text-sm">Fill in the details below to {% if form.instance.id %}update{% else %}create{% endif %} a staff record.</p>
     </div>
 
+    <!-- Form Card -->
+    <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-white/50 shadow-md p-6">
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <!-- Sl No -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Sl. No.</label>
+                    {{ form.slno }}
+                    {% if form.slno.errors %}<p class="text-red-500 text-xs mt-1">{{ form.slno.errors.0 }}</p>{% endif %}
+                </div>
+                <!-- Program -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Program</label>
+                    {{ form.program }}
+                    {% if form.program.errors %}<p class="text-red-500 text-xs mt-1">{{ form.program.errors.0 }}</p>{% endif %}
+                </div>
+                <!-- Department -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Department</label>
+                    {{ form.department }}
+                </div>
+                <!-- Staff ID -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Staff ID</label>
+                    {{ form.staffid }}
+                </div>
+                <!-- Name -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Full Name *</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}<p class="text-red-500 text-xs mt-1">{{ form.name.errors.0 }}</p>{% endif %}
+                </div>
+                <!-- Designation -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Designation</label>
+                    {{ form.designation }}
+                </div>
+                <!-- College -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">College</label>
+                    {{ form.college }}
+                </div>
+                <!-- City -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">City</label>
+                    {{ form.city }}
+                </div>
+                <!-- District -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">District</label>
+                    {{ form.district }}
+                </div>
+                <!-- DOJ -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Date of Joining</label>
+                    {{ form.doj }}
+                </div>
+                <!-- DOR -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Date of Retirement</label>
+                    {{ form.dor }}
+                </div>
+                <!-- Phone -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Phone</label>
+                    {{ form.phone }}
+                </div>
+                <!-- Email -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Email</label>
+                    {{ form.email }}
+                </div>
+                <!-- Bank Account -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Bank Account No.</label>
+                    {{ form.bank_account }}
+                </div>
+                <!-- Bank Name -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Bank Name</label>
+                    {{ form.bank_name }}
+                </div>
+                <!-- IFSC Code -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">IFSC Code</label>
+                    {{ form.ifsc_code }}
+                </div>
+                <!-- Remark -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Remark (Optional)</label>
+                    {{ form.remark }}
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex justify-end gap-3 mt-8 pt-4 border-t border-slate-200">
+                <a href="{% url 'staff:staff_list' %}" class="px-5 py-2 bg-slate-200 text-slate-700 rounded-lg font-medium hover:bg-slate-300 transition">Cancel</a>
+                <button type="submit" class="px-5 py-2 bg-jmc-maroon text-white rounded-lg font-medium hover:bg-jmc-maroon-dark transition shadow-md">
+                    <i class="bi bi-check-lg"></i> Save Staff
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
+<!-- Add Tailwind classes to Django form fields automatically (optional but recommended) -->
 <script>
-
-function closePopup(){
-    let popup = document.getElementById("successPopup");
-
-    if(popup){
-        popup.style.display = "none";
-    }
-}
-
-/* AUTO CLOSE AFTER 3 SECONDS */
-
-setTimeout(function(){
-
-    let popup = document.getElementById("successPopup");
-
-    if(popup){
-        popup.style.display = "none";
-    }
-
-},3000);
-
+    document.addEventListener('DOMContentLoaded', function () {
+        const inputs = document.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            if (!input.classList.contains('rounded-lg')) {
+                input.classList.add('w-full', 'rounded-lg', 'border-slate-200', 'bg-white/90', 'px-3', 'py-2', 'text-sm', 'focus:ring-jmc-maroon', 'focus:border-jmc-maroon');
+            }
+        });
+        // Override for select specifically
+        document.querySelectorAll('select').forEach(sel => {
+            sel.classList.add('bg-white/90');
+        });
+    });
 </script>
 
 {% endblock %}

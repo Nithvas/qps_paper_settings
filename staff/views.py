@@ -15,18 +15,22 @@ from .services.staff_excel_service import (
     upload_staff_excel
 )
 
+# -------------------------------------------------------------------------------------------------------------------
 
-# ✅ LIST + FILTER + SEARCH + PAGINATION
+# Display list of staff with filtering, searching, and pagination
+
 def staff_list(request):
+
     qs = Staff.objects.all()
 
+    # Get filter parameters from GET request
     program = request.GET.get('program')
     department = request.GET.get('department')
     college = request.GET.get('college')
     name = request.GET.get('name')
     search = request.GET.get('search')
 
-    # ✅ DROPDOWN FILTERS
+    # DROPDOWN FILTERS
     if program:
         qs = qs.filter(program=program)
 
@@ -39,29 +43,27 @@ def staff_list(request):
     if name:
         qs = qs.filter(name=name)
 
-    # ✅ SEARCH FILTER
+    # SEARCH FILTER (across multiple fields)
     if search:
-
         qs = qs.filter(
+            Q(program__icontains=search) |
+            Q(staff_id__icontains=search) |
+            Q(department__icontains=search) |
+            Q(name__icontains=search) |
+            Q(designation__icontains=search) |
+            Q(college__icontains=search) |
+            Q(city__icontains=search) |
+            Q(district__icontains=search) |
+            Q(doj__icontains=search) |
+            Q(dor__icontains=search) |
+            Q(phone__icontains=search) |
+            Q(email__icontains=search) |
+            Q(bank_account__icontains=search) |
+            Q(bank_name__icontains=search) |
+            Q(ifsc_code__icontains=search)
+        )
 
-        Q(program__icontains=search) |
-        Q(staff_id__icontains=search) |
-        Q(department__icontains=search) |
-        Q(name__icontains=search) |
-        Q(designation__icontains=search) |
-        Q(college__icontains=search) |
-        Q(city__icontains=search) |
-        Q(district__icontains=search) |
-        Q(doj__icontains=search) |
-        Q(dor__icontains=search) |
-        Q(phone__icontains=search) |
-        Q(email__icontains=search) |
-        Q(bank_account__icontains=search) |
-        Q(bank_name__icontains=search) |
-        Q(ifsc_code__icontains=search)
-    )
-
-    # ✅ PAGINATION
+    # PAGINATION (50 items per page)
     paginator = Paginator(qs, 50)
     page = request.GET.get('page')
     staff = paginator.get_page(page)
@@ -69,14 +71,10 @@ def staff_list(request):
     return render(request, 'staff/staff_list.html', {
         'staff': staff,
         'total_count': qs.count(),
-
-        # ✅ IMPORTANT (filtered dropdown values)
         'programs': Staff.objects.values_list('program', flat=True).distinct(),
         'departments': qs.values_list('department', flat=True).distinct(),
         'colleges': qs.values_list('college', flat=True).distinct(),
         'names': qs.values_list('name', flat=True).distinct(),
-
-        # ✅ keep selected values
         'selected_program': program,
         'selected_department': department,
         'selected_college': college,
@@ -84,8 +82,12 @@ def staff_list(request):
         'search': search,
     })
 
+# -------------------------------------------------------------------------------------------------------------------
+
+# Filter options for dropdowns (AJAX)
 
 def ajax_filter(request):
+   
     program = request.GET.get('program')
     department = request.GET.get('department')
     college = request.GET.get('college')
@@ -103,7 +105,7 @@ def ajax_filter(request):
         qs = qs.filter(college=college)
 
     if name:
-        qs = qs.filter(name=name)        
+        qs = qs.filter(name=name)
 
     return JsonResponse({
         'departments': list(qs.values_list('department', flat=True).distinct()),
@@ -111,8 +113,12 @@ def ajax_filter(request):
         'names': list(qs.values_list('name', flat=True).distinct()),
     })
 
-# ✅ ADD
+# -------------------------------------------------------------------------------------------------------------------
+
+# Staff Add 
+
 def staff_add(request, id):
+
     instance = None if id == 0 else get_object_or_404(Staff, id=id)
 
     if request.method == 'POST':
@@ -126,8 +132,12 @@ def staff_add(request, id):
 
     return render(request, 'staff/staff_form.html', {'form': form})
 
- 
+# -------------------------------------------------------------------------------------------------------------------
+
+# Staff Edit
+
 def staff_edit(request, id):
+   
     instance = None if id == 0 else get_object_or_404(Staff, id=id)
 
     if request.method == 'POST':
@@ -141,9 +151,12 @@ def staff_edit(request, id):
 
     return render(request, 'staff/staff_form.html', {'form': form})
 
+# -------------------------------------------------------------------------------------------------------------------
 
-# ✅ DELETE
+# Staff Delete
+
 def staff_delete(request, id):
+
     obj = get_object_or_404(Staff, id=id)
 
     if request.method == 'POST':
@@ -151,17 +164,21 @@ def staff_delete(request, id):
         messages.success(request, "Deleted successfully!")
         return redirect('staff:staff_list')
 
+# -------------------------------------------------------------------------------------------------------------------
+
+# Sample File Download 
 
 def staff_sample(request):
     return download_sample_staff_excel()
 
 
-# ✅ EXPORT EXCEL
+# Download Staff Excel
+
 def staff_export(request):
-    return export_staff_excel()
+   return export_staff_excel()
 
+# Upload Staff Excel
 
-# ✅ UPLOAD EXCEL
 def staff_upload(request):
     if request.method == 'POST':
         file = request.FILES.get('file')
@@ -170,12 +187,11 @@ def staff_upload(request):
             messages.success(request, "Excel uploaded successfully!")
         else:
             messages.error(request, "Please select a file")
-
     return redirect('staff:staff_list')
 
+# -------------------------------------------------------------------------------------------------------------------
 
-
-# EDIT STAFF FUNCTION
+# EDIT STAFF FUNCTION (manual update without Django form)
 def add_staff(request, id):
 
     # GET PARTICULAR STAFF DATA
@@ -183,7 +199,6 @@ def add_staff(request, id):
 
     # UPDATE FUNCTION
     if request.method == 'POST':
-
         staff.slno = request.POST.get('slno')
         staff.program = request.POST.get('program')
         staff.department = request.POST.get('department')
@@ -205,9 +220,9 @@ def add_staff(request, id):
         # SAVE UPDATED DATA
         staff.save()
 
-        return redirect('staff_list')
+        return redirect('staff_list')   # Ensure this URL name exists
 
-    # SHOW DATA INSIDE TABLE
+    # SHOW DATA INSIDE TEMPLATE FOR EDITING
     return render(
         request,
         'staff/edit_staff.html',

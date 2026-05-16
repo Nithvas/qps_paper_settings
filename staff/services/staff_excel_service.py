@@ -2,10 +2,12 @@ import openpyxl
 from django.http import HttpResponse
 from ..models import Staff
 
+# -------------------------------------------------------------------------------------------------------------------
 
+# SAMPLE FILE
 
-# ✅ SAMPLE FILE
 def download_sample_staff_excel():
+
     wb = openpyxl.Workbook()
     ws = wb.active
 
@@ -26,14 +28,17 @@ def download_sample_staff_excel():
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    response['Content-Disposition'] = 'attachment; filename=sample_staff.xlsx'
+    response['Content-Disposition'] = 'attachment; filename=Staff Template.xlsx'
 
     wb.save(response)
     return response
 
+# -------------------------------------------------------------------------------------------------------------------
 
-# ✅ EXPORT
+# EXPORT
+
 def export_staff_excel():
+
     wb = openpyxl.Workbook()
     ws = wb.active
 
@@ -55,14 +60,17 @@ def export_staff_excel():
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    response['Content-Disposition'] = 'attachment; filename=staff.xlsx'
+    response['Content-Disposition'] = 'attachment; filename=Staff Data.xlsx'
 
     wb.save(response)
     return response
 
+# -------------------------------------------------------------------------------------------------------------------
 
-# ✅ UPLOAD
+# UPLOAD
+
 def upload_staff_excel(file):
+
     wb = openpyxl.load_workbook(file)
     ws = wb.active
 
