@@ -1,443 +1,237 @@
 {% extends 'layout.html' %}
-
+{% block title %}Dashboard | JMC QPS Portal{% endblock %}
 {% block content %}
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet">
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
-      rel="stylesheet">
-
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
-      rel="stylesheet">
-
-<style>
-
-.dashboard-header{
-
-    background:
-        linear-gradient(
-            135deg,
-            rgba(255,255,255,.75),
-            rgba(255,255,255,.55)
-        );
-
-    backdrop-filter:blur(20px);
-
-    border:
-        1px solid rgba(255,255,255,.7);
-
-    border-radius:24px;
-
-    padding:22px;
-
-    margin-bottom:28px;
-
-    box-shadow:
-        0 12px 24px rgba(184,92,106,0.10);
-
-    position:relative;
-
-    overflow:hidden;
-
-}
-
-.dashboard-header::before{
-
-    content:'';
-
-    position:absolute;
-
-    width:180px;
-    height:180px;
-
-    background:
-        radial-gradient(
-            circle,
-            rgba(217,139,149,.22),
-            transparent 70%
-        );
-
-    top:-80px;
-    right:-60px;
-
-}
-
-.dashboard-title-wrap{
-
-    position:relative;
-
-    z-index:2;
-
-    display:flex;
-
-    align-items:center;
-
-    gap:16px;
-
-}
-
-.dashboard-icon{
-
-    width:68px;
-    height:68px;
-
-    border-radius:20px;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    background:
-        linear-gradient(
-            135deg,
-            #d98b95,
-            #b85c6a
-        );
-
-    color:white;
-
-    font-size:28px;
-
-    box-shadow:
-        0 10px 24px rgba(184,92,106,0.20);
-
-}
-
-.dashboard-text h1{
-
-    margin:0;
-
-    font-size:30px;
-
-    font-weight:700;
-
-    color:#7e2b3a;
-
-    letter-spacing:.3px;
-
-}
-
-/* DASHBOARD CARDS */
-
-.dashboard-card{
-
-    background:
-        rgba(255,255,255,.68);
-
-    backdrop-filter:blur(18px);
-
-    border:
-        1px solid rgba(255,255,255,.7);
-
-    border-radius:22px;
-
-    padding:22px;
-
-    height:100%;
-
-    transition:.3s;
-
-    box-shadow:
-        0 10px 24px rgba(184,92,106,0.08);
-
-    overflow:hidden;
-
-    position:relative;
-
-}
-
-.dashboard-card::before{
-
-    content:'';
-
-    position:absolute;
-
-    width:100px;
-    height:100px;
-
-    background:
-        radial-gradient(
-            circle,
-            rgba(217,139,149,.15),
-            transparent 70%
-        );
-
-    top:-40px;
-    right:-40px;
-
-}
-
-.dashboard-card:hover{
-
-    transform:
-        translateY(-4px);
-
-    box-shadow:
-        0 18px 32px rgba(237, 146, 160, 0.14);
-
-}
-
-.dashboard-card-content{
-
-    position:relative;
-
-    z-index:2;
-
-}
-
-.card-label{
-
-    color:#9b5d67;
-
-    font-size:14px;
-
-    font-weight:600;
-
-    margin-bottom:8px;
-
-}
-
-.card-value{
-
-    font-size:30px;
-
-    font-weight:700;
-
-    color:#7e2b3a;
-
-    margin:0;
-
-}
-
-.card-icon{
-
-    width:62px;
-    height:62px;
-
-    border-radius:18px;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    background:
-        linear-gradient(
-            135deg,
-            #d98b95,
-            #b85c6a
-        );
-
-    color:white;
-
-    font-size:24px;
-
-    box-shadow:
-        0 10px 22px rgba(184,92,106,0.18);
-
-}
-
-@media(max-width:768px){
-
-    .dashboard-title-wrap{
-
-        flex-direction:row;
-
-    }
-
-    .dashboard-text h1{
-
-        font-size:24px;
-
-    }
-
-    .dashboard-icon{
-
-        width:60px;
-        height:60px;
-
-        font-size:24px;
-
-    }
-
-    .card-value{
-
-        font-size:24px;
-
-    }
-
-}
-
-</style>
-
-<!-- DASHBOARD HEADER -->
-
-<div class="dashboard-header">
-
-    <div class="dashboard-title-wrap">
-
-        <div class="dashboard-icon">
-
-            <i class="bi bi-grid-1x2-fill"></i>
-
-        </div>
-
-        <div class="dashboard-text">
-
-            <h1>
-                Dashboard
+<script src="https://cdn.tailwindcss.com"></script>
+
+<div class="mx-auto font-sans antialiased text-slate-600">
+    
+    <!-- TOP META BAR -->
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-6 mb-8 border-b border-slate-200">
+        <div>
+            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#9c4653]">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Live Vault System Active
+            </div>
+            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
+                QPS Command Center
             </h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                Secure oversight for institutional examination blueprinting and dual-set paper validation.
+            </p>
+        </div>
 
+        <!-- System Controls & Filter Actions -->
+        <div class="flex flex-wrap items-center gap-3 bg-white p-2 rounded-xl border border-slate-200 shadow-sm self-start lg:self-center">
+            <select class="bg-slate-50 border border-slate-200 text-xs text-slate-700 font-semibold rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#cb7a85]/20 focus:border-[#cb7a85] cursor-pointer">
+                <option>AY: 2025-2026 (Current)</option>
+                <option>AY: 2024-2025</option>
+            </select>
+            <div class="h-5 w-[1px] bg-slate-200"></div>
+            <button class="bg-gradient-to-r from-[#b85c6a] to-[#9c4653] hover:from-[#a34f5c] hover:to-[#883b47] text-white text-xs font-bold rounded-lg px-4 py-2 transition-all shadow-sm flex items-center gap-1.5">
+                <i class="bi bi-person-plus-fill"></i> Assign Paper Setter
+            </button>
+        </div>
+    </div>
+
+    <!-- CORE KPI PANEL -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        
+        <!-- Total Assignments -->
+        <div class="bg-white border border-slate-200/80 rounded-xl p-5 shadow-sm flex items-center justify-between group hover:border-slate-300 transition-all">
+            <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Total Requirements</span>
+                <span class="text-3xl font-black text-slate-900 mt-1 block tracking-tight">180</span>
+                <div class="mt-2 text-[11px] font-medium text-slate-500 flex items-center gap-1">
+                    <span class="text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60">100%</span> Allocated to Faculty
+                </div>
+            </div>
+            <div class="w-11 h-11 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500 text-base border border-slate-200 group-hover:text-slate-800 group-hover:border-slate-300 transition-colors">
+                <i class="bi bi-journal-text"></i>
+            </div>
+        </div>
+
+        <!-- Pending Drafts -->
+        <div class="bg-white border border-slate-200/80 rounded-xl p-5 shadow-sm flex items-center justify-between group hover:border-slate-300 transition-all">
+            <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Pending Drafts</span>
+                <span class="text-3xl font-black text-amber-600 mt-1 block tracking-tight">42</span>
+                <div class="mt-2 text-[11px] font-bold text-amber-700 flex items-center gap-1">
+                    <i class="bi bi-exclamation-triangle-fill"></i> System Deadline: 4 Days
+                </div>
+            </div>
+            <div class="w-11 h-11 rounded-lg bg-amber-50 text-amber-600 text-base border border-amber-200/60 flex items-center justify-center">
+                <i class="bi bi-pencil-square"></i>
+            </div>
+        </div>
+
+        <!-- Under Moderation -->
+        <div class="bg-white border border-slate-200/80 rounded-xl p-5 shadow-sm flex items-center justify-between group hover:border-slate-300 transition-all">
+            <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">In Review Loop</span>
+                <span class="text-3xl font-black text-sky-600 mt-1 block tracking-tight">28</span>
+                <div class="mt-2 text-[11px] font-medium text-slate-500 flex items-center gap-1">
+                    With External Moderators
+                </div>
+            </div>
+            <div class="w-11 h-11 rounded-lg bg-sky-50 text-sky-600 text-base border border-sky-200/60 flex items-center justify-center">
+                <i class="bi bi-shield-shaded"></i>
+            </div>
+        </div>
+
+        <!-- Approved / Locked -->
+        <div class="bg-white border border-slate-200/80 rounded-xl p-5 shadow-sm flex items-center justify-between group hover:border-slate-300 transition-all">
+            <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Vetted & Encrypted</span>
+                <span class="text-3xl font-black text-emerald-600 mt-1 block tracking-tight">110</span>
+                <div class="mt-2 text-[11px] font-semibold text-emerald-700 flex items-center gap-1">
+                    <i class="bi bi-patch-check-fill"></i> Ready for Release
+                </div>
+            </div>
+            <div class="w-11 h-11 rounded-lg bg-emerald-50 text-emerald-600 text-base border border-emerald-200/60 flex items-center justify-center">
+                <i class="bi bi-lock-fill"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- WORKFLOW LOGISTICS GRAPHICS & AUDIT TRAILS -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Live Submission Monitoring Ledger -->
+        <div class="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                        Recent QPS Lifecycle Activity
+                    </h3>
+                    <p class="text-xs text-slate-400">Live ingestion ledger monitoring secure faculty uploads</p>
+                </div>
+                <button class="text-xs font-bold text-[#9c4653] bg-[#9c4653]/5 px-2.5 py-1 rounded border border-[#9c4653]/20 hover:bg-[#9c4653]/10 transition-colors">
+                    Full Log Archive
+                </button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs sm:text-sm">
+                    <thead>
+                        <tr class="text-slate-400 font-bold uppercase text-[11px] tracking-wider border-b border-slate-100">
+                            <th class="pb-3">Course Specification</th>
+                            <th class="pb-3">Appointed Setter</th>
+                            <th class="pb-3">Workflow Node</th>
+                            <th class="pb-3 text-right">System Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
+                        <!-- Item 1 -->
+                        <tr class="hover:bg-slate-50/50 transition-colors">
+                            <td class="py-3.5">
+                                <span class="font-bold text-slate-900 block">CS-601</span>
+                                <span class="text-xs text-slate-400">Artificial Intelligence</span>
+                            </td>
+                            <td class="py-3.5 text-slate-500 font-normal">Dr. Aris Thorne</td>
+                            <td class="py-3.5">
+                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200/40">
+                                    <span class="w-1 h-1 rounded-full bg-amber-500 animate-pulse"></span> Awaiting Board Moderation
+                                </span>
+                            </td>
+                            <td class="py-3.5 text-right">
+                                <button class="bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs px-3 py-1.5 rounded border border-slate-200 shadow-sm transition-all">
+                                    Review Files
+                                </button>
+                            </td>
+                        </tr>
+                        <!-- Item 2 -->
+                        <tr class="hover:bg-slate-50/50 transition-colors">
+                            <td class="py-3.5">
+                                <span class="font-bold text-slate-900 block">EE-402</span>
+                                <span class="text-xs text-slate-400">Microcontrollers</span>
+                            </td>
+                            <td class="py-3.5 text-slate-500 font-normal">Prof. Clara Vance</td>
+                            <td class="py-3.5">
+                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                                    Drafting Progress
+                                </span>
+                            </td>
+                            <td class="py-3.5 text-right">
+                                <button class="bg-white hover:bg-amber-50/40 text-amber-700 font-bold text-xs px-3 py-1.5 rounded border border-slate-200 shadow-sm transition-all">
+                                    Dispatch Ping
+                                </button>
+                            </td>
+                        </tr>
+                        <!-- Item 3 -->
+                        <tr class="hover:bg-slate-50/50 transition-colors">
+                            <td class="py-3.5">
+                                <span class="font-bold text-slate-900 block">ME-310</span>
+                                <span class="text-xs text-slate-400">Thermodynamics II</span>
+                            </td>
+                            <td class="py-3.5 text-slate-500 font-normal">Dr. Julian Vance</td>
+                            <td class="py-3.5">
+                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/40">
+                                    Locked & Safe
+                                </span>
+                            </td>
+                            <td class="py-3.5 text-right">
+                                <span class="text-xs text-slate-400 flex items-center justify-end gap-1 px-3 py-1.5">
+                                    <i class="bi bi-check2-all text-emerald-600 font-bold"></i> Audit Verified
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Blueprint Analytics Sidebar Widget -->
+        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col justify-between">
+            <div>
+                <h3 class="text-base font-bold text-slate-900 mb-1">
+                    Blueprint Integrity Metrics
+                </h3>
+                <p class="text-xs text-slate-400 mb-6">Real-time mapping status across dynamic metadata filters</p>
+                
+                <!-- Progress Component Stack -->
+                <div class="space-y-5">
+                    <div>
+                        <div class="flex justify-between text-xs font-bold mb-1.5">
+                            <span class="text-slate-600">Syllabus Outcome Compliance</span>
+                            <span class="text-slate-900">92%</span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-gradient-to-r from-[#b85c6a] to-[#9c4653] h-full rounded-full" style="width: 92%"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between text-xs font-bold mb-1.5">
+                            <span class="text-slate-600">Bloom's Taxonomy Cognitive Match</span>
+                            <span class="text-amber-600">78%</span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-amber-500 h-full rounded-full" style="width: 78%"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs font-bold mb-1.5">
+                            <span class="text-slate-600">Dual-Set Integrity Check (Set A/B Meta)</span>
+                            <span class="text-sky-600">61%</span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-sky-500 h-full rounded-full" style="width: 61%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cryptographic Ledger Status Footer -->
+            <div class="mt-8 pt-4 border-t border-slate-100 text-[11px] text-slate-400 flex items-center justify-between">
+                <span class="flex items-center gap-1 text-slate-400"><i class="bi bi-hdd-network-fill"></i> Security Core:</span>
+                <span class="font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60 flex items-center gap-1 font-bold">
+                    SHA-256 System Active
+                </span>
+            </div>
         </div>
 
     </div>
-
 </div>
-
-<!-- CARDS -->
-
-<div class="row g-4">
-
-    <div class="col-lg-3 col-md-6">
-
-        <div class="dashboard-card">
-
-            <div class="dashboard-card-content">
-
-                <div class="d-flex justify-content-between align-items-center">
-
-                    <div>
-
-                        <div class="card-label">
-                            Total Staff
-                        </div>
-
-                        <h2 class="card-value">
-                            250
-                        </h2>
-
-                    </div>
-
-                    <div class="card-icon">
-
-                        <i class="bi bi-people-fill"></i>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <div class="col-lg-3 col-md-6">
-
-        <div class="dashboard-card">
-
-            <div class="dashboard-card-content">
-
-                <div class="d-flex justify-content-between align-items-center">
-
-                    <div>
-
-                        <div class="card-label">
-                            Departments
-                        </div>
-
-                        <h2 class="card-value">
-                            15
-                        </h2>
-
-                    </div>
-
-                    <div class="card-icon">
-
-                        <i class="bi bi-building-fill"></i>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <div class="col-lg-3 col-md-6">
-
-        <div class="dashboard-card">
-
-            <div class="dashboard-card-content">
-
-                <div class="d-flex justify-content-between align-items-center">
-
-                    <div>
-
-                        <div class="card-label">
-                            Courses
-                        </div>
-
-                        <h2 class="card-value">
-                            48
-                        </h2>
-
-                    </div>
-
-                    <div class="card-icon">
-
-                        <i class="bi bi-book-fill"></i>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <div class="col-lg-3 col-md-6">
-
-        <div class="dashboard-card">
-
-            <div class="dashboard-card-content">
-
-                <div class="d-flex justify-content-between align-items-center">
-
-                    <div>
-
-                        <div class="card-label">
-                            QPS Assigned
-                        </div>
-
-                        <h2 class="card-value">
-                            180
-                        </h2>
-
-                    </div>
-
-                    <div class="card-icon">
-
-                        <i class="bi bi-diagram-3-fill"></i>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
 {% endblock %}
