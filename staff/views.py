@@ -130,7 +130,7 @@ def staff_add(request, id):
     else:
         form = StaffForm(instance=instance)
 
-    return render(request, 'staff/staff_form.html', {'form': form})
+    return render(request, 'staff/staff_modals.html', {'form': form})
 
 # -------------------------------------------------------------------------------------------------------------------
 
@@ -149,7 +149,7 @@ def staff_edit(request, id):
     else:
         form = StaffForm(instance=instance)
 
-    return render(request, 'staff/staff_form.html', {'form': form})
+    return render(request, 'staff/staff_modals.html', {'form': form})
 
 # -------------------------------------------------------------------------------------------------------------------
 
