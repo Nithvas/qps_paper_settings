@@ -40,7 +40,7 @@ def download_sample_staff_excel():
         "1234567890", "SBI", "SBIN0001234", "Sample remark"
     ])
     response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    response["Content-Disposition"] = 'attachment; filename="Staff_Template.xlsx"'
+    response["Content-Disposition"] = 'attachment; filename="Staff Template.xlsx"'
     wb.save(response)
     return response
 
@@ -60,7 +60,7 @@ def export_staff_excel():
             s.bank_account, s.bank_name, s.ifsc_code, s.remark,
         ])
     response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    response["Content-Disposition"] = 'attachment; filename="Staff_Data.xlsx"'
+    response["Content-Disposition"] = 'attachment; filename="Staff Data.xlsx"'
     wb.save(response)
     return response
 

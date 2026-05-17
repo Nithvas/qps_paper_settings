@@ -1,252 +1,34 @@
 {% extends 'layout.html' %}
-{% block title %}Staff Directory | JMC QPS Portal{% endblock %}
 {% load static %}
+{% block title %}Staff Directory | JMC QPS Portal{% endblock %}
 {% block content %}
 
 <div class="min-h-screen mx-auto space-y-6 antialiased">
+    {% include 'staff/partials/header_actions.html' %}
+    {% include 'staff/partials/filter_section.html' %}
+    {% include 'staff/partials/staff_table.html' %}
+    {% include 'staff/partials/pagination.html' %}
+</div>
 
-    <!-- SECTION A: Application Command Header (Title & Create Button) -->
-    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between pb-6 border-b border-slate-200 gap-4">
-        <div class="space-y-1">
-            <div>
-                <h2 class="text-2xl font-black tracking-tight text-slate-900">Staff Directory</h2>
-                <p class="text-xs sm:text-sm font-medium text-slate-500">Secure institutional personnel records system, structural taxonomies, and payroll data streams.</p>
-            </div>
-        </div>
-        
-        <!-- Primary Action Button: Create Staff Profile -->
-        <div class="flex items-center gap-3 self-start lg:self-center">
-            <button type="button" 
-                    onclick="openDrawer()"
-                    class="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r bg-jmc-maroon text-white text-xs font-bold rounded-lg transition-all duration-150 tracking-wider uppercase">
-                <i class="bi bi-person-plus-fill text-sm"></i>
-                Create Staff Profile
-            </button>
-        </div>
-    </div>
-
-    <!-- SECTION B: Excel Files Line (Export, Template, Upload)   -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <!-- Export Card -->
-        <a href="{% url 'staff:staff_export' %}" class="flex items-center justify-between p-5 bg-white border-l-4 border-l-emerald-500 border-y border-r border-slate-200/80 rounded-xl transition-all duration-200 group">
-            <div class="space-y-1">
-                <span class="block text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Data Sync Matrix</span>
-                <span class="text-sm font-bold text-slate-800">Download Staff Excel (.xlsx)</span>
-            </div>
-            <div class="px-4 py-2.5 bg-emerald-50 text-emerald-600 rounded-lg group-hover:bg-emerald-600 group-hover:text-white transition-all duration-200 flex-shrink-0">
-                <i class="bi bi-file-earmark-spreadsheet-fill text-lg block"></i>
-            </div>
-        </a>
-
-        <!-- Template Card -->
-        <a href="{% url 'staff:staff_sample' %}" class="flex items-center justify-between p-5 bg-white border-l-4 border-l-orange-500 border-y border-r border-slate-200/80 rounded-xl transition-all duration-200 group">
-            <div class="space-y-1">
-                <span class="block text-[10px] font-bold text-orange-600 uppercase tracking-widest">System Integration</span>
-                <span class="text-sm font-bold text-slate-800">Download Template for Staff</span>
-            </div>
-            <div class="px-4 py-2.5 bg-orange-50 text-orange-600 rounded-lg group-hover:bg-orange-600 group-hover:text-white transition-all duration-200 flex-shrink-0">
-                <i class="bi bi-layout-text-sidebar-reverse text-lg block"></i>
-            </div>
-        </a>
-
-        <!-- Upload Form Card -->
-        <form method="post" enctype="multipart/form-data" action="{% url 'staff:staff_upload' %}" class="relative flex items-center justify-between p-5 bg-white border-l-4 border-l-blue-500 border-y border-r border-slate-200/80 rounded-xl transition-all duration-200 group">
-            {% csrf_token %}
-            <div class="absolute inset-y-0 left-0 right-24 z-10 cursor-pointer">
-                <input type="file" name="file" accept=".xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" required id="fileInput">
-            </div>
-            <div class="space-y-1 min-w-0 pr-2">
-                <span class="block text-[10px] font-bold text-blue-600 uppercase tracking-widest">Batch Import Engine</span>
-                <span class="text-sm font-bold text-slate-800 truncate block" id="fileNameDisplay">Upload Staff Data File</span>
-            </div>
-            <button type="submit" id="submitBtn" class="z-20 px-4 py-2.5 bg-blue-50 text-blue-600 rounded-lg transition-all duration-200 flex items-center justify-center cursor-not-allowed opacity-60" disabled>
-                <i id="actionIcon" class="bi bi-cloud-arrow-up-fill text-lg block"></i>
-            </button>
-        </form>
-    </div>
-
-    <!-- SECTION C: Filter Section -->
-    <div class="space-y-6 w-full font-sans antialiased text-slate-600">
-        <div class="bg-white border border-slate-200/80 rounded-xl shadow-sm overflow-hidden w-full">
-            <form method="get" action="" class="m-0 p-0">
-                <div class="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-white">
-                    <div class="space-y-1.5">
-                        <label for="program" class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Programme :</label>
-                        <select name="program" id="program" class="w-full rounded-lg border border-slate-200 text-xs p-2 bg-white text-slate-700 font-medium transition-all focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10">
-                            <option value="">All Program Scopes</option>
-                            {% for p in programs %}<option value="{{ p }}" {% if p == selected_program %}selected{% endif %}>{{ p }}</option>{% endfor %}
-                        </select>
-                    </div>
-                    <div class="space-y-1.5">
-                        <label for="department" class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Department :</label>
-                        <select name="department" id="department" class="w-full border rounded-lg border-slate-200 text-xs p-2 bg-white text-slate-700 font-medium transition-all focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10">
-                            <option value="">All Departments</option>
-                            {% for d in departments %}<option value="{{ d }}" {% if d == selected_department %}selected{% endif %}>{{ d }}</option>{% endfor %}
-                        </select>
-                    </div>
-                    <div class="space-y-1.5">
-                        <label for="college" class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">College :</label>
-                        <select name="college" id="college" class="w-full rounded-lg border border-slate-200 text-xs p-2 bg-white text-slate-700 font-medium transition-all focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10">
-                            <option value="">All College Units</option>
-                            {% for c in colleges %}<option value="{{ c }}" {% if c == selected_college %}selected{% endif %}>{{ c }}</option>{% endfor %}
-                        </select>
-                    </div>
-                    <div class="space-y-1.5">
-                        <label for="name" class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Staff Name :</label>
-                        <select name="name" id="name" class="w-full rounded-lg border border-slate-200 text-xs p-2 bg-white text-slate-700 font-medium transition-all focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10">
-                            <option value="">All Identity Profiles</option>
-                            {% for n in names %}<option value="{{ n }}" {% if n == selected_name %}selected{% endif %}>{{ n }}</option>{% endfor %}
-                        </select>
-                    </div>
-                </div>
-                <div class="px-5 pb-5 flex flex-col sm:flex-row gap-3 justify-end sm:items-center">
-                    <div class="flex items-center gap-2 self-end sm:self-auto">
-                        <a href="{% url 'staff:staff_list' %}" class="px-4 py-1.5 bg-white text-slate-600 rounded-lg text-sm font-semibold border border-slate-200 shadow-sm transition inline-flex items-center gap-1.5">
-                            <i class="bi bi-arrow-counterclockwise text-slate-400"></i> Reset Filters
-                        </a>
-                        <button type="submit" class="px-4 py-1.5 bg-jmc-maroon text-white rounded-lg text-sm font-semibold shadow-sm transition inline-flex items-center gap-1.5">
-                            <i class="bi bi-funnel text-[11px]"></i> Show Grid
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- STAFF TABLE WITH ALL DATA FIELDS -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden font-sans text-slate-700">
-        <div class="bg-slate-50 p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-            <div class="flex-1 max-w-sm relative">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <i class="bi bi-search text-xs"></i>
-                </div>
-                <form method="get" action="" class="m-0">
-                    <input type="text" name="search" value="{{ search|default:'' }}" placeholder="Filter by ID, department, email, IFSC..." class="w-full h-12 pl-9 pr-4 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-800 placeholder:text-slate-400 transition-all focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400">
-                </form>
-            </div>
-            <div class="flex items-center gap-4 text-xs sm:border-l sm:border-slate-200 sm:pl-6">
-                <div class="flex items-center gap-2">
-                    <span class="relative flex h-2 w-2">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                    </span>
-                    <span class="text-slate-400 uppercase tracking-wider text-[12px] font-bold">Total Records</span>
-                </div>
-                <span class="font-mono bg-white shadow-sm px-2.5 py-1 rounded-md text-slate-700 font-semibold border border-slate-200/80">{{ total_count|default:0 }}</span>
-            </div>
-        </div>
-
-        <div class="overflow-hidden bg-white">
-            <div class="overflow-x-auto relative side-scroll-shadow">
-                <table id="staffTable" class="min-w-[1850px] w-full border-collapse text-sm">
-                    <thead>
-                        <tr class="border-y border-slate-200 text-[11px] uppercase tracking-[0.14em] text-slate-500 font-black select-none">
-                            <th data-col-index="0" class="sortable-th sticky bg-white left-0 z-40 px-4 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2"><span>S. No.</span><i class="bi bi-arrow-down-up sort-icon text-slate-300"></i></div></th>
-                            <th data-col-index="1" class="sortable-th sticky bg-white px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2">Staff ID<i class="bi bi-arrow-down-up sort-icon text-slate-300"></i></div></th>
-                            <th data-col-index="2" class="sortable-th sticky bg-white left-[63px] z-40 px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2">Name<i class="bi bi-arrow-down-up sort-icon text-slate-300"></i></div></th>
-                            <th data-col-index="3" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2">Program<i class="bi bi-arrow-down-up sort-icon text-slate-300"></i></div></th>
-                            <th data-col-index="5" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2">Designation<i class="bi bi-arrow-down-up sort-icon text-slate-300"></i></div></th>
-                            <th data-col-index="6" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2">College<i class="bi bi-arrow-down-up sort-icon text-slate-300"></i></div></th>
-                            <th data-col-index="7" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2">City<i class="bi bi-arrow-down-up sort-icon text-slate-300"></i></div></th>
-                            <th data-col-index="8" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2">District<i class="bi bi-arrow-down-up sort-icon text-slate-300"></i></div></th>
-                            <th data-col-index="9" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2">DOJ<i class="bi bi-arrow-down-up sort-icon text-slate-300"></i></div></th>
-                            <th data-col-index="10" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2">DOR<i class="bi bi-arrow-down-up sort-icon text-slate-300"></i></div></th>
-                            <th data-col-index="11" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2">Phone<i class="bi bi-arrow-down-up sort-icon text-slate-300"></i></div></th>
-                            <th data-col-index="12" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2">Email<i class="bi bi-arrow-down-up sort-icon text-slate-300"></i></div></th>
-                            <th data-col-index="13" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2">Bank Acc<i class="bi bi-arrow-down-up sort-icon text-slate-300"></i></div></th>
-                            <th data-col-index="14" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2">Bank<i class="bi bi-arrow-down-up sort-icon text-slate-300"></i></div></th>
-                            <th data-col-index="15" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2">IFSC<i class="bi bi-arrow-down-up sort-icon text-slate-300"></i></div></th>
-                            <th data-col-index="16" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2">Remark<i class="bi bi-arrow-down-up sort-icon text-slate-300"></i></div></th>
-                            <th class="sticky right-0 z-40 px-5 py-4 text-center bg-white"><div class="flex items-center justify-center">Actions</div></th>
-                        </tr>
-                    </thead>
-                    <tbody id="staffTableBody" class="divide-y divide-slate-100 bg-white text-center">
-                        {% for s in staff %}
-                        <tr class="staff-row group hover:bg-gradient-to-r hover:from-indigo-50/40 hover:to-transparent transition-all duration-200">
-                            <td class="slno-cell sticky left-0 z-20 px-4 py-4 bg-white group-hover:bg-slate-50 transition"><span class="text-[11px] font-bold text-slate-400">{{ s.slno }}</span></td>
-                            <td class="px-5 py-4"><span class="text-[12px] text-slate-500 font-semibold tracking-wide">{{ s.staff_id }}</span></td>
-                            <td class="sticky left-[63px] bg-white z-20 px-5 py-4 group-hover:bg-slate-50 transition">
-                                <div class="flex items-center gap-3">
-                                    <div class="flex items-center justify-center w-8 h-8 text-[11px] font-bold rounded shadow-sm shrink-0" style="background-color: {% cycle '#eef2ff' '#ecfdf5' '#ffe4e6' '#fffbeb' '#e0f2fe' '#f3e8ff' %}; color: {% cycle '#4f46e5' '#059669' '#e11d48' '#d97706' '#0284c7' '#9333ea' %};">{{ s.name|slice:":1"|upper }}</div>
-                                    <div><h4 class="font-bold text-slate-900 text-[13px] tracking-tight whitespace-nowrap text-left name-text">{{ s.name }}</h4><p class="text-[12px] text-slate-400 whitespace-nowrap text-left font-medium">{{ s.designation }}</p></div>
-                                </div>
-                            </td>
-                            <td class="px-5 py-4"><span class="font-semibold text-slate-800">{{ s.program }}</span></td>
-                            <td class="px-5 py-4 whitespace-nowrap"><span class="inline-flex items-center px-3 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100 text-[11px] font-bold">{{ s.department }}</span></td>
-                            <td class="px-5 py-4 whitespace-nowrap font-medium text-slate-700">{{ s.college|truncatechars:20 }}</td>
-                            <td class="px-5 py-4 whitespace-nowrap font-medium text-slate-700">{{ s.city|truncatechars:15 }}</td>
-                            <td class="px-5 py-4 text-slate-500">{{ s.district|truncatechars:15 }}</td>
-                            <td class="px-5 py-4 whitespace-nowrap"><span class="inline-flex text-xs items-center gap-2 text-emerald-700 font-bold"><i class="bi bi-calendar-check"></i>{{ s.doj }}</span></td>
-                            <td class="px-5 py-4 whitespace-nowrap">{% if s.dor %}<span class="inline-flex text-xs items-center gap-2 text-rose-600 font-bold"><i class="bi bi-calendar-x"></i>{{ s.dor }}</span>{% else %}<span class="text-slate-300">—</span>{% endif %}</td>
-                            <td class="px-5 py-4"><span class="font-semibold text-slate-600">{{ s.phone }}</span></td>
-                            <td class="px-5 py-4"><span class="text-indigo-600 font-semibold hover:text-indigo-800 transition">{{ s.email|truncatechars:15 }}</span></td>
-                            <td class="px-5 py-4"><span class="text-slate-600 font-semibold">{{ s.bank_account }}</span></td>
-                            <td class="px-5 py-4 max-w-[180px] truncate font-medium text-slate-700">{{ s.bank_name }}</td>
-                            <td class="px-5 py-4"><span class="text-slate-600 font-semibold">{{ s.ifsc_code }}</span></td>
-                            <td class="px-5 py-4 max-w-[200px] truncate text-slate-400">{% if s.remark %}{{ s.remark }}{% else %}<span class="text-slate-300 not-italic">—</span>{% endif %}</td>
-                            <td class="sticky right-0 z-20 px-5 py-4 bg-white border-l border-slate-100 group-hover:bg-slate-50 transition">
-                                <div class="flex items-center gap-1">
-                                    <button type="button" onclick="openDrawer({{ s.id }})" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-all flex items-center justify-center" title="Edit Record"><i class="bi bi-pencil-square text-sm"></i></button>
-                                    <button type="button" onclick="openDeleteModal({{ s.id }}, '{{ s.name|escapejs }}')" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-100 rounded-lg transition-all flex items-center justify-center" title="Delete Record"><i class="bi bi-trash3 text-sm"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="18" class="py-12 text-center bg-gradient-to-b from-slate-50 to-white"><div class="mx-auto"><div class="w-12 h-12 mx-auto rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shadow-inner mb-4"><i class="bi bi-folder2-open text-2xl text-slate-400"></i></div><h3 class="text-lg font-black text-slate-800 tracking-tight">No Staff Records Found</h3><p class="mt-4 text-sm text-slate-400 leading-relaxed">No data entries match the currently executed structural search parameters.</p></div></td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- PAGINATION SECTION -->
-        {% if staff.has_other_pages %}
-        <div class="border-t border-slate-200 bg-slate-50/50 px-6 py-4">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div class="flex items-center gap-3 text-sm">
-                    <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-400 shadow-sm"><i class="bi bi-database"></i></div>
-                    <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Dataset Navigation</p><p class="font-normal text-slate-500">Showing <span class="font-semibold text-slate-800">{{ staff.start_index }}</span> to <span class="font-semibold text-slate-800">{{ staff.end_index }}</span> of <span class="font-semibold text-slate-800">{{ staff.paginator.count }}</span> records</p></div>
-                </div>
-                <div class="flex items-center gap-2 flex-wrap">
-                    {% if staff.has_previous %}
-                    <a href="?page=1{% if search %}&search={{ search|urlencode }}{% endif %}" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition flex items-center gap-1.5 shadow-sm"><i class="bi bi-chevron-double-left text-xs"></i> First</a>
-                    <a href="?page={{ staff.previous_page_number }}{% if search %}&search={{ search|urlencode }}{% endif %}" class="w-9 h-9 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition flex items-center justify-center shadow-sm"><i class="bi bi-chevron-left text-xs"></i></a>
-                    {% endif %}
-                    <form method="get" class="flex items-center gap-2" id="paginationJumpForm">{% if search %}<input type="hidden" name="search" value="{{ search }}">{% endif %}<div class="flex items-center gap-1.5 px-3 h-9 rounded-lg border border-slate-200 bg-white shadow-sm"><input type="number" name="page" min="1" max="{{ staff.paginator.num_pages }}" value="{{ staff.number }}" class="w-10 bg-transparent text-center text-sm font-semibold text-slate-800 outline-none focus:ring-0"><span class="text-slate-300 text-xs font-normal">/</span><span class="text-sm font-medium text-slate-500">{{ staff.paginator.num_pages }}</span></div><button type="submit" class="h-9 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium shadow-sm transition">Go</button></form>
-                    {% if staff.has_next %}
-                    <a href="?page={{ staff.next_page_number }}{% if search %}&search={{ search|urlencode }}{% endif %}" class="w-9 h-9 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition flex items-center justify-center shadow-sm"><i class="bi bi-chevron-right text-xs"></i></a>
-                    <a href="?page={{ staff.paginator.num_pages }}{% if search %}&search={{ search|urlencode }}{% endif %}" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition flex items-center gap-1.5 shadow-sm">Last <i class="bi bi-chevron-double-right text-xs"></i></a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        {% endif %}
-        
+{# Messages passed from Django #}
 <div id="django-messages" class="hidden">
     {% for msg in messages %}
-      <div class="message" data-level="{{ msg.tags }}" data-message="{{ msg }}"></div>
+        <div class="message" data-level="{{ msg.tags }}" data-message="{{ msg }}"></div>
     {% endfor %}
 </div>
 
+{% include 'staff/partials/modals.html' %}
+
 <script src="{% static 'js/staff.js' %}"></script>
 <script>
-    // Show Django messages as SweetAlert2 toasts
-    const djangoMessages = document.querySelectorAll('#django-messages .message');
-    djangoMessages.forEach(msg => {
-        const text = msg.getAttribute('data-message');
-        const level = msg.getAttribute('data-level');
-        let icon = 'info';
-        if (level === 'success') icon = 'success';
-        if (level === 'error') icon = 'error';
+    document.querySelectorAll('#django-messages .message').forEach(msg => {
         Swal.fire({
-            icon: icon,
-            title: text,
-            timer: 3000,
-            showConfirmButton: false,
-            toast: true,
-            position: 'top-end'
+            icon: msg.dataset.level === 'success' ? 'success' : (msg.dataset.level === 'error' ? 'error' : 'info'),
+            title: msg.dataset.message,
+            timer: 3000, toast: true,
+            position: 'top-end',
+            showConfirmButton: false
         });
     });
 </script>
-
 {% endblock %}

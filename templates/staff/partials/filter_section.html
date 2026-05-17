@@ -1,0 +1,40 @@
+<div class="space-y-6 w-full font-sans antialiased text-slate-600">
+    <div class="bg-white border border-slate-200/80 rounded-xl shadow-sm overflow-hidden w-full">
+        <form method="get" action="" class="m-0 p-0">
+            <div class="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-white">
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Programme :</label>
+                    <select name="program" id="program" class="w-full rounded-lg border border-slate-200 text-xs p-2">
+                        <option value="">All Program Scopes</option>
+                        {% for p in programs %}<option value="{{ p }}" {% if p == selected_program %}selected{% endif %}>{{ p }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Department :</label>
+                    <select name="department" id="department" class="w-full rounded-lg border border-slate-200 text-xs p-2">
+                        <option value="">All Departments</option>
+                        {% for d in departments %}<option value="{{ d }}" {% if d == selected_department %}selected{% endif %}>{{ d }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">College :</label>
+                    <select name="college" id="college" class="w-full rounded-lg border border-slate-200 text-xs p-2">
+                        <option value="">All College Units</option>
+                        {% for c in colleges %}<option value="{{ c }}" {% if c == selected_college %}selected{% endif %}>{{ c }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Staff Name :</label>
+                    <select name="name" id="name" class="w-full rounded-lg border border-slate-200 text-xs p-2">
+                        <option value="">All Identity Profiles</option>
+                        {% for n in names %}<option value="{{ n }}" {% if n == selected_name %}selected{% endif %}>{{ n }}</option>{% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="px-5 pb-5 flex flex-col sm:flex-row gap-3 justify-end">
+                <a href="{% url 'staff:staff_list' %}" class="px-4 py-1.5 bg-white text-slate-600 rounded-lg text-sm font-semibold border border-slate-200 shadow-sm inline-flex items-center gap-1.5"><i class="bi bi-arrow-counterclockwise"></i> Reset Filters</a>
+                <button type="submit" class="px-4 py-1.5 bg-jmc-maroon text-white rounded-lg text-sm font-semibold shadow-sm inline-flex items-center gap-1.5"><i class="bi bi-funnel"></i> Show Grid</button>
+            </div>
+        </form>
+    </div>
+</div>
