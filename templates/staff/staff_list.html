@@ -222,12 +222,31 @@
         </div>
         {% endif %}
         
-    </div>
-
-    {% include 'staff/staff_modals.html' %}
-
+<div id="django-messages" class="hidden">
+    {% for msg in messages %}
+      <div class="message" data-level="{{ msg.tags }}" data-message="{{ msg }}"></div>
+    {% endfor %}
 </div>
 
 <script src="{% static 'js/staff.js' %}"></script>
+<script>
+    // Show Django messages as SweetAlert2 toasts
+    const djangoMessages = document.querySelectorAll('#django-messages .message');
+    djangoMessages.forEach(msg => {
+        const text = msg.getAttribute('data-message');
+        const level = msg.getAttribute('data-level');
+        let icon = 'info';
+        if (level === 'success') icon = 'success';
+        if (level === 'error') icon = 'error';
+        Swal.fire({
+            icon: icon,
+            title: text,
+            timer: 3000,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end'
+        });
+    });
+</script>
 
 {% endblock %}

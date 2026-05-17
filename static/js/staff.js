@@ -341,3 +341,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const successMsg = "{{ messages.0|default:'' }}";  // simpler: read from data attribute
+});
