@@ -1,0 +1,131 @@
+<!-- ADD/EDIT COURSE DRAWER -->
+<div id="courseDrawer" class="drawer fixed inset-0 z-50 hidden" aria-labelledby="drawer-title" role="dialog">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" onclick="closeCourseDrawer()"></div>
+    <div class="drawer-scrollable absolute inset-y-0 right-0 w-full max-w-xl bg-slate-50 shadow-2xl overflow-y-auto transform transition-transform duration-300">
+        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white">
+            <div>
+                <h2 id="drawer-title" class="text-xl font-bold text-jmc-maroon">New Course Record</h2>
+                <p id="drawer-subtitle" class="text-md text-slate-500 mt-0.5">Fields marked with <span class="text-rose-500 font-bold">*</span> are required.</p>
+            </div>
+            <button onclick="closeCourseDrawer()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                <i class="bi bi-x-lg text-sm"></i>
+            </button>
+        </div>
+        <form id="courseForm" class="px-6 pb-6 space-y-6">
+            {% csrf_token %}
+            <input type="hidden" name="course_code" id="editCourseId" value="">
+
+            <!-- Section: Course Details (Indigo) -->
+            <div class="bg-white rounded-xl border border-indigo-100 shadow-sm overflow-hidden space-y-4 pb-5">
+                <div class="flex items-center gap-2 bg-indigo-50/60 px-5 py-3 border-b border-indigo-100/50">
+                    <i class="bi bi-info-circle text-indigo-600 text-base"></i>
+                    <h3 class="font-bold text-xs tracking-wider text-indigo-900 uppercase">Course Details</h3>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 px-5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Course Code : <span class="text-rose-500">*</span></label>
+                        <input type="text" name="course_code" id="drawerCourseCode" required class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Course ID : <span class="text-rose-500">*</span></label>
+                        <input type="text" name="course_id" id="drawerCourseId" required class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Course Title : <span class="text-rose-500">*</span></label>
+                        <input type="text" name="course_title" id="drawerCourseTitle" required class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white">
+                    </div>
+                    <div class="h-full">
+                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Program : <span class="text-rose-500">*</span></label>
+                        <div class="flex gap-6 mt-4">
+                            <label class="inline-flex items-center gap-2 text-sm">
+                                <input type="radio" name="program" value="UG" required class="w-4 h-4 text-indigo-600"> UG
+                            </label>
+                            <label class="inline-flex items-center gap-2 text-sm">
+                                <input type="radio" name="program" value="PG" required class="w-4 h-4 text-indigo-600"> PG
+                            </label>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Semester : <span class="text-rose-500">*</span></label>
+                        <select name="semester" id="drawerSemester" required class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white">
+                            <option value="">Select</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: Assessment & Examiner (Emerald) -->
+            <div class="bg-white rounded-xl border border-emerald-100 shadow-sm overflow-hidden space-y-4 pb-5">
+                <div class="flex items-center gap-2 bg-emerald-50/60 px-5 py-3 border-b border-emerald-100/50">
+                    <i class="bi bi-bar-chart-steps text-emerald-600 text-base"></i>
+                    <h3 class="font-bold text-xs tracking-wider text-emerald-900 uppercase">Assessment & Examiner</h3>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 px-5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">External Mark :</label>
+                        <input type="text" name="external_mark" id="drawerExternalMark" class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Examiner :</label>
+                        <select name="examiner" id="drawerExaminer" class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white">
+                            <option value="">Select</option>
+                            <option value="Internal">Internal</option>
+                            <option value="External">External</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div class="px-6 pb-6 flex gap-3">
+            <button onclick="closeCourseDrawer()" class="flex-1 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-sm rounded-xl border border-slate-200">Cancel</button>
+            <button type="submit" form="courseForm" class="flex-1 px-4 py-2.5 bg-[#8b1e3f] hover:bg-[#721833] text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-md">
+                <i class="bi bi-save"></i> Save Course Record
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- DELETE DRAWER -->
+<div id="deleteDrawer" class="drawer fixed inset-0 z-50 hidden" aria-labelledby="delete-drawer-title" role="dialog">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" onclick="closeDeleteDrawer()"></div>
+    <div class="absolute inset-y-0 right-0 w-full max-w-xl bg-slate-50 shadow-2xl flex flex-col h-full overflow-hidden transform transition-transform duration-300">
+        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+            <div>
+                <h2 id="delete-drawer-title" class="text-xl font-bold text-[#8b1e3f]">Delete Course Record</h2>
+                <p class="text-sm text-slate-500 mt-0.5">This action cannot be undone.</p>
+            </div>
+            <button onclick="closeDeleteDrawer()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg"><i class="bi bi-x-lg text-sm"></i></button>
+        </div>
+        <div class="drawer-scrollable flex-1 overflow-y-auto p-6 space-y-6">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-8 text-center">
+                <div class="flex justify-center h-14 w-14 rounded-full bg-rose-50 border border-rose-100 text-rose-600 mb-4 mx-auto items-center">
+                    <i class="bi bi-exclamation-triangle text-2xl"></i>
+                </div>
+                <h3 class="text-base font-bold text-slate-900" id="deleteDrawerMessage">Are you sure you want to delete this course?</h3>
+                <p class="text-xs text-slate-500 mt-2">This will permanently remove the course from the catalog.</p>
+                <div class="mt-5 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700">
+                    <span class="text-slate-400">Course Title :</span>
+                    <span id="deleteDrawerCourseTitle" class="font-mono font-bold text-rose-600"></span>
+                </div>
+            </div>
+        </div>
+        <div class="px-6 pb-6 flex gap-3 bg-slate-50 shrink-0">
+            <button onclick="closeDeleteDrawer()" class="flex-1 px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 font-bold text-sm rounded-xl border border-slate-200">Cancel</button>
+            <button id="confirmDeleteBtn" class="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-md">
+                <i class="bi bi-trash3"></i> Delete Permanently
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .drawer-scrollable { scrollbar-width: none; -ms-overflow-style: none; }
+    .drawer-scrollable::-webkit-scrollbar { display: none; }
+    body.drawer-open { overflow: hidden !important; position: fixed; width: 100%; height: 100%; }
+</style>

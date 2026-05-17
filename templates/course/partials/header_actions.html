@@ -1,23 +1,25 @@
+{% load static %}
+
 <div
     class="flex flex-col lg:flex-row lg:items-center lg:justify-between pb-6 border-b border-slate-200 gap-4"
 >
     <div class="space-y-1">
         <h2 class="text-2xl font-black tracking-tight text-slate-900">
-            Staff Directory
+            Course Directory
         </h2>
         <p class="text-xs sm:text-sm font-medium text-slate-500">
-            Secure institutional personnel records system, structural
-            taxonomies, and payroll data streams.
+            Centralized academic course inventory, curriculum mapping, and
+            assessment framework.
         </p>
     </div>
     <div class="flex items-center gap-3 self-start lg:self-center">
         <button
             type="button"
-            onclick="openDrawer()"
+            onclick="openCourseDrawer()"
             class="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r bg-jmc-maroon text-white text-xs font-bold rounded-lg transition-all duration-150 tracking-wider uppercase"
         >
-            <i class="bi bi-person-plus-fill text-sm"></i>
-            Create Staff Profile
+            <i class="bi bi-plus-circle-fill text-sm"></i>
+            Create New Course
         </button>
     </div>
 </div>
@@ -25,17 +27,17 @@
 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
     <!-- Export -->
     <a
-        href="{% url 'staff:staff_export' %}"
+        href="{% url 'course:course_export' %}"
         class="flex items-center justify-between p-5 bg-white border-l-4 border-l-emerald-500 border-y border-r border-slate-200/80 rounded-xl group"
     >
         <div>
             <span
                 class="block text-[10px] font-bold text-emerald-600 uppercase"
             >
-                Data Sync Matrix
+                Data Export Matrix
             </span>
             <span class="text-sm font-bold text-slate-800">
-                Download Staff Excel (.xlsx)
+                Download Courses Excel (.xlsx)
             </span>
         </div>
         <div
@@ -46,15 +48,15 @@
     </a>
     <!-- Template -->
     <a
-        href="{% url 'staff:staff_sample' %}"
+        href="{% url 'course:course_sample' %}"
         class="flex items-center justify-between p-5 bg-white border-l-4 border-l-orange-500 border-y border-r border-slate-200/80 rounded-xl group"
     >
         <div>
             <span class="block text-[10px] font-bold text-orange-600 uppercase">
-                System Integration
+                System Template
             </span>
             <span class="text-sm font-bold text-slate-800">
-                Download Template for Staff
+                Download Sample Course Structure
             </span>
         </div>
         <div
@@ -67,7 +69,7 @@
     <form
         method="post"
         enctype="multipart/form-data"
-        action="{% url 'staff:staff_upload' %}"
+        action="{% url 'course:course_upload' %}"
         class="relative flex items-center justify-between p-5 bg-white border-l-4 border-l-blue-500 border-y border-r border-slate-200/80 rounded-xl group"
     >
         {% csrf_token %}
@@ -78,7 +80,7 @@
                 accept=".xlsx, .xls"
                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 required
-                id="fileInput"
+                id="courseFileInput"
             />
         </div>
         <div class="space-y-1 min-w-0 pr-2">
@@ -87,18 +89,21 @@
             </span>
             <span
                 class="text-sm font-bold text-slate-800 truncate block"
-                id="fileNameDisplay"
+                id="courseFileNameDisplay"
             >
-                Upload Staff Data File 
+                Upload Course Data File
             </span>
         </div>
         <button
             type="submit"
-            id="submitBtn"
+            id="courseUploadBtn"
             class="z-20 px-4 py-2.5 bg-blue-50 text-blue-600 rounded-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             disabled
         >
-            <i id="actionIcon" class="bi bi-cloud-arrow-up-fill text-lg"></i>
+            <i
+                id="courseActionIcon"
+                class="bi bi-cloud-arrow-up-fill text-lg"
+            ></i>
         </button>
     </form>
 </div>

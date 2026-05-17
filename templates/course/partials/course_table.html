@@ -1,0 +1,120 @@
+<!-- Search + Total Records Count -->
+<div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+    <div class="flex-1 max-w-sm relative">
+        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+            <i class="bi bi-search text-xs"></i>
+        </div>
+        <form method="get" action="" class="m-0">
+            <input type="text" name="search" value="{{ search|default:'' }}" placeholder="Filter by Course Code, Title, ID, Program, Examiner..." class="w-full h-12 pl-9 pr-4 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-800 placeholder:text-slate-400 transition-all focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400">
+        </form>
+    </div>
+    <div class="flex items-center gap-4 text-xs sm:border-l sm:border-slate-200 sm:pl-6">
+        <div class="flex items-center gap-2">
+            <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span class="text-slate-400 uppercase tracking-wider text-[12px] font-bold">Total Courses</span>
+        </div>
+        <span class="font-mono bg-white shadow-sm px-2.5 py-1 rounded-md text-slate-700 font-semibold border border-slate-200/80">{{ total_count|default:0 }}</span>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="overflow-hidden bg-white rounded-xl border border-slate-200/80 shadow-sm mt-4">
+    <div class="overflow-x-auto relative side-scroll-shadow">
+        <table id="courseTable" class="w-full border-collapse text-sm">
+            <thead>
+                <tr class="border-y border-slate-200 text-[11px] uppercase tracking-[0.14em] text-slate-500 font-black select-none">
+                    <th data-col-index="0" class="sortable-th sticky bg-white left-0 z-40 px-4 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2"><span>S. No.</span></div></th>
+                    <th data-col-index="1" class="sortable-th sticky bg-white left-[63px] z-40 px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2">Course Code<i class="bi bi-arrow-down-up sort-icon text-slate-300"></i></div></th>
+                    <th data-col-index="2" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2">Course Title<i class="bi bi-arrow-down-up sort-icon text-slate-300"></i></div></th>
+                    <th data-col-index="3" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2">Semester<i class="bi bi-arrow-down-up sort-icon text-slate-300"></i></div></th>
+                    <th data-col-index="4" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2">Program<i class="bi bi-arrow-down-up sort-icon text-slate-300"></i></div></th>
+                    <th data-col-index="5" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2">External Mark<i class="bi bi-arrow-down-up sort-icon text-slate-300"></i></div></th>
+                    <th data-col-index="6" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center"><div class="flex items-center justify-center gap-2">Examiner<i class="bi bi-arrow-down-up sort-icon text-slate-300"></i></div></th>
+                    <th class="sticky right-0 z-40 px-5 py-4 text-center bg-white"><div class="flex items-center justify-center">Actions</div></th>
+                </tr>
+            </thead>
+            <tbody id="courseTableBody" class="divide-y divide-slate-100 bg-white text-center">
+                {% for c in course %}
+                <tr class="course-row group hover:bg-gradient-to-r hover:from-indigo-50/40 hover:to-transparent transition-all duration-200"
+                    data-code="{{ c.course_code }}"
+                    data-program="{{ c.program }}"
+                    data-course_id="{{ c.course_id }}"
+                    data-semester="{{ c.semester }}"
+                    data-course_title="{{ c.course_title }}"
+                    data-course_code="{{ c.course_code }}"
+                    data-external_mark="{{ c.external_mark }}"
+                    data-examiner="{{ c.examiner|default:'' }}">
+                
+                    <td class="slno-cell sticky left-0 z-20 px-4 py-4 bg-white group-hover:bg-slate-50 transition">
+                        <span class="text-[11px] font-bold text-slate-400">{{ forloop.counter0|add:course.start_index }}</span>
+                    </td>
+                    
+                    <td class="sticky left-[63px] bg-white z-20 px-5 py-4 group-hover:bg-slate-50 transition">
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center justify-center w-8 h-8 text-[11px] font-bold rounded shadow-sm shrink-0" style="background-color: {% cycle '#eef2ff' '#ecfdf5' '#ffe4e6' '#fffbeb' '#e0f2fe' '#f3e8ff' %}; color: {% cycle '#4f46e5' '#059669' '#e11d48' '#d97706' '#0284c7' '#9333ea' %};">
+                                {{ c.course_code|slice:":1"|upper }}
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-[13px] tracking-tight whitespace-nowrap text-left">{{ c.course_code }}</h4>
+                                <p class="text-[12px] text-slate-600 whitespace-nowrap text-left font-medium">{{ c.course_id }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    
+                    <td class="px-5 py-4 max-w-xs truncate">
+                        <span class="text-slate-700 font-medium">{{ c.course_title|truncatechars:45 }}</span>
+                    </td>
+                    
+                    <td class="px-5 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-3 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-bold">
+                            <i class="bi bi-journal-bookmark-fill mr-1 text-[12px]"></i> {{ c.semester }}
+                        </span>
+                    </td>
+                    
+                    <td class="px-5 py-4">
+                        <span class="inline-flex items-center px-3 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100 text-[11px] font-bold">{{ c.program|truncatechars:20 }}</span>
+                    </td>
+                    
+                    <td class="px-5 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center gap-1 text-emerald-700 font-bold text-xs bg-emerald-50 px-2 py-1 rounded-full">
+                            <i class="bi bi-trophy-fill text-[12px]"></i> {{ c.external_mark }}
+                        </span>
+                    </td>
+                    
+                    <td class="px-5 py-4">
+                        <span class="text-slate-600 text-sm flex items-center justify-center gap-1">
+                            <i class="bi bi-person-badge text-slate-600"></i> {{ c.examiner|default:"—" }}
+                        </span>
+                    </td>
+                    
+                    <td class="sticky right-0 z-20 px-5 py-4 bg-white border-l border-slate-100 group-hover:bg-slate-50 transition">
+                        <div class="flex items-center gap-1">
+                            <button type="button" onclick="openCourseDrawer('{{ c.course_code }}')" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-all flex items-center justify-center" title="Edit Course">
+                                <i class="bi bi-pencil-square text-sm"></i>
+                            </button>
+                            <button type="button" onclick="openDeleteModal('{{ c.course_code }}', '{{ c.course_title|escapejs }}')" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-100 rounded-lg transition-all flex items-center justify-center" title="Delete Course">
+                                <i class="bi bi-trash3 text-sm"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="py-12 text-center bg-gradient-to-b from-slate-50 to-white">
+                        <div class="mx-auto">
+                            <div class="w-12 h-12 mx-auto rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shadow-inner mb-4">
+                                <i class="bi bi-journal-bookmark-fill text-2xl text-slate-400"></i>
+                            </div>
+                            <h3 class="text-lg font-black text-slate-800 tracking-tight">No Course Records Found</h3>
+                            <p class="mt-4 text-sm text-slate-400 leading-relaxed">No courses match the current filter criteria or search query.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

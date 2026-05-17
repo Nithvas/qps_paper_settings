@@ -1,5 +1,5 @@
 // ------------------------------
-// CSRF Token Helper (safe, no duplicate declaration)
+// CSRF Token Helper
 // ------------------------------
 
 if (typeof csrftoken === 'undefined') {
@@ -41,68 +41,85 @@ function unlockBodyScroll() {
 }
 
 // ------------------------------
+// Helper: Get/set radio button value
+// ------------------------------
+
+function getSelectedProgram() {
+    const selected = document.querySelector('input[name="program"]:checked');
+    return selected ? selected.value : '';
+}
+
+function setSelectedProgram(value) {
+    const radio = document.querySelector(`input[name="program"][value="${value}"]`);
+    if (radio) radio.checked = true;
+}
+
+// ------------------------------
+// Helper: Reset entire course form
+// ------------------------------
+
+function resetCourseForm() {
+    const form = document.getElementById('courseForm');
+    if (form) form.reset();
+    document.querySelectorAll('input[name="program"]').forEach(r => r.checked = false);
+    document.getElementById('editCourseId').value = '';
+}
+
+// ------------------------------
 // Add/Edit Drawer Functions
 // ------------------------------
 
-function openDrawer(staffId = null) {
+function openCourseDrawer(courseCode = null) {
 
-    const drawer = document.getElementById('staffDrawer');
-    const form = document.getElementById('staffForm');
-    const editStaffId = document.getElementById('editStaffId');
+    const drawer = document.getElementById('courseDrawer');
+    const form = document.getElementById('courseForm');
+    const editCourseId = document.getElementById('editCourseId');
     const title = document.getElementById('drawer-title');
     const subtitle = document.getElementById('drawer-subtitle');
 
     if (!drawer) return;
-    form?.reset();
-    if (editStaffId) editStaffId.value = '';
-    if (title) title.innerText = 'Register New Staff';
+    resetCourseForm();
+
+    if (title) title.innerText = 'Register New Course';
     if (subtitle) subtitle.innerText = 'Complete all mandatory fields';
 
-    if (staffId) {
-        fetch(`/staff/edit/${staffId}/?format=json`, {
+    if (courseCode) {
+        fetch(`/course/edit/${courseCode}/?format=json`, {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    const s = data.staff;
-                    document.getElementById('drawerStaffId').value = s.staff_id || '';
-                    document.getElementById('drawerName').value = s.name || '';
-                    document.getElementById('drawerDesignation').value = s.designation || '';
-                    document.getElementById('drawerProgram').value = s.program || '';
-                    document.getElementById('drawerDepartment').value = s.department || '';
-                    document.getElementById('drawerCollege').value = s.college || '';
-                    document.getElementById('drawerDoj').value = s.doj || '';
-                    document.getElementById('drawerDor').value = s.dor || '';
-                    document.getElementById('drawerPhone').value = s.phone || '';
-                    document.getElementById('drawerEmail').value = s.email || '';
-                    document.getElementById('drawerCity').value = s.city || '';
-                    document.getElementById('drawerDistrict').value = s.district || '';
-                    document.getElementById('drawerBankAccount').value = s.bank_account || '';
-                    document.getElementById('drawerBankName').value = s.bank_name || '';
-                    document.getElementById('drawerIfsc').value = s.ifsc_code || '';
-                    document.getElementById('drawerRemark').value = s.remark || '';
-                    if (editStaffId) editStaffId.value = staffId;
-                    if (title) title.innerText = 'Update Staff Record';
-                    if (subtitle) subtitle.innerText = `Editing ID: ${s.staff_id}`;
-                    drawer.classList.remove('hidden');
-                    lockBodyScroll();
-                } else {
-                    alert('Error loading staff data: ' + (data.error || 'Unknown error'));
-                }
-            })
-            .catch(err => {
-                console.error('Fetch error:', err);
-                alert('Failed to load staff details. Check console.');
-            });
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const c = data.course;
+                document.getElementById('drawerCourseCode').value = c.course_code || '';
+                document.getElementById('drawerCourseTitle').value = c.course_title || '';
+                document.getElementById('drawerCourseId').value = c.course_id || '';
+                const semesterSelect = document.getElementById('drawerSemester');
+                if (semesterSelect) semesterSelect.value = c.semester || '';
+                setSelectedProgram(c.program);
+                document.getElementById('drawerExternalMark').value = c.external_mark || '';
+                document.getElementById('drawerExaminer').value = c.examiner || '';
+                if (editCourseId) editCourseId.value = courseCode;
+                if (title) title.innerText = 'Update Course Record';
+                if (subtitle) subtitle.innerText = `Editing Code: ${c.course_code}`;
+                drawer.classList.remove('hidden');
+                lockBodyScroll();
+            } else {
+                alert('Error loading course data: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(err => {
+            console.error('Fetch error:', err);
+            alert('Failed to load course details. Check console.');
+        });
     } else {
         drawer.classList.remove('hidden');
         lockBodyScroll();
     }
 }
 
-function closeDrawer() {
-    const drawer = document.getElementById('staffDrawer');
+function closeCourseDrawer() {
+    const drawer = document.getElementById('courseDrawer');
     if (drawer) {
         drawer.classList.add('hidden');
         unlockBodyScroll();
@@ -115,15 +132,15 @@ function closeDrawer() {
 
 let pendingDeleteCallback = null;
 
-function openDeleteDrawer(staffId, staffName, onConfirmCallback) {
+function openDeleteDrawer(courseCode, courseTitle, onConfirmCallback) {
 
     const drawer = document.getElementById('deleteDrawer');
     if (!drawer) return;
 
-    document.getElementById('deleteDrawerStaffId').innerText = staffId;
+    document.getElementById('deleteDrawerCourseTitle').innerText = courseTitle;
     const msgSpan = document.getElementById('deleteDrawerMessage');
     if (msgSpan) {
-        msgSpan.innerHTML = `Are you completely certain you want to purge the record of <strong class="text-rose-700">${escapeHtml(staffName)}</strong> ? This action cannot be undone.`;
+        msgSpan.innerHTML = `Are you completely certain you want to purge the course <strong class="text-rose-700">${escapeHtml(courseTitle)}</strong> (${escapeHtml(courseCode)})? This action cannot be undone.`;
     }
 
     pendingDeleteCallback = onConfirmCallback;
@@ -132,7 +149,7 @@ function openDeleteDrawer(staffId, staffName, onConfirmCallback) {
     const newConfirmBtn = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
     newConfirmBtn.id = 'confirmDeleteBtn';
-    newConfirmBtn.addEventListener('click', function () {
+    newConfirmBtn.addEventListener('click', function() {
         if (pendingDeleteCallback) {
             pendingDeleteCallback();
             pendingDeleteCallback = null;
@@ -153,28 +170,27 @@ function closeDeleteDrawer() {
     }
 }
 
-function openDeleteModal(staffId, staffName) {
-
-    openDeleteDrawer(staffId, staffName, function () {
-        fetch(`/staff/delete/${staffId}/`, {
+function openDeleteModal(courseCode, courseTitle) {
+    openDeleteDrawer(courseCode, courseTitle, function() {
+        fetch(`/course/delete/${courseCode}/`, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': csrftoken,
                 'X-Requested-With': 'XMLHttpRequest'
             }
         })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) window.location.reload();
-                else alert('Delete failed: ' + (data.error || 'Unknown error'));
-            })
-            .catch(() => alert('Network error while deleting'));
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) window.location.reload();
+            else alert('Delete failed: ' + (data.error || 'Unknown error'));
+        })
+        .catch(() => alert('Network error while deleting'));
     });
 }
 
 function escapeHtml(str) {
     if (!str) return '';
-    return str.replace(/[&<>]/g, function (m) {
+    return str.replace(/[&<>]/g, function(m) {
         if (m === '&') return '&amp;';
         if (m === '<') return '&lt;';
         if (m === '>') return '&gt;';
@@ -183,20 +199,42 @@ function escapeHtml(str) {
 }
 
 // ------------------------------
-// Form Submission (AJAX)
+// Form Submission (AJAX) – collects radio & select values correctly
 // ------------------------------
 
-function initStaffForm() {
+function initCourseForm() {
 
-    const form = document.getElementById('staffForm');
-    const editStaffId = document.getElementById('editStaffId');
+    const form = document.getElementById('courseForm');
+    const editCourseId = document.getElementById('editCourseId');
     if (!form) return;
 
-    form.addEventListener('submit', function (e) {
+    form.addEventListener('submit', function(e) {
         e.preventDefault();
-        const formData = new FormData(form);
-        const staffId = editStaffId?.value || '';
-        const url = staffId ? `/staff/edit/${staffId}/` : '/staff/add/';
+
+        const courseCode = document.getElementById('drawerCourseCode').value;
+        const courseTitle = document.getElementById('drawerCourseTitle').value;
+        const courseId = document.getElementById('drawerCourseId').value;
+        const semester = document.getElementById('drawerSemester').value;
+        const program = getSelectedProgram();
+        const externalMark = document.getElementById('drawerExternalMark').value;
+        const examiner = document.getElementById('drawerExaminer').value;
+
+        if (!courseCode || !courseTitle || !courseId || !semester || !program) {
+            alert('Please fill all required fields (Course Code, Title, ID, Semester, Program).');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('course_code', courseCode);
+        formData.append('course_title', courseTitle);
+        formData.append('course_id', courseId);
+        formData.append('semester', semester);
+        formData.append('program', program);
+        formData.append('external_mark', externalMark);
+        formData.append('examiner', examiner);
+
+        const isEdit = editCourseId && editCourseId.value !== '';
+        const url = isEdit ? `/course/edit/${courseCode}/` : '/course/add/';
 
         fetch(url, {
             method: 'POST',
@@ -206,17 +244,17 @@ function initStaffForm() {
             },
             body: formData
         })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) window.location.reload();
-                else alert('Error : ' + (data.error || 'Could not save.'));
-            })
-            .catch(() => alert('Network error. Please try again.'));
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) window.location.reload();
+            else alert('Error : ' + (data.error || 'Could not save.'));
+        })
+        .catch(() => alert('Network error. Please try again.'));
     });
 }
 
 // ------------------------------
-// Table Sorting (if needed)
+// Table Sorting (unchanged but works with new structure)
 // ------------------------------
 
 let currentSort = { col: null, dir: 'asc' };
@@ -225,26 +263,19 @@ function getCellValue(row, colIndex) {
     const cells = row.cells;
     if (!cells[colIndex]) return '';
     if (colIndex === 0) return parseInt(cells[0]?.innerText?.trim(), 10) || 0;
-    if (colIndex === 2) {
-        const nameSpan = cells[2]?.querySelector('.name-text');
-        return nameSpan ? nameSpan.innerText.trim() : cells[2]?.innerText?.trim() || '';
+    let text = cells[colIndex]?.innerText?.trim() || '';
+    if (colIndex === 7) {
+        let num = parseFloat(text.replace(/[^0-9.-]/g, ''));
+        return isNaN(num) ? text : num;
     }
-    if (colIndex === 9 || colIndex === 10) {
-        let dateStr = cells[colIndex]?.innerText?.replace(/[^0-9-]/g, '') || '';
-        return dateStr;
-    }
-    if (colIndex === 11) {
-        let num = parseFloat(cells[colIndex]?.innerText?.replace(/[^0-9]/g, ''));
-        return isNaN(num) ? cells[colIndex]?.innerText?.trim() || '' : num;
-    }
-    return cells[colIndex]?.innerText?.trim() || '';
+    return text.toLowerCase();
 }
 
 function sortTableByColumn(colIndex, thElement) {
 
-    const tbody = document.getElementById('staffTableBody');
+    const tbody = document.getElementById('courseTableBody');
     if (!tbody) return;
-    const rows = Array.from(tbody.querySelectorAll('tr.staff-row'));
+    const rows = Array.from(tbody.querySelectorAll('tr.course-row'));
     if (!rows.length) return;
 
     let direction = (currentSort.col === colIndex && currentSort.dir === 'asc') ? 'desc' : 'asc';
@@ -264,8 +295,6 @@ function sortTableByColumn(colIndex, thElement) {
     rows.sort((a, b) => {
         let valA = getCellValue(a, colIndex);
         let valB = getCellValue(b, colIndex);
-        if (typeof valA === 'string') valA = valA.toLowerCase();
-        if (typeof valB === 'string') valB = valB.toLowerCase();
         if (valA < valB) return direction === 'asc' ? -1 : 1;
         if (valA > valB) return direction === 'asc' ? 1 : -1;
         return 0;
@@ -288,28 +317,30 @@ function initSorting() {
 }
 
 // ------------------------------
-// File Upload Handler (if any)
+// File Upload Handler
 // ------------------------------
 
 function initFileUpload() {
 
-    const fileInput = document.getElementById('fileInput');
-    const submitBtn = document.getElementById('submitBtn');
-    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    const fileInput = document.getElementById('courseFileInput');
+    const submitBtn = document.getElementById('courseUploadBtn');
+    const fileNameDisplay = document.getElementById('courseFileNameDisplay');
     const actionIcon = document.getElementById('actionIcon');
     if (!fileInput || !submitBtn) return;
 
-    fileInput.addEventListener('change', function (e) {
-        const fileName = e.target.files[0]?.name || "Upload Workbook";
+    fileInput.addEventListener('change', function(e) {
+        const fileName = e.target.files[0]?.name || "Upload Course Workbook";
         if (fileNameDisplay) fileNameDisplay.textContent = fileName;
         if (e.target.files && e.target.files.length > 0) {
             submitBtn.disabled = false;
             submitBtn.classList.remove('cursor-not-allowed', 'opacity-60', 'bg-blue-50', 'text-blue-600');
             submitBtn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-700');
+            if (actionIcon) actionIcon.className = "bi bi-check-lg text-lg animate-pulse";
         } else {
             submitBtn.disabled = true;
             submitBtn.classList.add('cursor-not-allowed', 'opacity-60');
             submitBtn.classList.remove('bg-blue-600', 'text-white', 'hover:bg-blue-700');
+            if (actionIcon) actionIcon.className = "bi bi-cloud-arrow-up-fill text-lg";
         }
     });
 }
@@ -318,22 +349,22 @@ function initFileUpload() {
 // Close Drawers on Backdrop Click & ESC
 // ------------------------------
 
-document.addEventListener('click', function (e) {
-    const addBackdrop = document.querySelector('#staffDrawer .absolute.inset-0');
-    if (addBackdrop && addBackdrop === e.target) closeDrawer();
+document.addEventListener('click', function(e) {
+    const addBackdrop = document.querySelector('#courseDrawer .absolute.inset-0');
+    if (addBackdrop && addBackdrop === e.target) closeCourseDrawer();
     const delBackdrop = document.querySelector('#deleteDrawer .absolute.inset-0');
     if (delBackdrop && delBackdrop === e.target) closeDeleteDrawer();
 });
 
-document.addEventListener('keydown', function (e) {
+document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         const deleteDrawer = document.getElementById('deleteDrawer');
         if (deleteDrawer && !deleteDrawer.classList.contains('hidden')) {
             closeDeleteDrawer();
             return;
         }
-        const addDrawer = document.getElementById('staffDrawer');
-        if (addDrawer && !addDrawer.classList.contains('hidden')) closeDrawer();
+        const addDrawer = document.getElementById('courseDrawer');
+        if (addDrawer && !addDrawer.classList.contains('hidden')) closeCourseDrawer();
     }
 });
 
@@ -343,12 +374,12 @@ document.addEventListener('keydown', function (e) {
 
 document.addEventListener('DOMContentLoaded', () => {
     initFileUpload();
-    initStaffForm();
+    initCourseForm();
     initSorting();
 });
 
-window.openDrawer = openDrawer;
-window.closeDrawer = closeDrawer;
+window.openCourseDrawer = openCourseDrawer;
+window.closeCourseDrawer = closeCourseDrawer;
 window.openDeleteDrawer = openDeleteDrawer;
 window.closeDeleteDrawer = closeDeleteDrawer;
 window.openDeleteModal = openDeleteModal;

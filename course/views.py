@@ -1,18 +1,25 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.db.models import Q
 from django.core.paginator import Paginator
 from django.contrib import messages
-
-import openpyxl
-
+from django.urls import reverse
+from urllib.parse import urlencode
 from .models import Course
 from .forms import CourseForm
+from .services.course_excel_service import (
+    download_sample_course_excel,
+    export_course_excel,
+    upload_course_excel
+)
 
+# -------------------------------------------------------------------
+# LIST VIEW (FILTER + SEARCH + PAGINATION)
+# -------------------------------------------------------------------
 
 def course_list(request):
-    qs = Course.objects.all()
 
+    qs = Course.objects.all()
     program = request.GET.get('program')
     course_id = request.GET.get('course_id')
     semester = request.GET.get('semester')
@@ -21,61 +28,39 @@ def course_list(request):
 
     if program:
         qs = qs.filter(program=program)
-
     if course_id:
         qs = qs.filter(course_id=course_id)
-
     if semester:
         qs = qs.filter(semester=semester)
-
     if course_code:
-        qs = qs.filter(course_code=course_code)        
-
+        qs = qs.filter(course_code=course_code)
     if search:
-
         qs = qs.filter(
-
             Q(program__icontains=search) |
             Q(course_id__icontains=search) |
-            Q(department__icontains=search) |
             Q(semester__icontains=search) |
             Q(course_code__icontains=search) |
             Q(course_title__icontains=search) |
             Q(external_mark__icontains=search) |
-            Q(examiner_int_ext__icontains=search)
+            Q(examiner__icontains=search)
         )
 
     paginator = Paginator(qs, 50)
-
     page = request.GET.get('page')
+    course_page = paginator.get_page(page)
 
-    course = paginator.get_page(page)
+    programs = Course.objects.values_list('program', flat=True).distinct().order_by('program')
+    course_ids = Course.objects.values_list('course_id', flat=True).distinct().order_by('course_id')
+    semesters = Course.objects.values_list('semester', flat=True).distinct().order_by('semester')
+    course_codes = Course.objects.values_list('course_code', flat=True).distinct().order_by('course_code')
 
     return render(request, 'course/course_list.html', {
-
-        'course': course,
+        'course': course_page,
         'total_count': qs.count(),
-
-        'programs': Course.objects.values_list(
-    'program',
-    flat=True
-).distinct().order_by('program'),
-
-'course_ids': qs.values_list(
-    'course_id',
-    flat=True
-).distinct().order_by('course_id'),
-
-'semesters': qs.values_list(
-    'semester',
-    flat=True
-).distinct().order_by('semester'),
-
-'course_codes': qs.values_list(
-    'course_code',
-    flat=True
-).distinct().order_by('course_code'),
-
+        'programs': list(programs),
+        'course_ids': list(course_ids),
+        'semesters': list(semesters),
+        'course_codes': list(course_codes),
         'selected_program': program,
         'selected_course_id': course_id,
         'selected_semester': semester,
@@ -83,205 +68,113 @@ def course_list(request):
         'search': search,
     })
 
+# -------------------------------------------------------------------
+# AJAX FILTER 
+# -------------------------------------------------------------------
 
 def ajax_filter(request):
 
+    qs = Course.objects.all()
     program = request.GET.get('program')
     course_id = request.GET.get('course_id')
     semester = request.GET.get('semester')
     course_code = request.GET.get('course_code')
 
-    qs = Course.objects.all()
-
     if program:
         qs = qs.filter(program=program)
-
     if course_id:
         qs = qs.filter(course_id=course_id)
-
     if semester:
         qs = qs.filter(semester=semester)
-
     if course_code:
         qs = qs.filter(course_code=course_code)
 
+    course_ids = qs.values_list('course_id', flat=True).distinct().order_by('course_id')
+    semesters = qs.values_list('semester', flat=True).distinct().order_by('semester')
+    course_codes = qs.values_list('course_code', flat=True).distinct().order_by('course_code')
+
     return JsonResponse({
+        'course_ids': list(course_ids),
+        'semesters': list(semesters),
+        'course_codes': list(course_codes),
+    })
 
-    'course_ids': list(
-        qs.values_list(
-            'course_id',
-            flat=True
-        ).distinct().order_by('course_id')
-    ),
+# -------------------------------------------------------------------
+# ADD / EDIT COURSE
+# -------------------------------------------------------------------
 
-    'semesters': list(
-        qs.values_list(
-            'semester',
-            flat=True
-        ).distinct().order_by('semester')
-    ),
-
-    'course_codes': list(
-        qs.values_list(
-            'course_code',
-            flat=True
-        ).distinct().order_by('course_code')
-    ),
-
-})
-
-
-def course_add(request):
-    if request.method == 'POST':
-        form = CourseForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Course added successfully!")
-            return redirect('course:course_list')
+def course_add_edit(request, id=None):
+    if id:
+        course = get_object_or_404(Course, id=id)
+        is_edit = True
     else:
-        form = CourseForm()
-
-    return render(request, 'course/course_form.html', {'form': form})
-    
-def course_edit(request, id):
-    instance = get_object_or_404(Course, id=id)
+        course = None
+        is_edit = False
 
     if request.method == 'POST':
-        form = CourseForm(request.POST, instance=instance)
+        form = CourseForm(request.POST, instance=course)
         if form.is_valid():
             form.save()
-            messages.success(request, "Updated successfully!")
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True})
+            messages.success(request, 'Course saved successfully.')
             return redirect('course:course_list')
+        else:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                error_messages = []
+                for field, errors in form.errors.items():
+                    if field == '__all__':
+                        error_messages.extend(errors)
+                    else:
+                        for err in errors:
+                            error_messages.append(f"{field}: {err}")
+                clean_error = " ".join(error_messages)
+                return JsonResponse({'success': False, 'error': clean_error})
+            messages.error(request, 'Please correct the errors below.')
     else:
-        form = CourseForm(instance=instance)
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and is_edit:
+            data = {field.name: getattr(course, field.name) for field in course._meta.fields}
+            return JsonResponse({'success': True, 'course': data})
+        form = CourseForm(instance=course)
 
-    return render(request, 'course/course_form.html', {'form': form})
+    return render(request, 'course/course_form.html', {'form': form, 'is_edit': is_edit})
+
+# -------------------------------------------------------------------
+# DELETE COURSE (AJAX)
+# -------------------------------------------------------------------
 
 def course_delete(request, id):
-    obj = get_object_or_404(Course, id=id)
-
     if request.method == 'POST':
-        obj.delete()
-        messages.success(request, "Deleted successfully!")
+        course = get_object_or_404(Course, id=id)
+        course.delete()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': True})
+        messages.success(request, 'Course deleted successfully.')
         return redirect('course:course_list')
+    return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=405)
 
+# -------------------------------------------------------------------
+# EXCEL HANDLERS
+# -------------------------------------------------------------------
 
-
-# SAMPLE EXCEL DOWNLOAD
 def course_sample(request):
+    return download_sample_course_excel()
 
-    wb = openpyxl.Workbook()
-
-    ws = wb.active
-
-    ws.title = "Course Sample"
-
-    ws.append([
-        "Slno",
-        "Program",
-        "Course_id",
-        "Department",
-        "Semester",
-        "Course_code",
-        "Course_title",
-        "External_mark",
-        "Examiner_int_ext"
-    ])
-
-    response = HttpResponse(
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
-
-    response['Content-Disposition'] = (
-        'attachment; filename=course_sample.xlsx'
-    )
-
-    wb.save(response)
-
-    return response
-
-
-# EXPORT EXCEL
 def course_export(request):
+    return export_course_excel()
 
-    wb = openpyxl.Workbook()
-
-    ws = wb.active
-
-    ws.title = "Course Data"
-
-    ws.append([
-        "Slno",
-        "Program",
-        "Course_id",
-        "Department",
-        "Semester",
-        "Course_code",
-        "Course_title",
-        "External_mark",
-        "Examiner_int_ext"
-    ])
-
-    data = Course.objects.all()
-
-    for s in data:
-
-        ws.append([
-            s.slno,
-            s.program,
-            s.course_id,
-            s.department,
-            s.semester,
-            s.course_code,
-            s.course_title,
-            s.external_mark,
-            s.examiner_int_ext
-        ])
-
-    response = HttpResponse(
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
-
-    response['Content-Disposition'] = (
-        'attachment; filename=course_data.xlsx'
-    )
-
-    wb.save(response)
-
-    return response
-
-
-# UPLOAD EXCEL
 def course_upload(request):
-
     if request.method == 'POST':
-
         file = request.FILES.get('file')
-
         if file:
-
-            wb = openpyxl.load_workbook(file)
-
-            ws = wb.active
-
-            rows = list(ws.iter_rows(values_only=True))
-
-            for row in rows[1:]:
-
-                Course.objects.create(
-
-                    slno=row[0],
-                    program=row[1],
-                    course_id=row[2],
-                    department=row[3],
-                    semester=row[4],
-                    course_code=row[5],
-                    course_title=row[6],
-                    external_mark=row[7],
-                    examiner_int_ext=row[8]
-
-                )
-
-            messages.success(request, "Excel uploaded successfully!")
-
+            try:
+                upload_course_excel(file)
+                messages.success(request, 'Excel uploaded successfully!')
+                base_url = reverse('course:course_list')
+                query_string = urlencode({'upload_success': '1'})
+                return redirect(f'{base_url}?{query_string}')
+            except Exception as e:
+                messages.error(request, f'Upload failed: {str(e)}')
+        else:
+            messages.error(request, 'Please select a file to upload')
     return redirect('course:course_list')

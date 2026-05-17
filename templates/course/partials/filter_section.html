@@ -1,0 +1,40 @@
+<div class="space-y-6 w-full font-sans antialiased text-slate-600">
+    <div class="bg-white border border-slate-200/80 rounded-xl shadow-sm overflow-hidden w-full">
+        <form method="get" action="" class="m-0 p-0">
+            <div class="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-white">
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Program :</label>
+                    <select name="program" id="program" class="w-full rounded-lg border border-slate-200 text-xs p-2">
+                        <option value="">All Programs</option>
+                        {% for p in programs %}<option value="{{ p }}" {% if p == selected_program %}selected{% endif %}>{{ p }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Course ID :</label>
+                    <select name="course_id" id="course_id_filter" class="w-full rounded-lg border border-slate-200 text-xs p-2">
+                        <option value="">All Course IDs</option>
+                        {% for cid in course_ids %}<option value="{{ cid }}" {% if cid == selected_course_id %}selected{% endif %}>{{ cid }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Semester :</label>
+                    <select name="semester" id="semester_filter" class="w-full rounded-lg border border-slate-200 text-xs p-2">
+                        <option value="">All Semesters</option>
+                        {% for sem in semesters %}<option value="{{ sem }}" {% if sem == selected_semester %}selected{% endif %}>{{ sem }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Course Code :</label>
+                    <select name="course_code" id="course_code_filter" class="w-full rounded-lg border border-slate-200 text-xs p-2">
+                        <option value="">All Course Codes</option>
+                        {% for code in course_codes %}<option value="{{ code }}" {% if code == selected_course_code %}selected{% endif %}>{{ code }}</option>{% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="px-5 pb-5 flex flex-col sm:flex-row gap-3 justify-end">
+                <a href="{% url 'course:course_list' %}" class="px-4 py-1.5 bg-white text-slate-600 rounded-lg text-sm font-semibold border border-slate-200 shadow-sm inline-flex items-center gap-1.5"><i class="bi bi-arrow-counterclockwise"></i> Reset Filters</a>
+                <button type="submit" class="px-4 py-1.5 bg-jmc-maroon text-white rounded-lg text-sm font-semibold shadow-sm inline-flex items-center gap-1.5"><i class="bi bi-funnel"></i> Apply Filters</button>
+            </div>
+        </form>
+    </div>
+</div>
