@@ -16,7 +16,9 @@ from .services.staff_excel_service import (
 # -------------------------------------------------------------------
 # LIST VIEW (FILTER + SEARCH + PAGINATION)
 # -------------------------------------------------------------------
+
 def staff_list(request):
+
     qs = Staff.objects.all()
     program = request.GET.get('program')
     department = request.GET.get('department')
@@ -75,7 +77,9 @@ def staff_list(request):
 # -------------------------------------------------------------------
 # AJAX FILTER (cascading dropdowns)
 # -------------------------------------------------------------------
+
 def ajax_filter(request):
+
     qs = Staff.objects.all()
     program = request.GET.get('program')
     department = request.GET.get('department')
@@ -102,32 +106,11 @@ def ajax_filter(request):
     })
 
 # -------------------------------------------------------------------
-# DISTINCT VALUES (for datalists in drawer)
+# ADD / EDIT STAFF 
 # -------------------------------------------------------------------
-def distinct_values(request):
-    data = {
-        'programs': list(Staff.objects.exclude(program__isnull=True).exclude(program='')
-                         .values_list('program', flat=True).distinct().order_by('program')),
-        'departments': list(Staff.objects.exclude(department__isnull=True).exclude(department='')
-                           .values_list('department', flat=True).distinct().order_by('department')),
-        'colleges': list(Staff.objects.exclude(college__isnull=True).exclude(college='')
-                        .values_list('college', flat=True).distinct().order_by('college')),
-        'designations': list(Staff.objects.exclude(designation__isnull=True).exclude(designation='')
-                            .values_list('designation', flat=True).distinct().order_by('designation')),
-        'cities': list(Staff.objects.exclude(city__isnull=True).exclude(city='')
-                      .values_list('city', flat=True).distinct().order_by('city')),
-        'districts': list(Staff.objects.exclude(district__isnull=True).exclude(district='')
-                         .values_list('district', flat=True).distinct().order_by('district')),
-        'bank_names': list(Staff.objects.exclude(bank_name__isnull=True).exclude(bank_name='')
-                          .values_list('bank_name', flat=True).distinct().order_by('bank_name')),
-    }
-    return JsonResponse(data)
 
-# -------------------------------------------------------------------
-# ADD / EDIT STAFF (AJAX + traditional)
-# -------------------------------------------------------------------
 def staff_add_edit(request, phone=None):
-    """Handle both add (phone=None) and edit (phone=value) via AJAX."""
+
     if phone:
         staff = get_object_or_404(Staff, phone=phone)
         is_edit = True
@@ -145,13 +128,19 @@ def staff_add_edit(request, phone=None):
             return redirect('staff:staff_list')
         else:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'success': False, 'error': form.errors.as_text()})
+                error_messages = []
+                for field, errors in form.errors.items():
+                    if field == '__all__':
+                        error_messages.extend(errors)
+                    else:
+                        for err in errors:
+                            error_messages.append(f"{field}: {err}")
+                clean_error = " ".join(error_messages) 
+                return JsonResponse({'success': False, 'error': clean_error})
             messages.error(request, 'Please correct the errors below.')
     else:
-        # GET request - return JSON for AJAX edit drawer
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and is_edit:
             data = {field.name: getattr(staff, field.name) for field in staff._meta.fields}
-            # Convert date fields to string (YYYY-MM-DD)
             if data.get('doj'):
                 data['doj'] = data['doj'].isoformat()
             if data.get('dor'):
@@ -159,12 +148,12 @@ def staff_add_edit(request, phone=None):
             return JsonResponse({'success': True, 'staff': data})
         form = StaffForm(instance=staff)
 
-    # Non-AJAX fallback (if you have a separate form template)
     return render(request, 'staff/staff_form.html', {'form': form, 'is_edit': is_edit})
 
 # -------------------------------------------------------------------
 # DELETE STAFF (AJAX)
 # -------------------------------------------------------------------
+
 def staff_delete(request, phone):
     if request.method == 'POST':
         staff = get_object_or_404(Staff, phone=phone)
@@ -178,6 +167,7 @@ def staff_delete(request, phone):
 # -------------------------------------------------------------------
 # EXCEL HANDLERS
 # -------------------------------------------------------------------
+
 def staff_sample(request):
     return download_sample_staff_excel()
 

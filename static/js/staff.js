@@ -1,6 +1,7 @@
 // ------------------------------
 // CSRF Token Helper (safe, no duplicate declaration)
 // ------------------------------
+
 if (typeof csrftoken === 'undefined') {
     function getCookie(name) {
         let cookieValue = null;
@@ -22,6 +23,7 @@ if (typeof csrftoken === 'undefined') {
 // ------------------------------
 // Drawer Scroll Locking
 // ------------------------------
+
 let openDrawerCount = 0;
 
 function lockBodyScroll() {
@@ -41,7 +43,9 @@ function unlockBodyScroll() {
 // ------------------------------
 // Add/Edit Drawer Functions
 // ------------------------------
+
 function openDrawer(staffId = null) {
+
     const drawer = document.getElementById('staffDrawer');
     const form = document.getElementById('staffForm');
     const editStaffId = document.getElementById('editStaffId');
@@ -55,7 +59,6 @@ function openDrawer(staffId = null) {
     if (subtitle) subtitle.innerText = 'Complete all mandatory fields';
 
     if (staffId) {
-        // Fetch existing staff data for editing
         fetch(`/staff/edit/${staffId}/?format=json`, {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
@@ -79,7 +82,6 @@ function openDrawer(staffId = null) {
                 document.getElementById('drawerBankName').value = s.bank_name || '';
                 document.getElementById('drawerIfsc').value = s.ifsc_code || '';
                 document.getElementById('drawerRemark').value = s.remark || '';
-
                 if (editStaffId) editStaffId.value = staffId;
                 if (title) title.innerText = 'Update Staff Record';
                 if (subtitle) subtitle.innerText = `Editing ID: ${s.staff_id}`;
@@ -110,22 +112,23 @@ function closeDrawer() {
 // ------------------------------
 // Delete Drawer Functions
 // ------------------------------
+
 let pendingDeleteCallback = null;
 
 function openDeleteDrawer(staffId, staffName, onConfirmCallback) {
+
     const drawer = document.getElementById('deleteDrawer');
     if (!drawer) return;
 
     document.getElementById('deleteDrawerStaffId').innerText = staffId;
     const msgSpan = document.getElementById('deleteDrawerMessage');
     if (msgSpan) {
-        msgSpan.innerHTML = `Are you completely certain you want to purge the record of <strong class="text-rose-700">${escapeHtml(staffName)}</strong> (ID: ${staffId})? This action cannot be undone.`;
+        msgSpan.innerHTML = `Are you completely certain you want to purge the record of <strong class="text-rose-700">${escapeHtml(staffName)}</strong> ? This action cannot be undone.`;
     }
 
     pendingDeleteCallback = onConfirmCallback;
 
     const confirmBtn = document.getElementById('confirmDeleteBtn');
-    // Remove old listeners by cloning
     const newConfirmBtn = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
     newConfirmBtn.id = 'confirmDeleteBtn';
@@ -150,8 +153,8 @@ function closeDeleteDrawer() {
     }
 }
 
-// Compatibility wrapper for old delete modal calls
 function openDeleteModal(staffId, staffName) {
+    
     openDeleteDrawer(staffId, staffName, function() {
         fetch(`/staff/delete/${staffId}/`, {
             method: 'POST',
@@ -182,7 +185,9 @@ function escapeHtml(str) {
 // ------------------------------
 // Form Submission (AJAX)
 // ------------------------------
+
 function initStaffForm() {
+    
     const form = document.getElementById('staffForm');
     const editStaffId = document.getElementById('editStaffId');
     if (!form) return;
@@ -204,7 +209,7 @@ function initStaffForm() {
         .then(res => res.json())
         .then(data => {
             if (data.success) window.location.reload();
-            else alert('Error: ' + (data.error || 'Could not save.'));
+            else alert('Error : ' + (data.error || 'Could not save.'));
         })
         .catch(() => alert('Network error. Please try again.'));
     });
@@ -213,6 +218,7 @@ function initStaffForm() {
 // ------------------------------
 // Table Sorting (if needed)
 // ------------------------------
+
 let currentSort = { col: null, dir: 'asc' };
 
 function getCellValue(row, colIndex) {
@@ -235,6 +241,7 @@ function getCellValue(row, colIndex) {
 }
 
 function sortTableByColumn(colIndex, thElement) {
+
     const tbody = document.getElementById('staffTableBody');
     if (!tbody) return;
     const rows = Array.from(tbody.querySelectorAll('tr.staff-row'));
@@ -283,7 +290,9 @@ function initSorting() {
 // ------------------------------
 // File Upload Handler (if any)
 // ------------------------------
+
 function initFileUpload() {
+
     const fileInput = document.getElementById('fileInput');
     const submitBtn = document.getElementById('submitBtn');
     const fileNameDisplay = document.getElementById('fileNameDisplay');
@@ -310,6 +319,7 @@ function initFileUpload() {
 // ------------------------------
 // Close Drawers on Backdrop Click & ESC
 // ------------------------------
+
 document.addEventListener('click', function(e) {
     const addBackdrop = document.querySelector('#staffDrawer .absolute.inset-0');
     if (addBackdrop && addBackdrop === e.target) closeDrawer();
@@ -332,14 +342,13 @@ document.addEventListener('keydown', function(e) {
 // ------------------------------
 // DOM Ready
 // ------------------------------
+
 document.addEventListener('DOMContentLoaded', () => {
     initFileUpload();
     initStaffForm();
     initSorting();
-    // No datalist or distinct-values calls
 });
 
-// Expose global functions for inline onclick handlers
 window.openDrawer = openDrawer;
 window.closeDrawer = closeDrawer;
 window.openDeleteDrawer = openDeleteDrawer;

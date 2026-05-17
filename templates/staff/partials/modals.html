@@ -6,7 +6,7 @@
     <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" onclick="closeDrawer()"></div>
     
     <!-- Drawer Panel -->
-    <div class="absolute inset-y-0 right-0 w-full max-w-xl bg-slate-50 shadow-2xl overflow-y-auto transform transition-transform duration-300">        <!-- Header -->
+    <div class="drawer-scrollable absolute inset-y-0 right-0 w-full max-w-xl bg-slate-50 shadow-2xl overflow-y-auto transform transition-transform duration-300">        <!-- Header -->
         <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white">
             <div>
                 <h2 id="drawer-title" class="text-xl font-bold text-jmc-maroon">New Staff Record</h2>
@@ -18,7 +18,7 @@
         </div>
         
         <!-- Form Content -->
-        <form id="staffForm" class="px-6 pb-6 space-y-6">
+        <form id="staffForm" class="px-6 pb-6 space-y-6 ">
             {% csrf_token %}
             <input type="hidden" name="staff_id" id="editStaffId" value="">
 
@@ -129,7 +129,7 @@
                     <i class="bi bi-chat-left-text text-slate-600 text-base"></i>
                     <h3 class="font-bold text-xs tracking-wider text-slate-800 uppercase">Administrative Remarks</h3>
                 </div>
-                <div class="px-5">
+                <div class="px-5 pt-2">
                     <textarea name="remark" id="drawerRemark" rows="3" class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-100 transition-all resize-none"></textarea>
                 </div>
             </div>
@@ -145,34 +145,64 @@
     </div>
 </div>
 
-<!-- DELETE CONFIRMATION DRAWER (unchanged) -->
-<div id="deleteDrawer" class="drawer fixed inset-0 z-50 hidden" aria-labelledby="delete-drawer-title" role="dialog">
+<!-- Delete Drawer Container -->
+<div id="deleteDrawer" class="drawer fixed inset-0 z-50 hidden" aria-labelledby="delete-drawer-title" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
     <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" onclick="closeDeleteDrawer()"></div>
-    <div class="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl flex flex-col h-full overflow-hidden transform transition-transform duration-300">
-        <div class="px-6 py-5 border-b border-rose-100 flex items-center justify-between shrink-0 bg-white">
+    
+    <!-- Drawer Panel -->
+    <div class="absolute inset-y-0 right-0 w-full max-w-xl bg-slate-50 shadow-2xl flex flex-col h-full overflow-hidden transform transition-transform duration-300">
+        
+        <!-- Header -->
+        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
             <div>
-                <h2 id="delete-drawer-title" class="text-base font-bold text-rose-700">Confirm Record Purge</h2>
-                <p class="text-xs text-slate-500 mt-0.5">This action cannot be undone.</p>
+                <h2 id="delete-drawer-title" class="text-xl font-bold text-[#8b1e3f]">Purge Staff Record</h2>
+                <p class="text-sm text-slate-500 mt-0.5">This administrative action cannot be rolled back.</p>
             </div>
             <button onclick="closeDeleteDrawer()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
                 <i class="bi bi-x-lg text-sm"></i>
             </button>
         </div>
-        <div class="drawer-scrollable flex-1 overflow-y-auto p-6 bg-slate-50/60">
-            <div class="text-center">
-                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-rose-50 border border-rose-200 text-rose-600 mb-4">
-                    <i class="bi bi-exclamation-triangle-fill text-2xl"></i>
+        
+        <!-- Scrollable Confirmation Body -->
+        <div class="drawer-scrollable flex-1 overflow-y-auto p-6 space-y-6">
+            
+            <!-- Centered Message Card -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-8 text-center flex flex-col items-center justify-center">
+                
+                <!-- Professional Warning Icon Asset -->
+                <div class="flex items-center justify-center h-14 w-14 rounded-full bg-rose-50 border border-rose-100 text-rose-600 mb-4 shadow-sm">
+                    <i class="bi bi-exclamation-triangle text-2xl"></i>
                 </div>
-                <p class="text-slate-700 font-medium" id="deleteDrawerMessage">Are you completely certain you want to purge this staff record? This structural update cannot be rolled back.</p>
-                <p class="text-xs text-slate-500 mt-3">Staff ID: <span id="deleteDrawerStaffId" class="font-mono font-bold text-rose-600"></span></p>
+                
+                <!-- Message Elements -->
+                <h3 class="text-base font-bold text-slate-900 max-w-md mx-auto" id="deleteDrawerMessage">
+                    Are you certain you want to permanently delete this staff record?
+                </h3>
+                <p class="text-xs text-slate-500 mt-2 max-w-sm mx-auto">
+                    This will permanently drop the employee file from the database registry and revoke system directory keys.
+                </p>
+                
+                <!-- Context Identifier Badge -->
+                <div class="mt-5 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700">
+                    <span class="text-slate-400 font-normal">Phone Number :</span>
+                    <span id="deleteDrawerStaffId" class="font-mono font-bold text-rose-600"></span>
+                </div>
+                
             </div>
+            
         </div>
-        <div class="p-4 border-t border-slate-100 bg-white flex gap-3 shrink-0">
-            <button onclick="closeDeleteDrawer()" class="flex-1 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-sm rounded-xl transition-colors border border-slate-200">Cancel</button>
-            <button id="confirmDeleteBtn" class="flex-1 px-4 py-2.5 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-md transition-all">
+        
+        <!-- Drawer Footer Buttons -->
+        <div class="px-6 pb-6 flex gap-3 bg-slate-50 shrink-0">
+            <button onclick="closeDeleteDrawer()" class="flex-1 w-1/2 px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 font-bold text-sm rounded-xl transition-colors border border-slate-200 shadow-sm">
+                Cancel
+            </button>
+            <button id="confirmDeleteBtn" class="flex-1 w-1/2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-[0.99]">
                 <i class="bi bi-trash3"></i> Delete Permanently
             </button>
         </div>
+        
     </div>
 </div>
 
@@ -189,6 +219,13 @@
         position: fixed;
         width: 100%;
         height: 100%;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none; 
+        scrollbar-width: none;  
     }
 </style>
 
