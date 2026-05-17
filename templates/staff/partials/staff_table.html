@@ -71,10 +71,14 @@
                     <td class="px-5 py-4 max-w-[180px] truncate font-medium text-slate-700">{{ s.bank_name }}</td>
                     <td class="px-5 py-4"><span class="text-slate-600 font-semibold">{{ s.ifsc_code }}</span></td>
                     <td class="px-5 py-4 max-w-[200px] truncate text-slate-400">{% if s.remark %}{{ s.remark }}{% else %}<span class="text-slate-300 not-italic">—</span>{% endif %}</td>
-                    <td class="sticky right-0 z-20 px-5 py-4 bg-white border-l border-slate-100 group-hover:bg-slate-50 transition">
+                   <td class="sticky right-0 z-20 px-5 py-4 bg-white border-l border-slate-100 group-hover:bg-slate-50 transition">
                         <div class="flex items-center gap-1">
-                            <button type="button" onclick="openDrawer({{ s.id }})" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-all flex items-center justify-center" title="Edit Record"><i class="bi bi-pencil-square text-sm"></i></button>
-                            <button type="button" onclick="openDeleteModal({{ s.id }}, '{{ s.name|escapejs }}')" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-100 rounded-lg transition-all flex items-center justify-center" title="Delete Record"><i class="bi bi-trash3 text-sm"></i></button>
+                            <button type="button" onclick="openDrawer('{{ s.phone }}')" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-all flex items-center justify-center" title="Edit Record">
+                                <i class="bi bi-pencil-square text-sm"></i>
+                            </button>
+                            <button type="button" onclick="openDeleteModal('{{ s.phone }}', '{{ s.name|escapejs }}')" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-100 rounded-lg transition-all flex items-center justify-center" title="Delete Record">
+                                <i class="bi bi-trash3 text-sm"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>

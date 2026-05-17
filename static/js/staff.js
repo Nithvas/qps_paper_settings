@@ -1,32 +1,53 @@
-// staff.js - Modular Staff Directory Script
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
+// ------------------------------
+// CSRF Token Helper (safe, no duplicate declaration)
+// ------------------------------
+if (typeof csrftoken === 'undefined') {
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
             }
         }
+        return cookieValue;
     }
-    return cookieValue;
+    var csrftoken = getCookie('csrftoken');
 }
-const csrftoken = getCookie('csrftoken');
-
-let deleteTargetId = null;
 
 // ------------------------------
-// Drawer functions
+// Drawer Scroll Locking
 // ------------------------------
-window.openDrawer = function(staffId = null) {
+let openDrawerCount = 0;
+
+function lockBodyScroll() {
+    openDrawerCount++;
+    if (openDrawerCount === 1) {
+        document.body.classList.add('drawer-open');
+    }
+}
+
+function unlockBodyScroll() {
+    openDrawerCount--;
+    if (openDrawerCount === 0) {
+        document.body.classList.remove('drawer-open');
+    }
+}
+
+// ------------------------------
+// Add/Edit Drawer Functions
+// ------------------------------
+function openDrawer(staffId = null) {
     const drawer = document.getElementById('staffDrawer');
     const form = document.getElementById('staffForm');
     const editStaffId = document.getElementById('editStaffId');
     const title = document.getElementById('drawer-title');
     const subtitle = document.getElementById('drawer-subtitle');
+
     if (!drawer) return;
     form?.reset();
     if (editStaffId) editStaffId.value = '';
@@ -34,6 +55,7 @@ window.openDrawer = function(staffId = null) {
     if (subtitle) subtitle.innerText = 'Complete all mandatory fields';
 
     if (staffId) {
+        // Fetch existing staff data for editing
         fetch(`/staff/edit/${staffId}/?format=json`, {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
@@ -41,7 +63,6 @@ window.openDrawer = function(staffId = null) {
         .then(data => {
             if (data.success) {
                 const s = data.staff;
-                document.getElementById('drawerSlno').value = s.slno || '';
                 document.getElementById('drawerStaffId').value = s.staff_id || '';
                 document.getElementById('drawerName').value = s.name || '';
                 document.getElementById('drawerDesignation').value = s.designation || '';
@@ -58,37 +79,139 @@ window.openDrawer = function(staffId = null) {
                 document.getElementById('drawerBankName').value = s.bank_name || '';
                 document.getElementById('drawerIfsc').value = s.ifsc_code || '';
                 document.getElementById('drawerRemark').value = s.remark || '';
+
                 if (editStaffId) editStaffId.value = staffId;
                 if (title) title.innerText = 'Update Staff Record';
                 if (subtitle) subtitle.innerText = `Editing ID: ${s.staff_id}`;
                 drawer.classList.remove('hidden');
-            } else alert('Error loading staff data');
+                lockBodyScroll();
+            } else {
+                alert('Error loading staff data: ' + (data.error || 'Unknown error'));
+            }
         })
-        .catch(() => alert('Failed to load staff details'));
-    } else drawer.classList.remove('hidden');
-};
+        .catch(err => {
+            console.error('Fetch error:', err);
+            alert('Failed to load staff details. Check console.');
+        });
+    } else {
+        drawer.classList.remove('hidden');
+        lockBodyScroll();
+    }
+}
 
-window.closeDrawer = () => document.getElementById('staffDrawer')?.classList.add('hidden');
-
-// ------------------------------
-// Delete modal
-// ------------------------------
-window.openDeleteModal = function(id, name) {
-    deleteTargetId = id;
-    const msgEl = document.getElementById('deleteModalMessage');
-    if (msgEl) msgEl.innerText = `Are you sure you want to delete "${name}"? This action cannot be undone.`;
-    const modal = document.getElementById('deleteModal');
-    if (modal) modal.classList.remove('hidden');
-};
-
-window.closeDeleteModal = () => {
-    const modal = document.getElementById('deleteModal');
-    if (modal) modal.classList.add('hidden');
-    deleteTargetId = null;
-};
+function closeDrawer() {
+    const drawer = document.getElementById('staffDrawer');
+    if (drawer) {
+        drawer.classList.add('hidden');
+        unlockBodyScroll();
+    }
+}
 
 // ------------------------------
-// Table sorting
+// Delete Drawer Functions
+// ------------------------------
+let pendingDeleteCallback = null;
+
+function openDeleteDrawer(staffId, staffName, onConfirmCallback) {
+    const drawer = document.getElementById('deleteDrawer');
+    if (!drawer) return;
+
+    document.getElementById('deleteDrawerStaffId').innerText = staffId;
+    const msgSpan = document.getElementById('deleteDrawerMessage');
+    if (msgSpan) {
+        msgSpan.innerHTML = `Are you completely certain you want to purge the record of <strong class="text-rose-700">${escapeHtml(staffName)}</strong> (ID: ${staffId})? This action cannot be undone.`;
+    }
+
+    pendingDeleteCallback = onConfirmCallback;
+
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    // Remove old listeners by cloning
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+    newConfirmBtn.id = 'confirmDeleteBtn';
+    newConfirmBtn.addEventListener('click', function() {
+        if (pendingDeleteCallback) {
+            pendingDeleteCallback();
+            pendingDeleteCallback = null;
+        }
+        closeDeleteDrawer();
+    });
+
+    drawer.classList.remove('hidden');
+    lockBodyScroll();
+}
+
+function closeDeleteDrawer() {
+    const drawer = document.getElementById('deleteDrawer');
+    if (drawer) {
+        drawer.classList.add('hidden');
+        unlockBodyScroll();
+        pendingDeleteCallback = null;
+    }
+}
+
+// Compatibility wrapper for old delete modal calls
+function openDeleteModal(staffId, staffName) {
+    openDeleteDrawer(staffId, staffName, function() {
+        fetch(`/staff/delete/${staffId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) window.location.reload();
+            else alert('Delete failed: ' + (data.error || 'Unknown error'));
+        })
+        .catch(() => alert('Network error while deleting'));
+    });
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+// ------------------------------
+// Form Submission (AJAX)
+// ------------------------------
+function initStaffForm() {
+    const form = document.getElementById('staffForm');
+    const editStaffId = document.getElementById('editStaffId');
+    if (!form) return;
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const staffId = editStaffId?.value || '';
+        const url = staffId ? `/staff/edit/${staffId}/` : '/staff/add/';
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) window.location.reload();
+            else alert('Error: ' + (data.error || 'Could not save.'));
+        })
+        .catch(() => alert('Network error. Please try again.'));
+    });
+}
+
+// ------------------------------
+// Table Sorting (if needed)
 // ------------------------------
 let currentSort = { col: null, dir: 'asc' };
 
@@ -104,12 +227,11 @@ function getCellValue(row, colIndex) {
         let dateStr = cells[colIndex]?.innerText?.replace(/[^0-9-]/g, '') || '';
         return dateStr;
     }
-    let raw = cells[colIndex]?.innerText?.trim() || '';
     if (colIndex === 11) {
-        let num = parseFloat(raw.replace(/[^0-9]/g, ''));
-        return isNaN(num) ? raw : num;
+        let num = parseFloat(cells[colIndex]?.innerText?.replace(/[^0-9]/g, ''));
+        return isNaN(num) ? cells[colIndex]?.innerText?.trim() || '' : num;
     }
-    return raw;
+    return cells[colIndex]?.innerText?.trim() || '';
 }
 
 function sortTableByColumn(colIndex, thElement) {
@@ -149,8 +271,17 @@ function sortTableByColumn(colIndex, thElement) {
     });
 }
 
+function initSorting() {
+    document.querySelectorAll('.sortable-th').forEach(th => {
+        th.addEventListener('click', (e) => {
+            const colIdx = parseInt(th.getAttribute('data-col-index'), 10);
+            if (!isNaN(colIdx)) sortTableByColumn(colIdx, th);
+        });
+    });
+}
+
 // ------------------------------
-// File upload enable button
+// File Upload Handler (if any)
 // ------------------------------
 function initFileUpload() {
     const fileInput = document.getElementById('fileInput');
@@ -158,6 +289,7 @@ function initFileUpload() {
     const fileNameDisplay = document.getElementById('fileNameDisplay');
     const actionIcon = document.getElementById('actionIcon');
     if (!fileInput || !submitBtn) return;
+
     fileInput.addEventListener('change', function(e) {
         const fileName = e.target.files[0]?.name || "Upload Workbook";
         if (fileNameDisplay) fileNameDisplay.textContent = fileName;
@@ -176,101 +308,26 @@ function initFileUpload() {
 }
 
 // ------------------------------
-// Cascade dropdowns
+// Close Drawers on Backdrop Click & ESC
 // ------------------------------
-function updateSelect(id, values) {
-    const select = document.getElementById(id);
-    if (!select) return;
-    const currentVal = select.value;
-    select.innerHTML = `<option value="">All ${id.charAt(0).toUpperCase() + id.slice(1)}</option>`;
-    values.forEach(v => select.innerHTML += `<option value="${v}" ${v === currentVal ? 'selected' : ''}>${v}</option>`);
-}
+document.addEventListener('click', function(e) {
+    const addBackdrop = document.querySelector('#staffDrawer .absolute.inset-0');
+    if (addBackdrop && addBackdrop === e.target) closeDrawer();
+    const delBackdrop = document.querySelector('#deleteDrawer .absolute.inset-0');
+    if (delBackdrop && delBackdrop === e.target) closeDeleteDrawer();
+});
 
-function loadDropdowns(changedField) {
-    const program = document.getElementById("program")?.value || '';
-    const department = document.getElementById("department")?.value || '';
-    const college = document.getElementById("college")?.value || '';
-    const name = document.getElementById("name")?.value || '';
-    fetch(`/staff/ajax/filter/?program=${encodeURIComponent(program)}&department=${encodeURIComponent(department)}&college=${encodeURIComponent(college)}&name=${encodeURIComponent(name)}`)
-        .then(res => res.json())
-        .then(data => {
-            if (changedField === "program") {
-                updateSelect("department", data.departments);
-                updateSelect("college", data.colleges);
-                updateSelect("name", data.names);
-            } else if (changedField === "department") {
-                updateSelect("college", data.colleges);
-                updateSelect("name", data.names);
-            } else if (changedField === "college") updateSelect("name", data.names);
-        })
-        .catch(err => console.error("Dropdown error:", err));
-}
-
-// ------------------------------
-// Form submission (AJAX)
-// ------------------------------
-function initStaffForm() {
-    const form = document.getElementById('staffForm');
-    const editStaffId = document.getElementById('editStaffId');
-    if (!form) return;
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(form);
-        const staffId = editStaffId?.value || '';
-        const url = staffId ? `/staff/edit/${staffId}/` : '/staff/add/0/';
-        fetch(url, {
-            method: 'POST',
-            headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' },
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => data.success ? window.location.reload() : alert('Error: ' + (data.error || 'Could not save.')))
-        .catch(() => alert('Network error. Please try again.'));
-    });
-}
-
-// ------------------------------
-// Delete confirmation
-// ------------------------------
-function initDeleteButton() {
-    const confirmBtn = document.getElementById('confirmDeleteBtn');
-    if (!confirmBtn) return;
-    confirmBtn.addEventListener('click', function() {
-        if (!deleteTargetId) return;
-        fetch(`/staff/delete/${deleteTargetId}/`, {
-            method: 'POST',
-            headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(res => res.json())
-        .then(data => data.success ? window.location.reload() : alert('Delete failed: ' + (data.error || 'Unknown error')))
-        .catch(() => alert('Delete error'));
-        closeDeleteModal();
-    });
-}
-
-// ------------------------------
-// Attach sorting listeners
-// ------------------------------
-function initSorting() {
-    document.querySelectorAll('.sortable-th').forEach(th => {
-        th.addEventListener('click', (e) => {
-            const colIdx = parseInt(th.getAttribute('data-col-index'), 10);
-            if (!isNaN(colIdx)) sortTableByColumn(colIdx, th);
-        });
-    });
-}
-
-// ------------------------------
-// Event listeners for dropdowns
-// ------------------------------
-function initDropdownListeners() {
-    const programSelect = document.getElementById("program");
-    const deptSelect = document.getElementById("department");
-    const collegeSelect = document.getElementById("college");
-    if (programSelect) programSelect.addEventListener("change", () => loadDropdowns("program"));
-    if (deptSelect) deptSelect.addEventListener("change", () => loadDropdowns("department"));
-    if (collegeSelect) collegeSelect.addEventListener("change", () => loadDropdowns("college"));
-}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const deleteDrawer = document.getElementById('deleteDrawer');
+        if (deleteDrawer && !deleteDrawer.classList.contains('hidden')) {
+            closeDeleteDrawer();
+            return;
+        }
+        const addDrawer = document.getElementById('staffDrawer');
+        if (addDrawer && !addDrawer.classList.contains('hidden')) closeDrawer();
+    }
+});
 
 // ------------------------------
 // DOM Ready
@@ -278,7 +335,13 @@ function initDropdownListeners() {
 document.addEventListener('DOMContentLoaded', () => {
     initFileUpload();
     initStaffForm();
-    initDeleteButton();
     initSorting();
-    initDropdownListeners();
+    // No datalist or distinct-values calls
 });
+
+// Expose global functions for inline onclick handlers
+window.openDrawer = openDrawer;
+window.closeDrawer = closeDrawer;
+window.openDeleteDrawer = openDeleteDrawer;
+window.closeDeleteDrawer = closeDeleteDrawer;
+window.openDeleteModal = openDeleteModal;
