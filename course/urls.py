@@ -5,7 +5,7 @@ app_name = 'course'
 
 urlpatterns = [
 
-    # IOthers
+    # Others
     path('', views.course_list, name='course_list'),
     path('sample/', views.course_sample, name='course_sample'),
     path('export/', views.course_export, name='course_export'),
@@ -14,6 +14,6 @@ urlpatterns = [
     
     # CRUD operations
     path('add/', views.course_add_edit, name='course_add'),
-    path('edit/<int:id>/', views.course_add_edit, name='course_edit'),
-    path('delete/<int:id>/', views.course_delete, name='course_delete'),
+    path('edit/<str:course_code>/', views.course_add_edit, name='course_edit'), 
+    path('delete/<str:course_code>/', views.course_delete, name='course_delete'),
 ]

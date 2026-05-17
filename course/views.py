@@ -103,13 +103,13 @@ def ajax_filter(request):
 # ADD / EDIT COURSE
 # -------------------------------------------------------------------
 
-def course_add_edit(request, id=None):
-    if id:
-        course = get_object_or_404(Course, id=id)
-        is_edit = True
+def course_add_edit(request, course_code=None):
+    
+    is_edit = course_code is not None
+    if is_edit:
+        course = get_object_or_404(Course, course_code=course_code)
     else:
         course = None
-        is_edit = False
 
     if request.method == 'POST':
         form = CourseForm(request.POST, instance=course)
@@ -133,19 +133,30 @@ def course_add_edit(request, id=None):
             messages.error(request, 'Please correct the errors below.')
     else:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and is_edit:
-            data = {field.name: getattr(course, field.name) for field in course._meta.fields}
-            return JsonResponse({'success': True, 'course': data})
+            data = {
+                'success': True,
+                'course': {
+                    'course_code': course.course_code,
+                    'course_title': course.course_title,
+                    'course_id': course.course_id,
+                    'semester': course.semester,
+                    'program': course.program,
+                    'external_mark': course.external_mark,
+                    'examiner': course.examiner,
+                }
+            }
+            return JsonResponse(data)
         form = CourseForm(instance=course)
 
     return render(request, 'course/course_form.html', {'form': form, 'is_edit': is_edit})
 
 # -------------------------------------------------------------------
-# DELETE COURSE (AJAX)
+# DELETE COURSE (AJAX) 
 # -------------------------------------------------------------------
 
-def course_delete(request, id):
+def course_delete(request, course_code):
     if request.method == 'POST':
-        course = get_object_or_404(Course, id=id)
+        course = get_object_or_404(Course, course_code=course_code)
         course.delete()
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'success': True})
