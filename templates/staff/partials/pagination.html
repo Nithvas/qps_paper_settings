@@ -1,26 +1,51 @@
 {% if staff.has_other_pages %}
-<div class="border-t border-slate-200 bg-slate-50/50 px-6 py-4">
+<div class="border-t border-slate-200 bg-slate-50/50 px-6 py-4 rounded-b-xl">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3 text-sm">
-            <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-white border"><i class="bi bi-database"></i></div>
-            <div><p class="text-[10px] font-bold text-slate-400 uppercase">Dataset Navigation</p><p class="text-slate-500">Showing <span class="font-semibold">{{ staff.start_index }}</span> to <span class="font-semibold">{{ staff.end_index }}</span> of <span class="font-semibold">{{ staff.paginator.count }}</span> records</p></div>
+            <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-white border">
+                <i class="bi bi-database text-slate-500"></i>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase">Dataset Navigation</p>
+                <p class="text-slate-500 text-sm">
+                    Showing <span class="font-semibold text-slate-700">{{ staff.start_index }}</span> to 
+                    <span class="font-semibold text-slate-700">{{ staff.end_index }}</span> of 
+                    <span class="font-semibold text-slate-700">{{ staff.paginator.count }}</span> records
+                </p>
+            </div>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
             {% if staff.has_previous %}
-            <a href="?page=1{% if search %}&search={{ search|urlencode }}{% endif %}" class="h-9 px-3 rounded-lg border bg-white text-sm font-medium">First</a>
-            <a href="?page={{ staff.previous_page_number }}{% if search %}&search={{ search|urlencode }}{% endif %}" class="w-9 h-9 rounded-lg border bg-white flex items-center justify-center"><i class="bi bi-chevron-left"></i></a>
+            <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}" 
+               class="h-9 px-3 rounded-lg border bg-white text-sm font-medium hover:bg-slate-50 transition">First</a>
+            <a href="?page={{ staff.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}" 
+               class="w-9 h-9 rounded-lg border bg-white flex items-center justify-center hover:bg-slate-50 transition">
+                <i class="bi bi-chevron-left text-xs"></i>
+            </a>
             {% endif %}
+            
             <form method="get" class="flex items-center gap-2" id="paginationJumpForm">
-                {% if search %}<input type="hidden" name="search" value="{{ search }}">{% endif %}
+                {% for key, value in request.GET.items %}
+                    {% if key != 'page' %}
+                        <input type="hidden" name="{{ key }}" value="{{ value }}">
+                    {% endif %}
+                {% endfor %}
                 <div class="flex items-center gap-1.5 px-3 h-9 rounded-lg border bg-white">
-                    <input type="number" name="page" min="1" max="{{ staff.paginator.num_pages }}" value="{{ staff.number }}" class="w-10 bg-transparent text-center text-sm font-semibold">
-                    <span>/</span><span>{{ staff.paginator.num_pages }}</span>
+                    <input type="number" name="page" min="1" max="{{ staff.paginator.num_pages }}" value="{{ staff.number }}" 
+                           class="w-12 bg-transparent text-center text-sm font-semibold focus:outline-none">
+                    <span class="text-slate-400">/</span>
+                    <span class="text-slate-600">{{ staff.paginator.num_pages }}</span>
                 </div>
-                <button type="submit" class="h-9 px-4 rounded-lg bg-indigo-600 text-white text-sm">Go</button>
+                <button type="submit" class="h-9 px-4 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition">Go</button>
             </form>
+            
             {% if staff.has_next %}
-            <a href="?page={{ staff.next_page_number }}{% if search %}&search={{ search|urlencode }}{% endif %}" class="w-9 h-9 rounded-lg border bg-white flex items-center justify-center"><i class="bi bi-chevron-right"></i></a>
-            <a href="?page={{ staff.paginator.num_pages }}{% if search %}&search={{ search|urlencode }}{% endif %}" class="h-9 px-3 rounded-lg border bg-white text-sm font-medium">Last</a>
+            <a href="?page={{ staff.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}" 
+               class="w-9 h-9 rounded-lg border bg-white flex items-center justify-center hover:bg-slate-50 transition">
+                <i class="bi bi-chevron-right text-xs"></i>
+            </a>
+            <a href="?page={{ staff.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}" 
+               class="h-9 px-3 rounded-lg border bg-white text-sm font-medium hover:bg-slate-50 transition">Last</a>
             {% endif %}
         </div>
     </div>

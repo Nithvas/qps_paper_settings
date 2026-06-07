@@ -1,354 +1,1215 @@
-// ------------------------------
-// CSRF Token Helper (safe, no duplicate declaration)
-// ------------------------------
+// ===================================================================
+// STAFF MANAGEMENT APPLICATION - COMPLETE MODULE
+// ===================================================================
+// Categories:
+// 1. Core Utilities & Helpers
+// 2. CSRF & Security
+// 3. Toast Notifications
+// 4. Drawer Management (Modal Controllers)
+// 5. Filter Section Management
+// 6. Search Functionality
+// 7. Table Management & Sorting
+// 8. Creatable Select Component
+// 9. Form Handling (Add/Edit Staff)
+// 10. Delete Operations
+// 11. Excel Upload Operations
+// 12. Excel Menu Dropdown
+// 13. Global Event Listeners
+// 14. Initialization
+// ===================================================================
 
-if (typeof csrftoken === 'undefined') {
-    function getCookie(name) {
+(function () {
+
+    'use strict';
+
+    // ===================================================================
+    // 1. CORE UTILITIES & HELPERS
+    // ===================================================================
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, function (m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function lockBodyScroll() {
+        window.openDrawerCount = (window.openDrawerCount || 0) + 1;
+        if (window.openDrawerCount === 1) {
+            document.body.classList.add('drawer-open');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function unlockBodyScroll() {
+        window.openDrawerCount = (window.openDrawerCount || 0) - 1;
+        if (window.openDrawerCount === 0) {
+            document.body.classList.remove('drawer-open');
+            document.body.style.overflow = '';
+        }
+    }
+
+    // ===================================================================
+    // 2. CSRF & SECURITY
+    // ===================================================================
+
+    function getCsrfToken() {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
             const cookies = document.cookie.split(';');
             for (let i = 0; i < cookies.length; i++) {
                 const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                if (cookie.substring(0, 'csrftoken'.length + 1) === ('csrftoken=')) {
+                    cookieValue = decodeURIComponent(cookie.substring('csrftoken'.length + 1));
                     break;
                 }
             }
         }
         return cookieValue;
     }
-    var csrftoken = getCookie('csrftoken');
-}
 
-// ------------------------------
-// Drawer Scroll Locking
-// ------------------------------
+    const csrftoken = getCsrfToken();
 
-let openDrawerCount = 0;
+    // ===================================================================
+    // 3. TOAST NOTIFICATIONS
+    // ===================================================================
 
-function lockBodyScroll() {
-    openDrawerCount++;
-    if (openDrawerCount === 1) {
-        document.body.classList.add('drawer-open');
-    }
-}
-
-function unlockBodyScroll() {
-    openDrawerCount--;
-    if (openDrawerCount === 0) {
-        document.body.classList.remove('drawer-open');
-    }
-}
-
-// ------------------------------
-// Add/Edit Drawer Functions
-// ------------------------------
-
-function openDrawer(staffId = null) {
-
-    const drawer = document.getElementById('staffDrawer');
-    const form = document.getElementById('staffForm');
-    const editStaffId = document.getElementById('editStaffId');
-    const title = document.getElementById('drawer-title');
-    const subtitle = document.getElementById('drawer-subtitle');
-
-    if (!drawer) return;
-    form?.reset();
-    if (editStaffId) editStaffId.value = '';
-    if (title) title.innerText = 'Register New Staff';
-    if (subtitle) subtitle.innerText = 'Complete all mandatory fields';
-
-    if (staffId) {
-        fetch(`/staff/edit/${staffId}/?format=json`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    const s = data.staff;
-                    document.getElementById('drawerStaffId').value = s.staff_id || '';
-                    document.getElementById('drawerName').value = s.name || '';
-                    document.getElementById('drawerDesignation').value = s.designation || '';
-                    document.getElementById('drawerProgram').value = s.program || '';
-                    document.getElementById('drawerDepartment').value = s.department || '';
-                    document.getElementById('drawerCollege').value = s.college || '';
-                    document.getElementById('drawerDoj').value = s.doj || '';
-                    document.getElementById('drawerDor').value = s.dor || '';
-                    document.getElementById('drawerPhone').value = s.phone || '';
-                    document.getElementById('drawerEmail').value = s.email || '';
-                    document.getElementById('drawerCity').value = s.city || '';
-                    document.getElementById('drawerDistrict').value = s.district || '';
-                    document.getElementById('drawerBankAccount').value = s.bank_account || '';
-                    document.getElementById('drawerBankName').value = s.bank_name || '';
-                    document.getElementById('drawerIfsc').value = s.ifsc_code || '';
-                    document.getElementById('drawerRemark').value = s.remark || '';
-                    if (editStaffId) editStaffId.value = staffId;
-                    if (title) title.innerText = 'Update Staff Record';
-                    if (subtitle) subtitle.innerText = `Editing ID: ${s.staff_id}`;
-                    drawer.classList.remove('hidden');
-                    lockBodyScroll();
-                } else {
-                    alert('Error loading staff data: ' + (data.error || 'Unknown error'));
-                }
-            })
-            .catch(err => {
-                console.error('Fetch error:', err);
-                alert('Failed to load staff details. Check console.');
-            });
-    } else {
-        drawer.classList.remove('hidden');
-        lockBodyScroll();
-    }
-}
-
-function closeDrawer() {
-    const drawer = document.getElementById('staffDrawer');
-    if (drawer) {
-        drawer.classList.add('hidden');
-        unlockBodyScroll();
-    }
-}
-
-// ------------------------------
-// Delete Drawer Functions
-// ------------------------------
-
-let pendingDeleteCallback = null;
-
-function openDeleteDrawer(staffId, staffName, onConfirmCallback) {
-
-    const drawer = document.getElementById('deleteDrawer');
-    if (!drawer) return;
-
-    document.getElementById('deleteDrawerStaffId').innerText = staffId;
-    const msgSpan = document.getElementById('deleteDrawerMessage');
-    if (msgSpan) {
-        msgSpan.innerHTML = `Are you completely certain you want to purge the record of <strong class="text-rose-700">${escapeHtml(staffName)}</strong> ? This action cannot be undone.`;
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        const bgColor = type === 'success' ? 'bg-emerald-500' : (type === 'error' ? 'bg-red-500' : 'bg-blue-500');
+        toast.className = `fixed bottom-4 right-4 px-4 py-2 rounded-lg text-white text-sm z-50 animate-fade-in ${bgColor}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
     }
 
-    pendingDeleteCallback = onConfirmCallback;
+    // ===================================================================
+    // 4. DRAWER MANAGEMENT (MODAL CONTROLLERS)
+    // ===================================================================
 
-    const confirmBtn = document.getElementById('confirmDeleteBtn');
-    const newConfirmBtn = confirmBtn.cloneNode(true);
-    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-    newConfirmBtn.id = 'confirmDeleteBtn';
-    newConfirmBtn.addEventListener('click', function () {
-        if (pendingDeleteCallback) {
-            pendingDeleteCallback();
-            pendingDeleteCallback = null;
-        }
-        closeDeleteDrawer();
-    });
+    const DrawerManager = {
 
-    drawer.classList.remove('hidden');
-    lockBodyScroll();
-}
+        // Staff Add/Edit Drawer
+        staffDrawer: null,
+        deleteDrawer: null,
+        uploadDrawer: null,
 
-function closeDeleteDrawer() {
-    const drawer = document.getElementById('deleteDrawer');
-    if (drawer) {
-        drawer.classList.add('hidden');
-        unlockBodyScroll();
-        pendingDeleteCallback = null;
-    }
-}
+        init() {
+            this.staffDrawer = document.getElementById('staffDrawer');
+            this.deleteDrawer = document.getElementById('deleteDrawer');
+            this.uploadDrawer = document.getElementById('uploadDrawer');
+        },
 
-function openDeleteModal(staffId, staffName) {
+        openStaff(staffId = null) {
 
-    openDeleteDrawer(staffId, staffName, function () {
-        fetch(`/staff/delete/${staffId}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrftoken,
-                'X-Requested-With': 'XMLHttpRequest'
+            if (!this.staffDrawer) return;
+
+            const form = document.getElementById('staffForm');
+            const editStaffId = document.getElementById('editStaffId');
+            const title = document.getElementById('drawer-title');
+            const subtitle = document.getElementById('drawer-subtitle');
+            const submitButton = document.querySelector('#staffForm button[type="submit"]');
+
+            form?.reset();
+
+            if (window.creatableSelects) {
+                Object.values(window.creatableSelects).forEach(select => select.setValue(''));
             }
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) window.location.reload();
-                else alert('Delete failed: ' + (data.error || 'Unknown error'));
+
+            if (editStaffId) editStaffId.value = '';
+            if (title) title.innerText = 'Register New Staff';
+            if (subtitle) subtitle.innerText = 'Complete all mandatory fields';
+
+            if (submitButton) {
+                submitButton.disabled = false;
+                submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                submitButton.innerHTML = '<i class="bi bi-save"></i> Save Staff Record';
+            }
+
+            if (staffId) {
+                this.loadStaffData(staffId, submitButton, editStaffId, title, subtitle);
+            } else {
+                this.staffDrawer.classList.remove('hidden');
+                lockBodyScroll();
+            }
+        },
+
+        loadStaffData(staffId, submitButton, editStaffId, title, subtitle) {
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="bi bi-hourglass-split animate-spin"></i> Loading...';
+            }
+
+            fetch(`/staff/edit/${staffId}/?format=json`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
-            .catch(() => alert('Network error while deleting'));
-    });
-}
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        this.populateStaffForm(data.staff);
+                        if (editStaffId) editStaffId.value = staffId;
+                        if (title) title.innerText = 'Update Staff Record';
+                        if (subtitle) subtitle.innerText = `Editing ID: ${data.staff.staff_id}`;
+                        this.staffDrawer.classList.remove('hidden');
+                        lockBodyScroll();
+                    } else {
+                        alert('Error loading staff data: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(err => {
+                    console.error('Fetch error:', err);
+                    alert('Failed to load staff details.');
+                })
+                .finally(() => {
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = '<i class="bi bi-save"></i> Save Staff Record';
+                    }
+                });
+        },
 
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function (m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
-}
+        populateStaffForm(staff) {
 
-// ------------------------------
-// Form Submission (AJAX)
-// ------------------------------
+            document.getElementById('drawerStaffId').value = staff.staff_id || '';
+            document.getElementById('drawerName').value = staff.name || '';
+            document.getElementById('drawerPhone').value = staff.phone || '';
+            document.getElementById('drawerEmail').value = staff.email || '';
+            document.getElementById('drawerDoj').value = staff.doj || '';
+            document.getElementById('drawerDor').value = staff.dor || '';
+            document.getElementById('drawerBankAccount').value = staff.bank_account || '';
+            document.getElementById('drawerIfsc').value = staff.ifsc_code || '';
+            document.getElementById('drawerRemark').value = staff.remark || '';
+            document.getElementById('drawerBankCode').value = staff.branch_code || '';
 
-function initStaffForm() {
+            const selectMappings = {
+                'drawerDesignation': staff.designation,
+                'drawerProgram': staff.program,
+                'drawerDepartment': staff.department,
+                'drawerCollege': staff.college,
+                'drawerCity': staff.city,
+                'drawerDistrict': staff.district,
+                'drawerBankName': staff.bank_name,
+                'drawerProgramType': staff.program_type,
+                'drawerStaffCategory': staff.staff_category,
+                'drawerDeptCategory': staff.dept_category,
+                'drawerExaminerType': staff.examiner_type,
+                'drawerBranch': staff.branch,
+                'drawerBranchFinal': staff.branch_final,
+                'drawerPlace': staff.place,
+                'drawerQualification': staff.qualification,
+                'drawerBankCity': staff.bank_city
+            };
 
-    const form = document.getElementById('staffForm');
-    const editStaffId = document.getElementById('editStaffId');
-    if (!form) return;
+            for (const [id, value] of Object.entries(selectMappings)) {
+                if (window.creatableSelects[id] && value) {
+                    window.creatableSelects[id].setValue(value);
+                }
+            }
+        },
 
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        const formData = new FormData(form);
-        const staffId = editStaffId?.value || '';
-        const url = staffId ? `/staff/edit/${staffId}/` : '/staff/add/';
+        closeStaff() {
+            if (this.staffDrawer) {
+                this.staffDrawer.classList.add('hidden');
+                unlockBodyScroll();
+            }
+        },
 
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrftoken,
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: formData
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) window.location.reload();
-                else alert('Error : ' + (data.error || 'Could not save.'));
-            })
-            .catch(() => alert('Network error. Please try again.'));
-    });
-}
+        openDelete(staffId, staffName, onConfirmCallback) {
 
-// ------------------------------
-// Table Sorting (if needed)
-// ------------------------------
+            if (!this.deleteDrawer) return;
 
-let currentSort = { col: null, dir: 'asc' };
+            document.getElementById('deleteDrawerStaffId').innerText = staffId;
+            const msgSpan = document.getElementById('deleteDrawerMessage');
+            if (msgSpan) {
+                msgSpan.innerHTML = `Are you completely certain you want to purge the record of <strong class="text-rose-700">${escapeHtml(staffName)}</strong>? This action cannot be undone.`;
+            }
 
-function getCellValue(row, colIndex) {
-    const cells = row.cells;
-    if (!cells[colIndex]) return '';
-    if (colIndex === 0) return parseInt(cells[0]?.innerText?.trim(), 10) || 0;
-    if (colIndex === 2) {
-        const nameSpan = cells[2]?.querySelector('.name-text');
-        return nameSpan ? nameSpan.innerText.trim() : cells[2]?.innerText?.trim() || '';
+            window.pendingDeleteCallback = onConfirmCallback;
+
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+            newConfirmBtn.id = 'confirmDeleteBtn';
+            newConfirmBtn.addEventListener('click', () => {
+                if (window.pendingDeleteCallback) {
+                    window.pendingDeleteCallback();
+                    window.pendingDeleteCallback = null;
+                }
+                this.closeDelete();
+            });
+
+            this.deleteDrawer.classList.remove('hidden');
+            lockBodyScroll();
+        },
+
+        closeDelete() {
+            if (this.deleteDrawer) {
+                this.deleteDrawer.classList.add('hidden');
+                unlockBodyScroll();
+                window.pendingDeleteCallback = null;
+            }
+        },
+
+        openUpload() {
+            if (this.uploadDrawer) {
+                this.uploadDrawer.classList.remove('hidden');
+                lockBodyScroll();
+                UploadManager.reset();
+            }
+        },
+
+        closeUpload() {
+            if (this.uploadDrawer) {
+                this.uploadDrawer.classList.add('hidden');
+                unlockBodyScroll();
+                UploadManager.reset();
+            }
+        }
+    };
+
+    // ===================================================================
+    // 5. FILTER SECTION MANAGEMENT
+    // ===================================================================
+
+    const FilterManager = {
+        init() {
+            const applyBtn = document.getElementById('applyFiltersBtn');
+            const filterForm = document.getElementById('filterForm');
+
+            if (applyBtn && filterForm) {
+                applyBtn.addEventListener('click', () => filterForm.submit());
+            }
+        },
+
+        reset() {
+            const resetBtn = document.getElementById('resetFiltersBtn');
+            if (resetBtn) { }
+        }
+    };
+
+    // ===================================================================
+    // 6. SEARCH FUNCTIONALITY
+    // ===================================================================
+
+    const SearchManager = {
+        init() {
+            const globalSearch = document.getElementById('globalSearch');
+            if (globalSearch) {
+                let searchTimeout;
+                globalSearch.addEventListener('input', function () {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        const url = new URL(window.location.href);
+                        if (this.value) {
+                            url.searchParams.set('search', this.value);
+                        } else {
+                            url.searchParams.delete('search');
+                        }
+                        url.searchParams.delete('page');
+                        window.location.href = url.toString();
+                    }, 500);
+                });
+            }
+        }
+    };
+
+    // ===================================================================
+    // 7. TABLE MANAGEMENT & SORTING
+    // ===================================================================
+
+    const TableManager = {
+
+        currentSort: { col: null, dir: 'asc' },
+
+        init() {
+            this.attachSortingHandlers();
+        },
+
+        getCellValue(row, colIndex) {
+            const cells = row.cells;
+            if (!cells[colIndex]) return '';
+            return cells[colIndex]?.innerText?.trim() || '';
+        },
+
+        sortByColumn(colIndex, thElement) {
+
+            const tbody = document.getElementById('staffTableBody');
+            if (!tbody) return;
+            const rows = Array.from(tbody.querySelectorAll('tr.staff-row'));
+            if (!rows.length) return;
+
+            let direction = (this.currentSort.col === colIndex && this.currentSort.dir === 'asc') ? 'desc' : 'asc';
+            this.currentSort = { col: colIndex, dir: direction };
+
+            // Update sort icons
+            document.querySelectorAll('.sortable-th .sort-icon').forEach(icon => {
+                icon.classList.remove('bi-arrow-up', 'bi-arrow-down');
+                icon.classList.add('bi-arrow-down-up');
+            });
+            const targetIcon = thElement.querySelector('.sort-icon');
+            if (targetIcon) {
+                targetIcon.classList.remove('bi-arrow-down-up');
+                targetIcon.classList.add(direction === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down');
+                targetIcon.style.color = '#4f46e5';
+            }
+
+            // Sort rows
+            rows.sort((a, b) => {
+                let valA = this.getCellValue(a, colIndex);
+                let valB = this.getCellValue(b, colIndex);
+                if (typeof valA === 'string') valA = valA.toLowerCase();
+                if (typeof valB === 'string') valB = valB.toLowerCase();
+                if (valA < valB) return direction === 'asc' ? -1 : 1;
+                if (valA > valB) return direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
+        },
+
+        attachSortingHandlers() {
+            document.querySelectorAll('.sortable-th').forEach(th => {
+                th.addEventListener('click', (e) => {
+                    const colIdx = parseInt(th.getAttribute('data-col-index'), 10);
+                    if (!isNaN(colIdx)) this.sortByColumn(colIdx, th);
+                });
+            });
+        }
+    };
+
+    // ===================================================================
+    // 8. CREATABLE SELECT COMPONENT
+    // ===================================================================
+
+    class CreatableSelect {
+
+        constructor(element, options = {}) {
+            this.element = element;
+            this.fieldName = options.fieldName || element.name;
+            this.placeholder = options.placeholder || `Search or add ${this.fieldName.replace(/_/g, ' ')}...`;
+            this.optionsList = [];
+            this.filteredOptions = [];
+            this.selectedIndex = -1;
+            this.isOpen = false;
+            this.searchTerm = '';
+            this.selectedValue = '';
+            this.isLoading = false;
+            this.hasLoaded = false;
+            this.scrollHandler = null;
+            this.resizeHandler = null;
+            this.createComponent();
+            this.setupEventListeners();
+        }
+
+        createComponent() {
+
+            this.element.style.display = 'none';
+            this.wrapper = document.createElement('div');
+            this.wrapper.className = 'creatable-select-wrapper';
+            this.wrapper.style.cssText = 'position: relative; width: 100%;';
+            this.element.parentNode.insertBefore(this.wrapper, this.element);
+            this.wrapper.appendChild(this.element);
+
+            this.container = document.createElement('div');
+            this.container.className = 'creatable-select-container';
+            this.container.style.cssText = 'position: relative; width: 100%;';
+            this.wrapper.appendChild(this.container);
+
+            this.input = document.createElement('input');
+            this.input.type = 'text';
+            this.input.className = 'creatable-select-input w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all';
+            this.input.placeholder = this.placeholder;
+            this.input.autocomplete = 'off';
+            this.container.appendChild(this.input);
+
+            this.dropdown = document.createElement('div');
+            this.dropdown.className = 'creatable-select-dropdown';
+            this.dropdown.style.cssText = `
+                position: absolute;
+                display: none;
+                background: white;
+                border: 1px solid #e2e8f0;
+                border-radius: 0.5rem;
+                box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+                max-height: 200px;
+                overflow-y: auto;
+                z-index: 999999;
+                min-width: 200px;
+                margin: 0;
+                padding: 4px 0;
+            `;
+            document.body.appendChild(this.dropdown);
+        }
+
+        async loadOptions(search = '') {
+
+            if (this.isLoading) return;
+
+            this.isLoading = true;
+            this.showLoading();
+
+            try {
+                const url = `/staff/get-field-options/?field=${this.fieldName}&search=${encodeURIComponent(search)}`;
+                const response = await fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const data = await response.json();
+
+                if (data.success) {
+                    this.optionsList = data.options || [];
+                    this.hasLoaded = true;
+                    this.filterOptions(search);
+                } else {
+                    console.error('API error:', data.error);
+                    this.optionsList = [];
+                    this.renderDropdown();
+                }
+            } catch (error) {
+                console.error('Error loading options:', error);
+                this.optionsList = [];
+                this.renderDropdown();
+            } finally {
+                this.isLoading = false;
+            }
+        }
+
+        filterOptions(search) {
+            if (!search || search === '') {
+                this.filteredOptions = [...this.optionsList];
+            } else {
+                const searchLower = search.toLowerCase();
+                this.filteredOptions = this.optionsList.filter(opt =>
+                    opt && opt.toLowerCase && opt.toLowerCase().includes(searchLower)
+                );
+            }
+            this.renderDropdown();
+        }
+
+        renderDropdown() {
+
+            if (!this.dropdown) return;
+            this.dropdown.innerHTML = '';
+            this.dropdown.style.padding = '4px 0';
+            const searchTerm = this.searchTerm || '';
+            const hasSearchTerm = searchTerm.trim() !== '';
+
+            if (hasSearchTerm) {
+                const exists = this.filteredOptions.some(opt =>
+                    opt && opt.toLowerCase && opt.toLowerCase() === searchTerm.toLowerCase()
+                );
+
+                if (!exists) {
+                    const createOption = this.createOptionElement(searchTerm, true);
+                    createOption.style.cssText = 'border-bottom: 1px solid #e2e8f0; padding: 10px 12px;';
+                    this.dropdown.appendChild(createOption);
+                }
+            }
+
+            if (this.filteredOptions.length > 0) {
+                this.filteredOptions.forEach((option) => {
+                    if (option && typeof option === 'string') {
+                        const optionElement = this.createOptionElement(option, false);
+                        optionElement.style.padding = '10px 12px';
+                        optionElement.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            this.selectOption(option);
+                        });
+                        this.dropdown.appendChild(optionElement);
+                    }
+                });
+            } else if (!hasSearchTerm) {
+                const noResults = document.createElement('div');
+                noResults.className = 'px-3 py-2 text-sm text-slate-400 text-center';
+                noResults.style.padding = '10px 12px';
+                noResults.innerHTML = '<i class="bi bi-info-circle"></i> No options available';
+                this.dropdown.appendChild(noResults);
+            }
+
+            this.positionDropdown();
+        }
+
+        createOptionElement(value, isNew) {
+
+            const div = document.createElement('div');
+            div.className = `cursor-pointer text-sm flex items-center justify-between transition-colors ${isNew ? 'bg-green-50 hover:bg-green-100' : 'hover:bg-indigo-50'}`;
+
+            if (isNew) {
+                div.innerHTML = `
+                    <div class="flex items-center gap-2 text-green-600 w-full">
+                        <i class="bi bi-plus-circle text-sm"></i>
+                        <span>Add "<strong class="text-green-700">${this.escapeHtml(value)}</strong>"</span>
+                    </div>
+                `;
+                div.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.selectOption(value);
+                });
+            } else {
+                div.innerHTML = `
+                    <span>${this.escapeHtml(value)}</span>
+                    <i class="bi bi-check text-indigo-600 ${this.selectedValue === value ? 'opacity-100' : 'opacity-0'}"></i>
+                `;
+            }
+
+            return div;
+        }
+
+        async selectOption(value) {
+
+            if (!value) return;
+
+            const exists = this.optionsList.some(opt => opt && opt.toLowerCase && opt.toLowerCase() === value.toLowerCase());
+
+            if (!exists) {
+                try {
+                    const response = await fetch('/staff/save-field-option/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrftoken,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            field_name: this.fieldName,
+                            value: value
+                        })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        this.optionsList.push(value);
+                        this.optionsList.sort();
+                    }
+                } catch (error) {
+                    console.error('Error saving option:', error);
+                }
+            }
+
+            this.selectedValue = value;
+            this.input.value = value;
+            this.element.value = value;
+
+            let optionExists = false;
+            for (let i = 0; i < this.element.options.length; i++) {
+                if (this.element.options[i].value === value) {
+                    optionExists = true;
+                    this.element.options[i].selected = true;
+                    break;
+                }
+            }
+
+            if (!optionExists) {
+                const newOption = document.createElement('option');
+                newOption.value = value;
+                newOption.textContent = value;
+                newOption.selected = true;
+                this.element.appendChild(newOption);
+            }
+
+            const event = new Event('change', { bubbles: true });
+            this.element.dispatchEvent(event);
+
+            this.searchTerm = '';
+            this.closeDropdown();
+        }
+
+        positionDropdown() {
+
+            if (!this.input || !this.dropdown) return;
+
+            const rect = this.input.getBoundingClientRect();
+            const dropdownHeight = Math.min(this.dropdown.scrollHeight, 200);
+            const viewportHeight = window.innerHeight;
+            const spaceBelow = viewportHeight - rect.bottom;
+            const spaceAbove = rect.top;
+
+            let top = rect.bottom + window.scrollY;
+
+            if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
+                top = rect.top + window.scrollY - dropdownHeight;
+            }
+
+            this.dropdown.style.width = `${rect.width}px`;
+            this.dropdown.style.top = `${top}px`;
+            this.dropdown.style.left = `${rect.left + window.scrollX}px`;
+        }
+
+        updateDropdownPosition() { if (this.isOpen) this.positionDropdown() }
+
+        openDropdown() {
+
+            if (this.isOpen) return;
+
+            this.isOpen = true;
+            this.dropdown.style.display = 'block';
+
+            this.scrollHandler = () => this.updateDropdownPosition();
+            this.resizeHandler = () => this.updateDropdownPosition();
+
+            window.addEventListener('scroll', this.scrollHandler, true);
+            window.addEventListener('resize', this.resizeHandler);
+
+            if (!this.hasLoaded || this.searchTerm) {
+                this.loadOptions(this.searchTerm);
+            } else {
+                this.renderDropdown();
+                this.positionDropdown();
+            }
+        }
+
+        closeDropdown() {
+
+            if (!this.isOpen) return;
+            this.isOpen = false;
+            this.dropdown.style.display = 'none';
+            this.selectedIndex = -1;
+
+            if (this.scrollHandler) {
+                window.removeEventListener('scroll', this.scrollHandler, true);
+                this.scrollHandler = null;
+            }
+            if (this.resizeHandler) {
+                window.removeEventListener('resize', this.resizeHandler);
+                this.resizeHandler = null;
+            }
+        }
+
+        showLoading() {
+            if (!this.dropdown) return;
+            this.dropdown.innerHTML = '';
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'px-3 py-2 text-sm text-slate-400 text-center';
+            loadingDiv.style.padding = '10px 12px';
+            loadingDiv.innerHTML = '<i class="bi bi-hourglass-split animate-spin"></i> Loading options...';
+            this.dropdown.appendChild(loadingDiv);
+            this.positionDropdown();
+            this.dropdown.style.display = 'block';
+        }
+
+        navigateOptions(direction) {
+
+            if (!this.isOpen) {
+                this.openDropdown();
+                return;
+            }
+
+            const items = this.dropdown.querySelectorAll('.cursor-pointer');
+            if (items.length === 0) return;
+
+            if (this.selectedIndex >= 0 && items[this.selectedIndex]) {
+                items[this.selectedIndex].classList.remove('bg-indigo-50', 'bg-green-100');
+            }
+
+            if (direction === 'down') {
+                this.selectedIndex = Math.min(this.selectedIndex + 1, items.length - 1);
+            } else if (direction === 'up') {
+                this.selectedIndex = Math.max(this.selectedIndex - 1, 0);
+            }
+
+            if (items[this.selectedIndex]) {
+                items[this.selectedIndex].classList.add('bg-indigo-50');
+                items[this.selectedIndex].scrollIntoView({ block: 'nearest' });
+            }
+        }
+
+        selectHighlighted() {
+            if (!this.isOpen) return;
+            const items = this.dropdown.querySelectorAll('.cursor-pointer');
+            if (this.selectedIndex >= 0 && items[this.selectedIndex]) {
+                items[this.selectedIndex].click();
+            } else if (this.searchTerm && this.searchTerm.trim() !== '') {
+                this.selectOption(this.searchTerm);
+            }
+        }
+
+        setupEventListeners() {
+
+            let typingTimer;
+
+            this.input.addEventListener('focus', () => this.openDropdown());
+            this.input.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.openDropdown();
+            });
+
+            this.input.addEventListener('input', (e) => {
+                clearTimeout(typingTimer);
+                this.searchTerm = e.target.value;
+                typingTimer = setTimeout(() => this.loadOptions(this.searchTerm), 300);
+            });
+
+            this.input.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    this.navigateOptions('down');
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    this.navigateOptions('up');
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.selectHighlighted();
+                } else if (e.key === 'Escape') {
+                    this.closeDropdown();
+                }
+            });
+
+            this.input.addEventListener('blur', () => {
+                setTimeout(() => {
+                    if (!this.dropdown.matches(':hover')) this.closeDropdown();
+                }, 200);
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!this.wrapper.contains(e.target) && !this.dropdown.contains(e.target)) {
+                    this.closeDropdown();
+                }
+            });
+        }
+
+        setValue(value) {
+            if (value) {
+                this.selectedValue = value;
+                this.input.value = value;
+                this.element.value = value;
+            }
+        }
+
+        getValue() {
+            return this.selectedValue || this.input.value || '';
+        }
+
+        escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, function (m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
     }
-    if (colIndex === 9 || colIndex === 10) {
-        let dateStr = cells[colIndex]?.innerText?.replace(/[^0-9-]/g, '') || '';
-        return dateStr;
-    }
-    if (colIndex === 11) {
-        let num = parseFloat(cells[colIndex]?.innerText?.replace(/[^0-9]/g, ''));
-        return isNaN(num) ? cells[colIndex]?.innerText?.trim() || '' : num;
-    }
-    return cells[colIndex]?.innerText?.trim() || '';
-}
 
-function sortTableByColumn(colIndex, thElement) {
+    // ===================================================================
+    // 9. FORM HANDLING (ADD/EDIT STAFF)
+    // ===================================================================
 
-    const tbody = document.getElementById('staffTableBody');
-    if (!tbody) return;
-    const rows = Array.from(tbody.querySelectorAll('tr.staff-row'));
-    if (!rows.length) return;
+    const FormManager = {
 
-    let direction = (currentSort.col === colIndex && currentSort.dir === 'asc') ? 'desc' : 'asc';
-    currentSort = { col: colIndex, dir: direction };
+        init() {
+            const form = document.getElementById('staffForm');
+            if (!form) return;
 
-    document.querySelectorAll('.sortable-th .sort-icon').forEach(icon => {
-        icon.classList.remove('bi-arrow-up', 'bi-arrow-down', 'sort-icon-active');
-        icon.classList.add('bi-arrow-down-up');
-    });
-    const targetIcon = thElement.querySelector('.sort-icon');
-    if (targetIcon) {
-        targetIcon.classList.remove('bi-arrow-down-up');
-        targetIcon.classList.add(direction === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down');
-        targetIcon.style.color = '#4f46e5';
-    }
+            form.addEventListener('submit', this.handleSubmit.bind(this));
+        },
 
-    rows.sort((a, b) => {
-        let valA = getCellValue(a, colIndex);
-        let valB = getCellValue(b, colIndex);
-        if (typeof valA === 'string') valA = valA.toLowerCase();
-        if (typeof valB === 'string') valB = valB.toLowerCase();
-        if (valA < valB) return direction === 'asc' ? -1 : 1;
-        if (valA > valB) return direction === 'asc' ? 1 : -1;
-        return 0;
-    });
+        async handleSubmit(e) {
+            e.preventDefault();
 
-    rows.forEach(row => tbody.appendChild(row));
-    rows.forEach((row, idx) => {
-        const slnoSpan = row.querySelector('.slno-cell span');
-        if (slnoSpan) slnoSpan.innerText = (idx + 1).toString();
-    });
-}
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+            const editStaffId = document.getElementById('editStaffId');
 
-function initSorting() {
-    document.querySelectorAll('.sortable-th').forEach(th => {
-        th.addEventListener('click', (e) => {
-            const colIdx = parseInt(th.getAttribute('data-col-index'), 10);
-            if (!isNaN(colIdx)) sortTableByColumn(colIdx, th);
-        });
-    });
-}
-
-// ------------------------------
-// File Upload Handler (if any)
-// ------------------------------
-
-function initFileUpload() {
-
-    const fileInput = document.getElementById('fileInput');
-    const submitBtn = document.getElementById('submitBtn');
-    const fileNameDisplay = document.getElementById('fileNameDisplay');
-    const actionIcon = document.getElementById('actionIcon');
-    if (!fileInput || !submitBtn) return;
-
-    fileInput.addEventListener('change', function (e) {
-        const fileName = e.target.files[0]?.name || "Upload Workbook";
-        if (fileNameDisplay) fileNameDisplay.textContent = fileName;
-        if (e.target.files && e.target.files.length > 0) {
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('cursor-not-allowed', 'opacity-60', 'bg-blue-50', 'text-blue-600');
-            submitBtn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-700');
-        } else {
             submitBtn.disabled = true;
-            submitBtn.classList.add('cursor-not-allowed', 'opacity-60');
-            submitBtn.classList.remove('bg-blue-600', 'text-white', 'hover:bg-blue-700');
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split animate-spin"></i> Saving...';
+
+            const formData = new FormData(form);
+
+            if (window.creatableSelects) {
+                for (const [id, select] of Object.entries(window.creatableSelects)) {
+                    const value = select.getValue();
+                    const fieldName = select.fieldName;
+                    if (fieldName && value) {
+                        formData.set(fieldName, value);
+                    }
+                }
+            }
+
+            const staffId = editStaffId?.value || '';
+            const url = staffId ? `/staff/edit/${staffId}/` : '/staff/add/';
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.error || 'Server error');
+
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + (data.error || 'Could not save.'));
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                alert('Network error: ' + error.message);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
         }
-    });
-}
+    };
 
-// ------------------------------
-// Close Drawers on Backdrop Click & ESC
-// ------------------------------
+    // ===================================================================
+    // 10. DELETE OPERATIONS
+    // ===================================================================
 
-document.addEventListener('click', function (e) {
-    const addBackdrop = document.querySelector('#staffDrawer .absolute.inset-0');
-    if (addBackdrop && addBackdrop === e.target) closeDrawer();
-    const delBackdrop = document.querySelector('#deleteDrawer .absolute.inset-0');
-    if (delBackdrop && delBackdrop === e.target) closeDeleteDrawer();
-});
+    const DeleteManager = {
 
-document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') {
-        const deleteDrawer = document.getElementById('deleteDrawer');
-        if (deleteDrawer && !deleteDrawer.classList.contains('hidden')) {
-            closeDeleteDrawer();
-            return;
+        openModal(staffId, staffName) {
+            DrawerManager.openDelete(staffId, staffName, () => {
+                this.executeDelete(staffId);
+            });
+        },
+
+        async executeDelete(staffId) {
+            try {
+                const response = await fetch(`/staff/delete/${staffId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Delete failed: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert('Network error while deleting');
+            }
         }
-        const addDrawer = document.getElementById('staffDrawer');
-        if (addDrawer && !addDrawer.classList.contains('hidden')) closeDrawer();
+    };
+
+    // ===================================================================
+    // 11. EXCEL UPLOAD OPERATIONS
+    // ===================================================================
+
+    const UploadManager = {
+
+        selectedFile: null,
+
+        init() {
+            const fileInput = document.getElementById('excelFile');
+            if (fileInput) {
+                fileInput.addEventListener('change', this.handleFileSelect.bind(this));
+            }
+        },
+
+        reset() {
+            this.selectedFile = null;
+            const fileInput = document.getElementById('excelFile');
+            if (fileInput) fileInput.value = '';
+            const fileInfo = document.getElementById('fileInfo');
+            if (fileInfo) fileInfo.classList.add('hidden');
+            const uploadProgress = document.getElementById('uploadProgress');
+            if (uploadProgress) uploadProgress.classList.add('hidden');
+            const uploadResults = document.getElementById('uploadResults');
+            if (uploadResults) uploadResults.classList.add('hidden');
+            const uploadBtn = document.getElementById('uploadBtn');
+            if (uploadBtn) uploadBtn.disabled = true;
+        },
+
+        clear() {
+            this.selectedFile = null;
+            const fileInput = document.getElementById('excelFile');
+            if (fileInput) fileInput.value = '';
+            const fileInfo = document.getElementById('fileInfo');
+            if (fileInfo) fileInfo.classList.add('hidden');
+            const uploadBtn = document.getElementById('uploadBtn');
+            if (uploadBtn) uploadBtn.disabled = true;
+        },
+
+        handleFileSelect(e) {
+            if (e.target.files && e.target.files[0]) {
+                this.selectedFile = e.target.files[0];
+
+                const validTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
+                if (!validTypes.includes(this.selectedFile.type)) {
+                    showToast('Please select a valid Excel file (.xlsx or .xls)', 'error');
+                    this.clear();
+                    return;
+                }
+
+                if (this.selectedFile.size > 5 * 1024 * 1024) {
+                    showToast('File size must be less than 5MB', 'error');
+                    this.clear();
+                    return;
+                }
+
+                const fileName = document.getElementById('fileName');
+                if (fileName) fileName.textContent = this.selectedFile.name;
+                const fileInfo = document.getElementById('fileInfo');
+                if (fileInfo) fileInfo.classList.remove('hidden');
+                const uploadBtn = document.getElementById('uploadBtn');
+                if (uploadBtn) uploadBtn.disabled = false;
+            }
+        },
+
+        async upload() {
+
+            if (!this.selectedFile) {
+                showToast('Please select a file first', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', this.selectedFile);
+
+            const uploadProgress = document.getElementById('uploadProgress');
+            const uploadResults = document.getElementById('uploadResults');
+            const uploadBtn = document.getElementById('uploadBtn');
+
+            if (uploadProgress) uploadProgress.classList.remove('hidden');
+            if (uploadResults) uploadResults.classList.add('hidden');
+            if (uploadBtn) uploadBtn.disabled = true;
+
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                if (progress < 90) {
+                    progress += 10;
+                    const progressBar = document.getElementById('progressBar');
+                    const progressPercent = document.getElementById('progressPercent');
+                    if (progressBar) progressBar.style.width = progress + '%';
+                    if (progressPercent) progressPercent.textContent = progress + '%';
+                }
+            }, 200);
+
+            try {
+                const response = await fetch("/staff/upload/", {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-CSRFToken': csrftoken }
+                });
+
+                clearInterval(progressInterval);
+                const progressBar = document.getElementById('progressBar');
+                const progressPercent = document.getElementById('progressPercent');
+                const uploadStatus = document.getElementById('uploadStatus');
+
+                if (progressBar) progressBar.style.width = '100%';
+                if (progressPercent) progressPercent.textContent = '100%';
+                if (uploadStatus) uploadStatus.textContent = 'Processing complete!';
+
+                const result = await response.json();
+
+                if (result.success) {
+                    const successCount = document.getElementById('successCount');
+                    const errorCount = document.getElementById('errorCount');
+                    if (successCount) successCount.textContent = result.success_count || 0;
+                    if (errorCount) errorCount.textContent = result.error_count || 0;
+
+                    if (result.errors && result.errors.length > 0) {
+                        const errorList = document.getElementById('errorList');
+                        if (errorList) {
+                            errorList.innerHTML = result.errors.map(err => `<div>⚠️ ${err}</div>`).join('');
+                            errorList.classList.remove('hidden');
+                        }
+                    }
+
+                    if (uploadResults) uploadResults.classList.remove('hidden');
+
+                    if (result.success_count > 0) {
+                        showToast(`Successfully uploaded ${result.success_count} records`, 'success');
+                        setTimeout(() => window.location.reload(), 2000);
+                    } else if (result.error_count > 0) {
+                        showToast(`Upload failed with ${result.error_count} errors`, 'error');
+                    }
+                } else {
+                    throw new Error(result.error || 'Upload failed');
+                }
+            } catch (error) {
+                clearInterval(progressInterval);
+                showToast(error.message, 'error');
+                if (uploadProgress) uploadProgress.classList.add('hidden');
+                if (uploadBtn) uploadBtn.disabled = false;
+            }
+        }
+    };
+
+    // ===================================================================
+    // 12. EXCEL MENU DROPDOWN
+    // ===================================================================
+
+    const ExcelMenuManager = {
+
+        toggle() {
+            const menu = document.getElementById('excelMenu');
+            if (menu) {
+                menu.classList.toggle('hidden');
+            }
+        },
+
+        init() {
+            document.addEventListener('click', (e) => {
+                const menu = document.getElementById('excelMenu');
+                const button = e.target.closest('[onclick="window.staffApp.toggleExcelMenu()"]');
+                if (menu && !menu.classList.contains('hidden') && !button && !menu.contains(e.target)) {
+                    menu.classList.add('hidden');
+                }
+            });
+        }
+    };
+
+    // ===================================================================
+    // 13. GLOBAL EVENT LISTENERS
+    // ===================================================================
+
+    const GlobalEventManager = {
+
+        init() {
+
+            // Backdrop clicks
+            document.addEventListener('click', (e) => {
+                const addBackdrop = document.querySelector('#staffDrawer .drawer-backdrop');
+                if (addBackdrop && addBackdrop === e.target) DrawerManager.closeStaff();
+
+                const delBackdrop = document.querySelector('#deleteDrawer .drawer-backdrop');
+                if (delBackdrop && delBackdrop === e.target) DrawerManager.closeDelete();
+
+                const uploadBackdrop = document.querySelector('#uploadDrawer .drawer-backdrop');
+                if (uploadBackdrop && uploadBackdrop === e.target) DrawerManager.closeUpload();
+            });
+
+            // ESC key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    const deleteDrawer = document.getElementById('deleteDrawer');
+                    if (deleteDrawer && !deleteDrawer.classList.contains('hidden')) {
+                        DrawerManager.closeDelete();
+                        return;
+                    }
+                    const addDrawer = document.getElementById('staffDrawer');
+                    if (addDrawer && !addDrawer.classList.contains('hidden')) DrawerManager.closeStaff();
+                    const uploadDrawer = document.getElementById('uploadDrawer');
+                    if (uploadDrawer && !uploadDrawer.classList.contains('hidden')) DrawerManager.closeUpload();
+                }
+            });
+        }
+    };
+
+    // ===================================================================
+    // 14. CREATABLE SELECTS INITIALIZATION
+    // ===================================================================
+
+    const CreatableSelectManager = {
+        init() {
+            const selectFields = [
+                { id: 'drawerDesignation', fieldName: 'designation', placeholder: 'Search or add designation...' },
+                { id: 'drawerProgram', fieldName: 'program', placeholder: 'Search or add programme...' },
+                { id: 'drawerDepartment', fieldName: 'department', placeholder: 'Search or add department...' },
+                { id: 'drawerCollege', fieldName: 'college', placeholder: 'Search or add college...' },
+                { id: 'drawerCity', fieldName: 'city', placeholder: 'Search or add city...' },
+                { id: 'drawerDistrict', fieldName: 'district', placeholder: 'Search or add district...' },
+                { id: 'drawerBankName', fieldName: 'bank_name', placeholder: 'Search or add bank...' },
+                { id: 'drawerProgramType', fieldName: 'program_type', placeholder: 'Search or add program type...' },
+                { id: 'drawerStaffCategory', fieldName: 'staff_category', placeholder: 'Search or add staff category...' },
+                { id: 'drawerDeptCategory', fieldName: 'dept_category', placeholder: 'Search or add dept category...' },
+                { id: 'drawerExaminerType', fieldName: 'examiner_type', placeholder: 'Search or add examiner type...' },
+                { id: 'drawerBranch', fieldName: 'branch', placeholder: 'Search or add branch...' },
+                { id: 'drawerBranchFinal', fieldName: 'branch_final', placeholder: 'Search or add branch final...' },
+                { id: 'drawerPlace', fieldName: 'place', placeholder: 'Search or add place...' },
+                { id: 'drawerQualification', fieldName: 'qualification', placeholder: 'Search or add qualification...' },
+                { id: 'drawerBankCity', fieldName: 'bank_city', placeholder: 'Search or add bank city...' }
+            ];
+
+            window.creatableSelects = {};
+
+            selectFields.forEach(field => {
+                const element = document.getElementById(field.id);
+                if (element && !element.hasAttribute('data-initialized')) {
+                    window.creatableSelects[field.id] = new CreatableSelect(element, {
+                        fieldName: field.fieldName,
+                        placeholder: field.placeholder
+                    });
+                    element.setAttribute('data-initialized', 'true');
+                }
+            });
+        }
+    };
+
+    // ===================================================================
+    // 15. DJANGO MESSAGES
+    // ===================================================================
+
+    const DjangoMessageManager = {
+        init() {
+            document.querySelectorAll('#django-messages .message').forEach(msg => {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: msg.dataset.level === 'success' ? 'success' : (msg.dataset.level === 'error' ? 'error' : 'info'),
+                        title: msg.dataset.message,
+                        timer: 3000,
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false
+                    });
+                }
+            });
+        }
+    };
+
+    // ===================================================================
+    // 16. MAIN INITIALIZATION
+    // ===================================================================
+
+    function init() {
+        DrawerManager.init();
+        FilterManager.init();
+        SearchManager.init();
+        TableManager.init();
+        FormManager.init();
+        UploadManager.init();
+        ExcelMenuManager.init();
+        GlobalEventManager.init();
+        CreatableSelectManager.init();
+        DjangoMessageManager.init();
     }
-});
 
-// ------------------------------
-// DOM Ready
-// ------------------------------
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else { init() }
 
-document.addEventListener('DOMContentLoaded', () => {
-    initFileUpload();
-    initStaffForm();
-    initSorting();
-});
+    // ===================================================================
+    // 17. PUBLIC API
+    // ===================================================================
 
-window.openDrawer = openDrawer;
-window.closeDrawer = closeDrawer;
-window.openDeleteDrawer = openDeleteDrawer;
-window.closeDeleteDrawer = closeDeleteDrawer;
-window.openDeleteModal = openDeleteModal;
+    window.staffApp = {
+
+        // Drawer Management
+        openDrawer: (staffId) => DrawerManager.openStaff(staffId),
+        closeDrawer: () => DrawerManager.closeStaff(),
+        openDeleteDrawer: (staffId, staffName, callback) => DrawerManager.openDelete(staffId, staffName, callback),
+        closeDeleteDrawer: () => DrawerManager.closeDelete(),
+        openUploadDrawer: () => DrawerManager.openUpload(),
+        closeUploadDrawer: () => DrawerManager.closeUpload(),
+
+        // Delete Operations
+        openDeleteModal: (staffId, staffName) => DeleteManager.openModal(staffId, staffName),
+
+        // Upload Operations
+        clearFile: () => UploadManager.clear(),
+        uploadFile: () => UploadManager.upload(),
+
+        // Excel Menu
+        toggleExcelMenu: () => ExcelMenuManager.toggle()
+    };
+
+})();

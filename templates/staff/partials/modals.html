@@ -1,232 +1,386 @@
-{% load static %}
-
 <!-- ADD/EDIT STAFF DRAWER -->
 <div id="staffDrawer" class="drawer fixed inset-0 z-50 hidden" aria-labelledby="drawer-title" role="dialog">
-    <!-- Backdrop -->
-    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" onclick="closeDrawer()"></div>
+    <div class="drawer-backdrop absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" onclick="window.staffApp.closeDrawer()"></div>
     
-    <!-- Drawer Panel -->
-    <div class="drawer-scrollable absolute inset-y-0 right-0 w-full max-w-xl bg-slate-50 shadow-2xl overflow-y-auto transform transition-transform duration-300">        <!-- Header -->
-        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white">
+    <div class="drawer-scrollable absolute inset-y-0 right-0 w-full max-w-4xl bg-slate-50 shadow-2xl overflow-y-auto transform transition-transform duration-300">
+        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-20">
             <div>
-                <h2 id="drawer-title" class="text-xl font-bold text-jmc-maroon">New Staff Record</h2>
+                <h2 id="drawer-title" class="text-xl font-bold text-[#8b1e3f]">New Staff Record</h2>
                 <p id="drawer-subtitle" class="text-md text-slate-500 mt-0.5">Fields marked with <span class="text-rose-500 font-bold">*</span> are required.</p>
             </div>
-            <button onclick="closeDrawer()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+            <button onclick="window.staffApp.closeDrawer()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
                 <i class="bi bi-x-lg text-sm"></i>
             </button>
         </div>
         
-        <!-- Form Content -->
-        <form id="staffForm" class="px-6 pb-6 space-y-6 ">
+        <form id="staffForm" class="px-6 pb-6 space-y-6">
             {% csrf_token %}
             <input type="hidden" name="staff_id" id="editStaffId" value="">
 
-            <!-- Section: Personal Info (Indigo Theme) -->
-            <div class="bg-white rounded-xl border border-indigo-100 shadow-sm overflow-hidden space-y-4 pb-5">
+            <!-- Section 1: Personal Information -->
+            <div class="bg-white rounded-xl border border-indigo-100 shadow-sm overflow-hidden">
                 <div class="flex items-center gap-2 bg-indigo-50/60 px-5 py-3 border-b border-indigo-100/50">
                     <i class="bi bi-person-badge text-indigo-600 text-base"></i>
                     <h3 class="font-bold text-xs tracking-wider text-indigo-900 uppercase">Personal Information</h3>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 px-5">
-                    <!-- Staff ID field (removed slno row entirely) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Staff ID : <span class="text-rose-500">*</span></label> 
-                        <input type="text" name="staff_id" id="drawerStaffId" required class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all">
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Staff ID <span class="text-rose-500">*</span></label>
+                        <input type="text" name="staff_id" id="drawerStaffId" required 
+                               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Designation :</label>
-                        <input type="text" name="designation" id="drawerDesignation" class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all">
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Phone Number <span class="text-rose-500">*</span></label>
+                        <input type="tel" name="phone" id="drawerPhone" required 
+                               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
                     </div>
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Full Name : <span class="text-rose-500">*</span></label>
-                        <input type="text" name="name" id="drawerName" required class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Full Name <span class="text-rose-500">*</span></label>
+                        <input type="text" name="name" id="drawerName" required 
+                               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Designation</label>
+                        <select name="designation" id="drawerDesignation" class="w-full">
+                            <option value="">Select Designation</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Email</label>
+                        <input type="email" name="email" id="drawerEmail" 
+                               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
                     </div>
                 </div>
             </div>
 
-            <!-- Section: Employment Details (Emerald Theme) -->
-            <div class="bg-white rounded-xl border border-emerald-100 shadow-sm overflow-hidden space-y-4 pb-5">
+            <!-- Section 2: Employment Details -->
+            <div class="bg-white rounded-xl border border-emerald-100 shadow-sm overflow-hidden">
                 <div class="flex items-center gap-2 bg-emerald-50/60 px-5 py-3 border-b border-emerald-100/50">
                     <i class="bi bi-briefcase text-emerald-600 text-base"></i>
                     <h3 class="font-bold text-xs tracking-wider text-emerald-900 uppercase">Employment Assignment</h3>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 px-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Programme :</label>
-                        <input type="text" name="program" id="drawerProgram" class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all">
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Programme</label>
+                        <select name="program" id="drawerProgram" class="w-full">
+                            <option value="">Select Programme</option>
+                        </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Department :</label>
-                        <input type="text" name="department" id="drawerDepartment" class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all">
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Department</label>
+                        <select name="department" id="drawerDepartment" class="w-full">
+                            <option value="">Select Department</option>
+                        </select>
                     </div>
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">College :</label>
-                        <input type="text" name="college" id="drawerCollege" class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">College</label>
+                        <select name="college" id="drawerCollege" class="w-full">
+                            <option value="">Select College</option>
+                        </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Date of Joining :</label>
-                        <input type="date" name="doj" id="drawerDoj" class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all">
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Date of Joining</label>
+                        <input type="date" name="doj" id="drawerDoj" 
+                               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Date of Relieving :</label>
-                        <input type="date" name="dor" id="drawerDor" class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all">
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Date of Relieving</label>
+                        <input type="date" name="dor" id="drawerDor" 
+                               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100">
                     </div>
                 </div>
             </div>
 
-            <!-- Section: Contact & Location (Amber Theme) -->
-            <div class="bg-white rounded-xl border border-amber-100 shadow-sm overflow-hidden space-y-4 pb-5">
+            <!-- Section 3: Staff Classification -->
+            <div class="bg-white rounded-xl border border-purple-100 shadow-sm overflow-hidden">
+                <div class="flex items-center gap-2 bg-purple-50/60 px-5 py-3 border-b border-purple-100/50">
+                    <i class="bi bi-diagram-3 text-purple-600 text-base"></i>
+                    <h3 class="font-bold text-xs tracking-wider text-purple-900 uppercase">Staff Classification</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Program Type</label>
+                        <select name="program_type" id="drawerProgramType" class="w-full">
+                            <option value="">Select Program Type</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Staff Category</label>
+                        <select name="staff_category" id="drawerStaffCategory" class="w-full">
+                            <option value="">Select Staff Category</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Dept Category</label>
+                        <select name="dept_category" id="drawerDeptCategory" class="w-full">
+                            <option value="">Select Dept Category</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Examiner Type</label>
+                        <select name="examiner_type" id="drawerExaminerType" class="w-full">
+                            <option value="">Select Examiner Type</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Branch</label>
+                        <select name="branch" id="drawerBranch" class="w-full">
+                            <option value="">Select Branch</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Branch Final</label>
+                        <select name="branch_final" id="drawerBranchFinal" class="w-full">
+                            <option value="">Select Branch Final</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Academic Details -->
+            <div class="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
+                <div class="flex items-center gap-2 bg-blue-50/60 px-5 py-3 border-b border-blue-100/50">
+                    <i class="bi bi-book text-blue-600 text-base"></i>
+                    <h3 class="font-bold text-xs tracking-wider text-blue-900 uppercase">Academic Details</h3>
+                </div>
+                <div class="grid grid-cols-1 gap-4 p-5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Qualification</label>
+                        <select name="qualification" id="drawerQualification" class="w-full">
+                            <option value="">Select Qualification</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 5: Contact & Location -->
+            <div class="bg-white rounded-xl border border-amber-100 shadow-sm overflow-hidden">
                 <div class="flex items-center gap-2 bg-amber-50/60 px-5 py-3 border-b border-amber-100/50">
                     <i class="bi bi-geo-alt text-amber-600 text-base"></i>
                     <h3 class="font-bold text-xs tracking-wider text-amber-900 uppercase">Contact & Location</h3>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 px-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Phone Number :</label>
-                        <input type="tel" name="phone" id="drawerPhone" class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100 transition-all">
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Place</label>
+                        <select name="place" id="drawerPlace" class="w-full">
+                            <option value="">Select Place</option>
+                        </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Email Address :</label>
-                        <input type="email" name="email" id="drawerEmail" class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100 transition-all">
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">City</label>
+                        <select name="city" id="drawerCity" class="w-full">
+                            <option value="">Select City</option>
+                        </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">City :</label>
-                        <input type="text" name="city" id="drawerCity" class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100 transition-all">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">District :</label>
-                        <input type="text" name="district" id="drawerDistrict" class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100 transition-all">
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">District</label>
+                        <select name="district" id="drawerDistrict" class="w-full">
+                            <option value="">Select District</option>
+                        </select>
                     </div>
                 </div>
             </div>
 
-            <!-- Section: Banking Information (Teal Theme) -->
-            <div class="bg-white rounded-xl border border-teal-100 shadow-sm overflow-hidden space-y-4 pb-5">
+            <!-- Section 6: Banking Information -->
+            <div class="bg-white rounded-xl border border-teal-100 shadow-sm overflow-hidden">
                 <div class="flex items-center gap-2 bg-teal-50/60 px-5 py-3 border-b border-teal-100/50">
                     <i class="bi bi-bank text-teal-600 text-base"></i>
                     <h3 class="font-bold text-xs tracking-wider text-teal-900 uppercase">Financial Profile</h3>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 px-5">
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Bank Account No. :</label>
-                        <input type="text" name="bank_account" id="drawerBankAccount" class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100 transition-all">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Bank Account No.</label>
+                        <input type="text" name="bank_account" id="drawerBankAccount" 
+                               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Bank Name :</label>
-                        <input type="text" name="bank_name" id="drawerBankName" class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100 transition-all">
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Bank Name</label>
+                        <select name="bank_name" id="drawerBankName" class="w-full">
+                            <option value="">Select Bank Name</option>
+                        </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">IFSC Code :</label>
-                        <input type="text" name="ifsc_code" id="drawerIfsc" class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100 transition-all">
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Bank City</label>
+                        <select name="bank_city" id="drawerBankCity" class="w-full">
+                            <option value="">Select Bank City</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Branch Code</label>
+                        <input type="text" name="branch_code" id="drawerBankCode" 
+                               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">IFSC Code</label>
+                        <input type="text" name="ifsc_code" id="drawerIfsc" 
+                               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" 
+                               placeholder="SBIN0012345">
                     </div>
                 </div>
             </div>
 
-            <!-- Section: Remarks (Slate Theme) -->
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden space-y-4 pb-5">
+            <!-- Section 7: Remarks -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="flex items-center gap-2 bg-slate-100 px-5 py-3 border-b border-slate-200">
                     <i class="bi bi-chat-left-text text-slate-600 text-base"></i>
                     <h3 class="font-bold text-xs tracking-wider text-slate-800 uppercase">Administrative Remarks</h3>
                 </div>
-                <div class="px-5 pt-2">
-                    <textarea name="remark" id="drawerRemark" rows="3" class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-100 transition-all resize-none"></textarea>
+                <div class="p-5">
+                    <textarea name="remark" id="drawerRemark" rows="3" 
+                              class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-100 resize-none"></textarea>
                 </div>
             </div>
+            
+            <div class="flex gap-3 sticky bottom-0 bg-slate-50 py-4 -mx-6 px-6 border-t border-slate-200 mt-6">
+                <button type="button" onclick="window.staffApp.closeDrawer()" 
+                        class="flex-1 px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 font-bold text-sm rounded-xl transition-colors border border-slate-200">
+                    Cancel
+                </button>
+                <button type="submit" form="staffForm" 
+                        class="flex-1 px-4 py-2.5 bg-[#8b1e3f] hover:bg-[#721833] text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-[0.99]">
+                    <i class="bi bi-save"></i> Save Staff Record
+                </button>
+            </div>
         </form>
-        
-        <!-- Drawer Footer Buttons -->
-        <div class="px-6 pb-6 flex gap-3">
-            <button onclick="closeDrawer()" class="flex-1 w-1/2 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-sm rounded-xl transition-colors border border-slate-200">Cancel</button>
-            <button type="submit" form="staffForm" class="flex-1 w-1/2 px-4 py-2.5 bg-[#8b1e3f] hover:bg-[#721833] text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-[0.99]">
-                <i class="bi bi-save"></i> Save Staff Record
-            </button>
-        </div>
     </div>
 </div>
 
-<!-- Delete Drawer Container -->
+<!-- DELETE DRAWER -->
 <div id="deleteDrawer" class="drawer fixed inset-0 z-50 hidden" aria-labelledby="delete-drawer-title" role="dialog" aria-modal="true">
-    <!-- Backdrop -->
-    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" onclick="closeDeleteDrawer()"></div>
+    <div class="drawer-backdrop absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" onclick="window.staffApp.closeDeleteDrawer()"></div>
     
-    <!-- Drawer Panel -->
     <div class="absolute inset-y-0 right-0 w-full max-w-xl bg-slate-50 shadow-2xl flex flex-col h-full overflow-hidden transform transition-transform duration-300">
-        
-        <!-- Header -->
         <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
             <div>
-                <h2 id="delete-drawer-title" class="text-xl font-bold text-[#8b1e3f]">Purge Staff Record</h2>
+                <h2 class="text-xl font-bold text-[#8b1e3f]">Purge Staff Record</h2>
                 <p class="text-sm text-slate-500 mt-0.5">This administrative action cannot be rolled back.</p>
             </div>
-            <button onclick="closeDeleteDrawer()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+            <button onclick="window.staffApp.closeDeleteDrawer()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
                 <i class="bi bi-x-lg text-sm"></i>
             </button>
         </div>
         
-        <!-- Scrollable Confirmation Body -->
-        <div class="drawer-scrollable flex-1 overflow-y-auto p-6 space-y-6">
-            
-            <!-- Centered Message Card -->
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-8 text-center flex flex-col items-center justify-center">
-                
-                <!-- Professional Warning Icon Asset -->
-                <div class="flex items-center justify-center h-14 w-14 rounded-full bg-rose-50 border border-rose-100 text-rose-600 mb-4 shadow-sm">
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-8 text-center">
+                <div class="flex items-center justify-center h-14 w-14 rounded-full bg-rose-50 border border-rose-100 text-rose-600 mb-4 mx-auto">
                     <i class="bi bi-exclamation-triangle text-2xl"></i>
                 </div>
                 
-                <!-- Message Elements -->
-                <h3 class="text-base font-bold text-slate-900 max-w-md mx-auto" id="deleteDrawerMessage">
+                <h3 class="text-base font-bold text-slate-900" id="deleteDrawerMessage">
                     Are you certain you want to permanently delete this staff record?
                 </h3>
-                <p class="text-xs text-slate-500 mt-2 max-w-sm mx-auto">
-                    This will permanently drop the employee file from the database registry and revoke system directory keys.
+                <p class="text-xs text-slate-500 mt-2">
+                    This will permanently drop the employee file from the database registry.
                 </p>
                 
-                <!-- Context Identifier Badge -->
                 <div class="mt-5 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700">
-                    <span class="text-slate-400 font-normal">Phone Number :</span>
+                    <span class="text-slate-400 font-normal">Phone :</span>
                     <span id="deleteDrawerStaffId" class="font-mono font-bold text-rose-600"></span>
                 </div>
-                
             </div>
-            
         </div>
         
-        <!-- Drawer Footer Buttons -->
         <div class="px-6 pb-6 flex gap-3 bg-slate-50 shrink-0">
-            <button onclick="closeDeleteDrawer()" class="flex-1 w-1/2 px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 font-bold text-sm rounded-xl transition-colors border border-slate-200 shadow-sm">
+            <button onclick="window.staffApp.closeDeleteDrawer()" 
+                    class="flex-1 px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 font-bold text-sm rounded-xl transition-colors border border-slate-200">
                 Cancel
             </button>
-            <button id="confirmDeleteBtn" class="flex-1 w-1/2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-[0.99]">
+            <button id="confirmDeleteBtn" 
+                    class="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all">
                 <i class="bi bi-trash3"></i> Delete Permanently
             </button>
         </div>
-        
     </div>
 </div>
 
-<style>
-    .drawer-scrollable {
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-    }
-    .drawer-scrollable::-webkit-scrollbar {
-        display: none;
-    }
-    body.drawer-open {
-        overflow: hidden !important;
-        position: fixed;
-        width: 100%;
-        height: 100%;
-    }
-    .no-scrollbar::-webkit-scrollbar {
-        display: none;
-    }
-    .no-scrollbar {
-        -ms-overflow-style: none; 
-        scrollbar-width: none;  
-    }
-</style>
-
-<script src="{% static 'js/staff.js' %}"></script>
+<!-- UPLOAD DRAWER -->
+<div id="uploadDrawer" class="drawer fixed inset-0 z-50 hidden" aria-labelledby="upload-drawer-title" role="dialog">
+    <div class="drawer-backdrop absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" onclick="window.staffApp.closeUploadDrawer()"></div>
+    
+    <div class="drawer-scrollable absolute inset-y-0 right-0 w-full max-w-xl bg-slate-50 shadow-2xl flex flex-col h-full overflow-hidden transform transition-transform duration-300">
+        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+            <div>
+                <h2 class="text-xl font-bold text-[#8b1e3f]">Upload Staff List</h2>
+                <p class="text-sm text-slate-500 mt-0.5">Upload Excel file with staff data</p>
+            </div>
+            <button onclick="window.staffApp.closeUploadDrawer()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                <i class="bi bi-x-lg text-sm"></i>
+            </button>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+            <div class="bg-white rounded-xl border-2 border-dashed border-slate-200 hover:border-[#8b1e3f] transition-all p-8 text-center">
+                <input type="file" id="excelFile" accept=".xlsx, .xls" class="hidden" />
+                <div id="uploadArea" class="cursor-pointer" onclick="document.getElementById('excelFile').click()">
+                    <i class="bi bi-file-excel text-5xl text-emerald-600 mb-3 inline-block"></i>
+                    <h3 class="text-base font-bold text-slate-800 mb-1">Choose Excel File</h3>
+                    <p class="text-xs text-slate-500 mb-3">.xlsx or .xls format, max 5MB</p>
+                    <button type="button" class="px-4 py-2 bg-[#8b1e3f] text-white text-xs font-bold rounded-lg hover:bg-[#721833] transition">
+                        Browse Files
+                    </button>
+                </div>
+                <div id="fileInfo" class="hidden mt-4 p-3 bg-slate-50 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="bi bi-file-earmark-excel text-emerald-600"></i>
+                            <span id="fileName" class="text-sm font-medium text-slate-700"></span>
+                        </div>
+                        <button onclick="window.staffApp.clearFile()" class="text-red-500 hover:text-red-700">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                <div class="flex items-start gap-3">
+                    <i class="bi bi-info-circle text-blue-600 text-lg"></i>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-bold text-blue-900 mb-1">Template Instructions</h4>
+                        <p class="text-xs text-blue-700 mb-2">Download the sample template to ensure correct format</p>
+                        <a href="{% url 'staff:staff_sample' %}" class="inline-flex items-center gap-2 text-xs font-semibold text-blue-700 hover:text-blue-900">
+                            <i class="bi bi-download"></i> Download Sample Template
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="uploadProgress" class="hidden">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold text-slate-700">Uploading...</span>
+                    <span id="progressPercent" class="text-xs font-bold text-[#8b1e3f]">0%</span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div id="progressBar" class="bg-[#8b1e3f] h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <p id="uploadStatus" class="text-xs text-slate-500 mt-2">Preparing to upload...</p>
+            </div>
+            
+            <div id="uploadResults" class="hidden bg-white rounded-xl border border-slate-200 p-4 space-y-2">
+                <h4 class="text-sm font-bold text-slate-800">Upload Results</h4>
+                <div class="flex gap-4 text-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span>Success: <strong id="successCount">0</strong></span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block w-2 h-2 rounded-full bg-red-500"></span>
+                        <span>Errors: <strong id="errorCount">0</strong></span>
+                    </div>
+                </div>
+                <div id="errorList" class="hidden max-h-40 overflow-y-auto text-xs text-red-600 space-y-1 mt-2 pt-2 border-t border-slate-100"></div>
+            </div>
+        </div>
+        
+        <div class="px-6 pb-6 flex gap-3 bg-slate-50 shrink-0">
+            <button onclick="window.staffApp.closeUploadDrawer()" 
+                    class="flex-1 px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 font-bold text-sm rounded-xl transition-colors border border-slate-200">
+                Cancel
+            </button>
+            <button id="uploadBtn" onclick="window.staffApp.uploadFile()" disabled
+                    class="flex-1 px-4 py-2.5 bg-[#8b1e3f] hover:bg-[#721833] text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="bi bi-cloud-upload"></i> Upload File
+            </button>
+        </div>
+    </div>
+</div>

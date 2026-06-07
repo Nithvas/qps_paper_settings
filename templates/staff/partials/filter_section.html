@@ -1,32 +1,87 @@
-<div class="space-y-6 w-full font-sans antialiased text-slate-600">
+<div class="space-y-6 w-full font-sans antialiased text-slate-600 mt-6">
     <div class="bg-white border border-slate-200/80 rounded-xl shadow-sm overflow-hidden w-full">
-        <form method="get" action="" class="m-0 p-0">
-            <div class="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 bg-white">
+        <form method="get" action="" class="m-0 p-0" id="filterForm">
+            <div class="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-white">
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Designation :</label>
+                    <select name="designation" class="filter-select w-full rounded-lg border border-slate-200 text-xs p-2 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+                        <option value="">All Designations</option>
+                        {% for d in filter_options.designations %}
+                        <option value="{{ d }}" {% if d == filters.designation %}selected{% endif %}>{{ d }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Program Type :</label>
+                    <select name="program_type" class="filter-select w-full rounded-lg border border-slate-200 text-xs p-2 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+                        <option value="">All Program Types</option>
+                        {% for pt in filter_options.program_types %}
+                        <option value="{{ pt }}" {% if pt == filters.program_type %}selected{% endif %}>{{ pt }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Staff Category :</label>
+                    <select name="staff_category" class="filter-select w-full rounded-lg border border-slate-200 text-xs p-2 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+                        <option value="">All Staff Categories</option>
+                        {% for sc in filter_options.staff_categories %}
+                        <option value="{{ sc }}" {% if sc == filters.staff_category %}selected{% endif %}>{{ sc }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Dept Category :</label>
+                    <select name="dept_category" class="filter-select w-full rounded-lg border border-slate-200 text-xs p-2 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+                        <option value="">All Dept Categories</option>
+                        {% for dc in filter_options.dept_categories %}
+                        <option value="{{ dc }}" {% if dc == filters.dept_category %}selected{% endif %}>{{ dc }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Branch :</label>
+                    <select name="branch" class="filter-select w-full rounded-lg border border-slate-200 text-xs p-2 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+                        <option value="">All Branches</option>
+                        {% for b in filter_options.branches %}
+                        <option value="{{ b }}" {% if b == filters.branch %}selected{% endif %}>{{ b }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
                 <div class="space-y-1.5">
                     <label class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Programme :</label>
-                    <select name="program" id="program" class="w-full rounded-lg border border-slate-200 text-xs p-2">
-                        <option value="">All Program Scopes</option>
-                        {% for p in programs %}<option value="{{ p }}" {% if p == selected_program %}selected{% endif %}>{{ p }}</option>{% endfor %}
+                    <select name="program" class="filter-select w-full rounded-lg border border-slate-200 text-xs p-2 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+                        <option value="">All Programmes</option>
+                        {% for p in filter_options.programs %}
+                        <option value="{{ p }}" {% if p == filters.program %}selected{% endif %}>{{ p }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="space-y-1.5">
                     <label class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Department :</label>
-                    <select name="department" id="department" class="w-full rounded-lg border border-slate-200 text-xs p-2">
+                    <select name="department" class="filter-select w-full rounded-lg border border-slate-200 text-xs p-2 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
                         <option value="">All Departments</option>
-                        {% for d in departments %}<option value="{{ d }}" {% if d == selected_department %}selected{% endif %}>{{ d }}</option>{% endfor %}
+                        {% for d in filter_options.departments %}
+                        <option value="{{ d }}" {% if d == filters.department %}selected{% endif %}>{{ d }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="space-y-1.5">
                     <label class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">College :</label>
-                    <select name="college" id="college" class="w-full rounded-lg border border-slate-200 text-xs p-2">
-                        <option value="">All College Units</option>
-                        {% for c in colleges %}<option value="{{ c }}" {% if c == selected_college %}selected{% endif %}>{{ c }}</option>{% endfor %}
+                    <select name="college" class="filter-select w-full rounded-lg border border-slate-200 text-xs p-2 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+                        <option value="">All Colleges</option>
+                        {% for c in filter_options.colleges %}
+                        <option value="{{ c }}" {% if c == filters.college %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>
             <div class="px-5 pb-5 flex flex-col sm:flex-row gap-3 justify-end">
-                <a href="{% url 'staff:staff_list' %}" class="px-4 py-1.5 bg-white text-slate-600 rounded-lg text-sm font-semibold border border-slate-200 shadow-sm inline-flex items-center gap-1.5"><i class="bi bi-arrow-counterclockwise"></i> Reset Filters</a>
-                <button type="submit" class="px-4 py-1.5 bg-jmc-maroon text-white rounded-lg text-sm font-semibold shadow-sm inline-flex items-center gap-1.5"><i class="bi bi-funnel"></i> Apply Filters</button>
+                <a href="{% url 'staff:staff_list' %}" id="resetFiltersBtn" class="px-4 py-1.5 bg-white text-slate-600 rounded-lg text-sm font-semibold border border-slate-200 shadow-sm inline-flex items-center gap-1.5 hover:bg-slate-50 transition">
+                    <i class="bi bi-arrow-counterclockwise"></i> Reset Filters
+                </a>
+                <button type="button" id="applyFiltersBtn" class="px-4 py-1.5 bg-[#8b1e3f] text-white rounded-lg text-sm font-semibold shadow-sm inline-flex items-center gap-1.5 hover:bg-[#721833] transition">
+                    <i class="bi bi-funnel"></i> Apply Filters
+                </button>
             </div>
         </form>
     </div>
