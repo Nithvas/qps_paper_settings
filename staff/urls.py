@@ -12,4 +12,5 @@ urlpatterns = [
     path('export/', views.staff_export, name='staff_export'),
     path('sample/', views.staff_sample, name='staff_sample'),
     path('details/<str:phone>/', views.staff_details, name='staff_details'),
+    path('get-field-options/', views.get_field_options, name='get_field_options'),
 ]

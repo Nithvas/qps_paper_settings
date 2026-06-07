@@ -2,7 +2,8 @@
 {% load static %}
 {% block title %}Staff Directory | JMC QPS Portal{% endblock %}
 {% block content %}
-<div class="min-h-screen mx-auto space-y-6 antialiased p-6">
+
+<div class="min-h-screen mx-auto space-y-6 antialiased">
     
     <!-- Header Actions -->
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between pb-6 border-b border-slate-200 gap-4">
@@ -15,19 +16,15 @@
             </p>
         </div>
         <div class="flex items-center gap-3 self-start lg:self-center">
-            <button type="button" onclick="window.staffApp.openDrawer()" 
-                    class="inline-flex items-center gap-2 px-5 py-3 bg-[#8b1e3f] text-white text-xs font-bold rounded-lg transition-all duration-150 tracking-wider uppercase shadow-md hover:shadow-lg hover:bg-[#721833]">
-                <i class="bi bi-person-plus-fill text-sm"></i>
-                Create Staff Profile
+            <button type="button" onclick="window.staffApp.openDrawer()" class="inline-flex items-center gap-2 px-5 py-3 bg-[#8b1e3f] text-white text-xs font-bold rounded-lg transition-all duration-150 tracking-wider uppercase shadow-md hover:shadow-lg hover:bg-[#721833]">
+                <i class="bi bi-person-plus-fill mt-1 text-sm"></i>
+                Create Staff
             </button>
-            
             <!-- Excel Dropdown Menu -->
             <div class="relative">
-                <button onclick="window.staffApp.toggleExcelMenu()" 
-                        class="inline-flex items-center gap-2 px-5 py-3 bg-emerald-600 text-white text-xs font-bold rounded-lg transition-all duration-150 tracking-wider uppercase shadow-md hover:shadow-lg hover:bg-emerald-700">
-                    <i class="bi bi-file-excel-fill text-sm"></i>
-                    Excel Actions
-                    <i class="bi bi-chevron-down text-xs"></i>
+               <button onclick="window.staffApp.toggleExcelMenu()" class="inline-flex items-center gap-2 px-5 py-3 bg-[#107C41] hover:bg-[#0d6434] text-white text-xs font-bold rounded-lg tracking-wider uppercase shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-150">
+                    <i class="bi bi-box-arrow-in-down-right mt-1 text-sm"></i>
+                    <span>Excel Actions</span>
                 </button>
                 <div id="excelMenu" class="hidden absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
                     <div class="py-1">
@@ -44,12 +41,6 @@
                             </svg>
                             Upload Staff List
                         </button>
-                        <a href="{% url 'staff:staff_sample' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                            </svg>
-                            Download Sample Template
-                        </a>
                     </div>
                 </div>
             </div>
@@ -66,7 +57,7 @@
                 <i class="bi bi-search text-sm"></i>
             </div>
             <input type="text" id="globalSearch" value="{{ search|default:'' }}" 
-                   placeholder="Search across all fields... (ID, Name, Department, Email, Phone, Designation, Program, College, City, District, Bank, IFSC, etc.)" 
+                   placeholder="Search across all fields..." 
                    class="w-full h-12 pl-10 pr-4 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-800 placeholder:text-slate-400 transition-all focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
         </div>
         <div class="flex items-center gap-4 text-xs sm:border-l sm:border-slate-200 sm:pl-6">

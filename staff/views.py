@@ -12,7 +12,6 @@ from .models import Staff
 from core.models import FieldReference
 import json
 
-
 def staff_list(request):
 
     staff_queryset = Staff.objects.all()
@@ -106,6 +105,55 @@ def staff_list(request):
 
     return render(request, 'staff/staff_list.html', context)
 
+@require_http_methods(["GET"])
+def get_field_options(request):
+
+    field_name = request.GET.get('field')
+    search_query = request.GET.get('search', '')
+    
+    if not field_name:
+        return JsonResponse({'success': False, 'error': 'Field name is required'}, status=400)
+    
+    # Map frontend field names to actual model field names
+    field_mapping = {
+        'designation': 'designation',
+        'program_type': 'program_type',
+        'staff_category': 'staff_category',
+        'dept_category': 'dept_category',
+        'examiner_type': 'examiner_type',
+        'branch': 'branch',
+        'branch_final': 'branch_final',
+        'program': 'program',
+        'department': 'department',
+        'college': 'college',
+        'qualification': 'qualification',
+        'city': 'city',
+        'district': 'district',
+        'bank_name': 'bank_name',
+        'bank_city': 'bank_city',
+    }
+    
+    model_field = field_mapping.get(field_name)
+    if not model_field:
+        return JsonResponse({'success': False, 'error': f'Invalid field name: {field_name}'}, status=400)
+    
+    try:
+        
+        # Get options from FieldReference table
+        options = FieldReference.get_options(
+            model=Staff,
+            field_name=model_field,
+            search=search_query
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'options': options,
+            'total_count': len(options)
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 @require_http_methods(["GET", "POST"])
 def staff_add(request):
@@ -195,7 +243,6 @@ def staff_add(request):
     }
     return render(request, 'staff/staff_form.html', context)
 
-
 @require_http_methods(["GET", "POST"])
 def staff_edit(request, phone):
 
@@ -270,7 +317,6 @@ def staff_edit(request, phone):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
-
 @require_http_methods(["POST"])
 def staff_delete(request, phone):
     try:
@@ -279,7 +325,6 @@ def staff_delete(request, phone):
         return JsonResponse({'success': True, 'message': 'Staff deleted successfully'})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
-
 
 @require_http_methods(["POST"])
 def staff_upload(request):
@@ -295,12 +340,64 @@ def staff_upload(request):
             error_count = 0
             errors = []
 
+            new_field_options = {
+                'designation': set(),
+                'program': set(),
+                'department': set(),
+                'college': set(),
+                'city': set(),
+                'district': set(),
+                'bank_name': set(),
+                'program_type': set(),
+                'staff_category': set(),
+                'dept_category': set(),
+                'examiner_type': set(),
+                'branch': set(),
+                'branch_final': set(),
+                'place': set(),
+                'qualification': set(),
+                'bank_city': set(),
+            }
+
             for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
                 try:
-                    if not row[6]:  # Phone column index
+                    if not row[6]:  
                         errors.append(f"Row {row_idx}: Phone number is required")
                         error_count += 1
                         continue
+
+                    if row[2]:  # designation
+                        new_field_options['designation'].add(str(row[2]).strip())
+                    if row[3]:  # program
+                        new_field_options['program'].add(str(row[3]).strip())
+                    if row[4]:  # department
+                        new_field_options['department'].add(str(row[4]).strip())
+                    if row[5]:  # college
+                        new_field_options['college'].add(str(row[5]).strip())
+                    if row[10]:  # city
+                        new_field_options['city'].add(str(row[10]).strip())
+                    if row[11]:  # district
+                        new_field_options['district'].add(str(row[11]).strip())
+                    if row[13]:  # bank_name
+                        new_field_options['bank_name'].add(str(row[13]).strip())
+                    if len(row) > 16 and row[16]:  # program_type
+                        new_field_options['program_type'].add(str(row[16]).strip())
+                    if len(row) > 17 and row[17]:  # staff_category
+                        new_field_options['staff_category'].add(str(row[17]).strip())
+                    if len(row) > 18 and row[18]:  # dept_category
+                        new_field_options['dept_category'].add(str(row[18]).strip())
+                    if len(row) > 19 and row[19]:  # examiner_type
+                        new_field_options['examiner_type'].add(str(row[19]).strip())
+                    if len(row) > 20 and row[20]:  # branch
+                        new_field_options['branch'].add(str(row[20]).strip())
+                    if len(row) > 21 and row[21]:  # branch_final
+                        new_field_options['branch_final'].add(str(row[21]).strip())
+                    if len(row) > 22 and row[22]:  # place
+                        new_field_options['place'].add(str(row[22]).strip())
+                    if len(row) > 23 and row[23]:  # qualification
+                        new_field_options['qualification'].add(str(row[23]).strip())
+                    if len(row) > 24 and row[24]:  # bank_city
+                        new_field_options['bank_city'].add(str(row[24]).strip())
 
                     staff_data = {
                         'staff_id': row[0],
@@ -341,6 +438,25 @@ def staff_upload(request):
                     error_count += 1
                     errors.append(f"Row {row_idx}: {str(e)}")
 
+            from django.contrib.contenttypes.models import ContentType
+            
+            added_options_count = 0
+            
+            for field_name, values in new_field_options.items():
+                for value in values:
+                    if value:
+                        try:
+                            obj, created = FieldReference.add_option(
+                                model=Staff,
+                                field_name=field_name,
+                                value=value,
+                                created_by=request.user.username if request.user.is_authenticated else 'excel_upload'
+                            )
+                            if created:
+                                added_options_count += 1
+                        except Exception as e:
+                            print(f"Error adding {field_name}={value}: {str(e)}")
+
             if error_count > 0:
                 messages.warning(request, f"Uploaded {success_count} records with {error_count} errors")
             else:
@@ -350,14 +466,14 @@ def staff_upload(request):
                 'success': True,
                 'success_count': success_count,
                 'error_count': error_count,
-                'errors': errors
+                'errors': errors,
+                'new_options_added': added_options_count 
             })
 
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
 
     return JsonResponse({'success': False, 'error': 'No file provided'})
-
 
 def staff_export(request):
 
@@ -433,7 +549,6 @@ def staff_export(request):
     wb.save(response)
     return response
 
-
 def staff_sample(request):
 
     wb = Workbook()
@@ -495,10 +610,9 @@ def staff_sample(request):
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    response['Content-Disposition'] = 'attachment; filename=staff_template.xlsx'
+    response['Content-Disposition'] = 'attachment; filename=Staff Template.xlsx'
     wb.save(response)
     return response
-
 
 def staff_details(request, phone):
 

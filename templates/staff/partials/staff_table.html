@@ -3,21 +3,14 @@
         <table class="w-full border-collapse text-sm">
             <thead class="sticky top-0 z-30 bg-white">
                 <tr class="border-y border-slate-200 text-[11px] uppercase tracking-[0.14em] text-slate-500 font-black select-none">
-                    <th data-col="id" data-sort="id" class="sortable-th px-4 py-4 whitespace-nowrap cursor-pointer transition group text-center w-20">
+                    <th class="sticky bg-white left-0 z-40 px-4 py-4 whitespace-nowrap text-center w-20">
                         <div class="flex items-center justify-center gap-2">
-                            ID 
-                            <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i>
+                            S. No.
                         </div>
                     </th>
-                    <th data-col="staff_id" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center">
+                    <th data-col="name" class="sortable-th sticky bg-white left-[63px] z-40 px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center min-w-[220px]">
                         <div class="flex items-center justify-center gap-2">
-                            Staff ID 
-                            <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i>
-                        </div>
-                    </th>
-                    <th data-col="name" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center">
-                        <div class="flex items-center justify-center gap-2">
-                            Name 
+                            Staff Details
                             <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i>
                         </div>
                     </th>
@@ -99,32 +92,36 @@
                             <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i>
                         </div>
                     </th>
-                    <th class="px-5 py-4 text-center bg-white w-24">
+                    <th class="sticky right-0 z-40 px-5 py-4 text-center bg-white w-24">
                         <div class="flex items-center justify-center">Actions</div>
                     </th>
                 </tr>
             </thead>
             <tbody id="staffTableBody" class="divide-y divide-slate-100 bg-white text-center">
                 {% for s in staff %}
+                {% cycle 'bg1' 'bg2' 'bg3' 'bg4' 'bg5' 'bg6' as avatar_class silent %}
                 <tr class="staff-row group hover:bg-gradient-to-r hover:from-indigo-50/40 hover:to-transparent transition-all duration-200">
-                    <td class="px-4 py-4">
-                        <span class="text-[12px] font-mono font-semibold text-slate-500">{{ s.serial_no }}</span>
+                    
+                    <td class="sticky left-0 z-20 px-4 py-4 bg-white group-hover:bg-slate-50 transition">
+                        <span class="text-[12px] font-mono font-semibold text-slate-500">{{ forloop.counter }}</span>
                     </td>
-                    <td class="px-5 py-4">
-                        <span class="text-[12px] text-slate-500 font-semibold tracking-wide">{{ s.staff_id }}</span>
-                    </td>
-                    <td class="px-5 py-4">
+                    
+                    <td class="sticky left-[63px] z-20 px-5 py-4 bg-white group-hover:bg-slate-50 transition">
                         <div class="flex items-center gap-3">
-                            <div class="flex items-center justify-center w-8 h-8 text-[11px] font-bold rounded shadow-sm shrink-0 bg-indigo-100 text-indigo-700">
+                            <div class="avatar-{{ avatar_class }} flex items-center justify-center w-8 h-8 text-[11px] font-bold rounded shadow-sm shrink-0">
                                 {{ s.name|slice:":1"|upper }}
                             </div>
                             <div class="text-left">
-                                <h4 class="font-bold text-slate-900 text-[13px] tracking-tight">{{ s.name }}</h4>
+                                <div class="flex items-center flex-wrap">
+                                    <h4 class="font-bold text-slate-900 text-[13px] tracking-tight whitespace-nowrap">{{ s.name }}</h4>
+                                    <span class="text-[12px] text-slate-600 font-mono font-semibold">{{ s.staff_id }}</span>
+                                </div>
                             </div>
                         </div>
                     </td>
+                    
                     <td class="px-5 py-4">
-                        <span class="font-medium text-slate-700">{{ s.designation|default:"-" }}</span>
+                        <span class="font-medium text-slate-700 whitespace-nowrap">{{ s.designation|default:"-" }}</span>
                     </td>
                     <td class="px-5 py-4">
                         <span class="font-semibold text-slate-800">{{ s.program|default:"-" }}</span>
@@ -162,7 +159,8 @@
                     <td class="px-5 py-4">
                         <span class="text-slate-600 font-semibold">{{ s.ifsc_code|default:"-" }}</span>
                     </td>
-                    <td class="px-5 py-4">
+                    
+                    <td class="sticky right-0 z-20 px-5 py-4 bg-white border-l border-slate-100 group-hover:bg-slate-50 transition">
                         <div class="flex items-center gap-1 justify-center">
                             <button type="button" onclick="window.staffApp.openDrawer('{{ s.phone }}')" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-all" title="Edit Record">
                                 <i class="bi bi-pencil-square text-sm"></i>
@@ -175,7 +173,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="17" class="py-12 text-center bg-gradient-to-b from-slate-50 to-white">
+                    <td colspan="16" class="py-12 text-center bg-gradient-to-b from-slate-50 to-white">
                         <div class="mx-auto">
                             <div class="w-12 h-12 mx-auto rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shadow-inner mb-4">
                                 <i class="bi bi-folder2-open text-2xl text-slate-400"></i>
@@ -190,3 +188,12 @@
         </table>
     </div>
 </div>
+
+<style>
+    .avatar-bg1 { background-color: #eef2ff; color: #4f46e5; }
+    .avatar-bg2 { background-color: #ecfdf5; color: #059669; }
+    .avatar-bg3 { background-color: #ffe4e6; color: #e11d48; }
+    .avatar-bg4 { background-color: #fffbeb; color: #d97706; }
+    .avatar-bg5 { background-color: #e0f2fe; color: #0284c7; }
+    .avatar-bg6 { background-color: #f3e8ff; color: #9333ea; }
+</style>

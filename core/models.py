@@ -72,7 +72,7 @@ class FieldReference(models.Model):
     
     @classmethod
     def add_option(cls, model, field_name, value, created_by=None):
-
+       
         # Add a new option for a specific model and field
         content_type = ContentType.objects.get_for_model(model)
         obj, created = cls.objects.get_or_create(
@@ -82,10 +82,36 @@ class FieldReference(models.Model):
             defaults={'created_by': created_by}
         )
         
-        # Clear cache for this field
-        cache.delete_pattern(f"field_options_{content_type.id}_{field_name}*")
+        # Clear cache for this field only if a new record was created
+        if created:
+            cls._clear_field_cache(content_type.id, field_name)
+        
         return obj, created
     
+    @classmethod
+    def _clear_field_cache(cls, content_type_id, field_name):
+        
+        # Safely clear cache for a specific field across different cache backends
+        cache_key_base = f"field_options_{content_type_id}_{field_name}"
+        
+        try:
+            if hasattr(cache, 'delete_pattern'):
+                cache.delete_pattern(f"{cache_key_base}*")
+            else:
+                possible_keys = [
+                    cache_key_base,
+                    f"{cache_key_base}_",
+                    f"{cache_key_base}_a",
+                    f"{cache_key_base}_",  
+                ]
+                for key in possible_keys:
+                    try:
+                        cache.delete(key)
+                    except:
+                        pass
+        except Exception as e:
+            logger.warning(f"Failed to clear cache for {field_name}: {str(e)}")
+
     @classmethod
     def delete_option(cls, model, field_name, value):
         

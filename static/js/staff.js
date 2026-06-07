@@ -79,7 +79,7 @@
 
     function showToast(message, type = 'info') {
         const toast = document.createElement('div');
-        const bgColor = type === 'success' ? 'bg-emerald-500' : (type === 'error' ? 'bg-red-500' : 'bg-blue-500');
+        const bgColor = type === 'success' ? 'bg-emerald-700' : (type === 'error' ? 'bg-red-500' : 'bg-blue-500');
         toast.className = `fixed bottom-4 right-4 px-4 py-2 rounded-lg text-white text-sm z-50 animate-fade-in ${bgColor}`;
         toast.textContent = message;
         document.body.appendChild(toast);
@@ -390,6 +390,8 @@
             this.element = element;
             this.fieldName = options.fieldName || element.name;
             this.placeholder = options.placeholder || `Search or add ${this.fieldName.replace(/_/g, ' ')}...`;
+            this.loadRemote = options.loadRemote !== false;
+            this.allowCreate = options.allowCreate !== false;
             this.optionsList = [];
             this.filteredOptions = [];
             this.selectedIndex = -1;
@@ -401,6 +403,9 @@
             this.scrollHandler = null;
             this.resizeHandler = null;
             this.createComponent();
+            if (!this.loadRemote) {
+                this.initializeStaticOptions();
+            }
             this.setupEventListeners();
         }
 
@@ -444,7 +449,38 @@
             document.body.appendChild(this.dropdown);
         }
 
+        initializeStaticOptions() {
+            const options = [];
+            let selectedValue = '';
+
+            Array.from(this.element.options).forEach(option => {
+                const value = option.value !== null && option.value !== undefined ? String(option.value).trim() : '';
+                if (value !== '') {
+                    options.push(value);
+                }
+                if (option.selected && value !== '') {
+                    selectedValue = value;
+                }
+            });
+
+            this.optionsList = Array.from(new Set(options));
+
+            if (selectedValue) {
+                this.selectedValue = selectedValue;
+                const selectedOption = Array.from(this.element.options).find(opt => opt.selected);
+                this.input.value = selectedOption ? selectedOption.textContent.trim() : selectedValue;
+                this.element.value = selectedValue;
+            }
+
+            this.hasLoaded = true;
+        }
+
         async loadOptions(search = '') {
+
+            if (!this.loadRemote) {
+                this.filterOptions(search);
+                return;
+            }
 
             if (this.isLoading) return;
 
@@ -504,7 +540,7 @@
                     opt && opt.toLowerCase && opt.toLowerCase() === searchTerm.toLowerCase()
                 );
 
-                if (!exists) {
+                if (!exists && this.allowCreate) {
                     const createOption = this.createOptionElement(searchTerm, true);
                     createOption.style.cssText = 'border-bottom: 1px solid #e2e8f0; padding: 10px 12px;';
                     this.dropdown.appendChild(createOption);
@@ -523,15 +559,26 @@
                         this.dropdown.appendChild(optionElement);
                     }
                 });
-            } else if (!hasSearchTerm) {
-                const noResults = document.createElement('div');
-                noResults.className = 'px-3 py-2 text-sm text-slate-400 text-center';
-                noResults.style.padding = '10px 12px';
-                noResults.innerHTML = '<i class="bi bi-info-circle"></i> No options available';
-                this.dropdown.appendChild(noResults);
+            } else {
+                if (!hasSearchTerm) {
+                    const noResults = document.createElement('div');
+                    noResults.className = 'px-3 py-2 text-sm text-slate-400 text-center';
+                    noResults.style.padding = '10px 12px';
+                    noResults.innerHTML = '<i class="bi bi-info-circle"></i> No options available';
+                    this.dropdown.appendChild(noResults);
+                } else if (!this.allowCreate) {
+                    const noResults = document.createElement('div');
+                    noResults.className = 'px-3 py-2 text-sm text-slate-400 text-center';
+                    noResults.style.padding = '10px 12px';
+                    noResults.innerHTML = '<i class="bi bi-x-circle"></i> No matching results';
+                    this.dropdown.appendChild(noResults);
+                }
             }
 
             this.positionDropdown();
+            if (document.activeElement !== this.input) {
+                this.input.focus({ preventScroll: true });
+            }
         }
 
         createOptionElement(value, isNew) {
@@ -540,16 +587,21 @@
             div.className = `cursor-pointer text-sm flex items-center justify-between transition-colors ${isNew ? 'bg-green-50 hover:bg-green-100' : 'hover:bg-indigo-50'}`;
 
             if (isNew) {
-                div.innerHTML = `
-                    <div class="flex items-center gap-2 text-green-600 w-full">
-                        <i class="bi bi-plus-circle text-sm"></i>
-                        <span>Add "<strong class="text-green-700">${this.escapeHtml(value)}</strong>"</span>
-                    </div>
-                `;
-                div.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    this.selectOption(value);
-                });
+                if (this.allowCreate) {
+                    div.innerHTML = `
+                        <div class="flex items-center gap-2 text-green-600 w-full">
+                            <i class="bi bi-plus-circle text-sm"></i>
+                            <span>Add "<strong class="text-green-700">${this.escapeHtml(value)}</strong>"</span>
+                        </div>
+                    `;
+                    div.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.selectOption(value);
+                    });
+                } else {
+                    div.className = 'px-3 py-2 text-sm text-slate-400 text-center';
+                    div.textContent = 'No matching option';
+                }
             } else {
                 div.innerHTML = `
                     <span>${this.escapeHtml(value)}</span>
@@ -567,6 +619,9 @@
             const exists = this.optionsList.some(opt => opt && opt.toLowerCase && opt.toLowerCase() === value.toLowerCase());
 
             if (!exists) {
+                if (!this.allowCreate) {
+                    return;
+                }
                 try {
                     const response = await fetch('/staff/save-field-option/', {
                         method: 'POST',
@@ -654,9 +709,12 @@
             window.addEventListener('scroll', this.scrollHandler, true);
             window.addEventListener('resize', this.resizeHandler);
 
+            this.searchTerm = this.input.value || '';
+
             if (!this.hasLoaded || this.searchTerm) {
                 this.loadOptions(this.searchTerm);
             } else {
+                this.filterOptions('');
                 this.renderDropdown();
                 this.positionDropdown();
             }
@@ -689,6 +747,9 @@
             this.dropdown.appendChild(loadingDiv);
             this.positionDropdown();
             this.dropdown.style.display = 'block';
+            if (document.activeElement !== this.input) {
+                this.input.focus({ preventScroll: true });
+            }
         }
 
         navigateOptions(direction) {
@@ -740,7 +801,7 @@
             this.input.addEventListener('input', (e) => {
                 clearTimeout(typingTimer);
                 this.searchTerm = e.target.value;
-                typingTimer = setTimeout(() => this.loadOptions(this.searchTerm), 300);
+                typingTimer = setTimeout(() => this.loadOptions(this.searchTerm), 150);
             });
 
             this.input.addEventListener('keydown', (e) => {
@@ -938,6 +999,7 @@
         },
 
         handleFileSelect(e) {
+
             if (e.target.files && e.target.files[0]) {
                 this.selectedFile = e.target.files[0];
 
@@ -1138,6 +1200,19 @@
                     window.creatableSelects[field.id] = new CreatableSelect(element, {
                         fieldName: field.fieldName,
                         placeholder: field.placeholder
+                    });
+                    element.setAttribute('data-initialized', 'true');
+                }
+            });
+
+            document.querySelectorAll('.filter-select').forEach(element => {
+                const key = element.id || `filter-${element.name}`;
+                if (!element.hasAttribute('data-initialized')) {
+                    window.creatableSelects[key] = new CreatableSelect(element, {
+                        fieldName: element.name,
+                        placeholder: `Search or select ${element.name.replace(/_/g, ' ')}`,
+                        loadRemote: false,
+                        allowCreate: false
                     });
                     element.setAttribute('data-initialized', 'true');
                 }
