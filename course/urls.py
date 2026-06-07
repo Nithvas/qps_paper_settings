@@ -1,19 +1,17 @@
 from django.urls import path
 from . import views
 
-app_name = 'course'
+app_name = 'courses'
 
 urlpatterns = [
-
-    # Others
+    # Course views
     path('', views.course_list, name='course_list'),
-    path('sample/', views.course_sample, name='course_sample'),
-    path('export/', views.course_export, name='course_export'),
-    path('upload/', views.course_upload, name='course_upload'),
-    path('ajax/filter/', views.ajax_filter, name='ajax_filter'),
-    
-    # CRUD operations
-    path('add/', views.course_add_edit, name='course_add'),
-    path('edit/<str:course_code>/', views.course_add_edit, name='course_edit'), 
+    path('add/', views.course_add, name='course_add'),
+    path('edit/<str:course_code>/', views.course_edit, name='course_edit'),
     path('delete/<str:course_code>/', views.course_delete, name='course_delete'),
+    path('details/<str:course_code>/', views.course_details, name='course_details'),
+    path('upload/', views.course_upload, name='course_upload'),
+    path('export/', views.course_export, name='course_export'),
+    path('sample/', views.course_sample, name='course_sample'),
+    path('get-field-options/', views.get_field_options, name='get_field_options'),
 ]

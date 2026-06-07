@@ -1,28 +1,22 @@
-{% if course.has_other_pages %}
-<div class="border-t border-slate-200 bg-slate-50/50 px-6 py-4 rounded-xl mt-4">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div class="flex items-center gap-3 text-sm">
-            <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-white border"><i class="bi bi-database"></i></div>
-            <div><p class="text-[10px] font-bold text-slate-400 uppercase">Dataset Navigation</p><p class="text-slate-500">Showing <span class="font-semibold">{{ course.start_index }}</span> to <span class="font-semibold">{{ course.end_index }}</span> of <span class="font-semibold">{{ course.paginator.count }}</span> records</p></div>
+{% if courses.has_next %}
+<div class="border-t border-slate-200 bg-slate-50/50 px-6 py-4 rounded-b-xl">
+    <div class="flex flex-col items-center gap-4">
+        <div class="text-center">
+            <p class="text-xs text-slate-500">
+                Showing {{ courses.start_index }} to {{ courses.end_index }} of {{ courses.paginator.count }} courses
+            </p>
         </div>
-        <div class="flex items-center gap-2 flex-wrap">
-            {% if course.has_previous %}
-            <a href="?page=1{% if search %}&search={{ search|urlencode }}{% endif %}{% for key,value in request.GET.items %}{% if key != 'page' and key != 'search' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}" class="h-9 px-3 rounded-lg border bg-white text-sm font-medium">First</a>
-            <a href="?page={{ course.previous_page_number }}{% if search %}&search={{ search|urlencode }}{% endif %}{% for key,value in request.GET.items %}{% if key != 'page' and key != 'search' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}" class="w-9 h-9 rounded-lg border bg-white flex items-center justify-center"><i class="bi bi-chevron-left"></i></a>
-            {% endif %}
-            <form method="get" class="flex items-center gap-2" id="paginationJumpForm">
-                {% for key, value in request.GET.items %}{% if key != 'page' %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}{% endfor %}
-                <div class="flex items-center gap-1.5 px-3 h-9 rounded-lg border bg-white">
-                    <input type="number" name="page" min="1" max="{{ course.paginator.num_pages }}" value="{{ course.number }}" class="w-10 bg-transparent text-center text-sm font-semibold">
-                    <span>/</span><span>{{ course.paginator.num_pages }}</span>
-                </div>
-                <button type="submit" class="h-9 px-4 rounded-lg bg-indigo-600 text-white text-sm">Go</button>
-            </form>
-            {% if course.has_next %}
-            <a href="?page={{ course.next_page_number }}{% if search %}&search={{ search|urlencode }}{% endif %}{% for key,value in request.GET.items %}{% if key != 'page' and key != 'search' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}" class="w-9 h-9 rounded-lg border bg-white flex items-center justify-center"><i class="bi bi-chevron-right"></i></a>
-            <a href="?page={{ course.paginator.num_pages }}{% if search %}&search={{ search|urlencode }}{% endif %}{% for key,value in request.GET.items %}{% if key != 'page' and key != 'search' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}" class="h-9 px-3 rounded-lg border bg-white text-sm font-medium">Last</a>
-            {% endif %}
-        </div>
+        
+        <button id="loadMoreBtn" data-next-page="{{ courses.next_page_number }}" 
+                class="inline-flex items-center gap-2 px-6 py-2.5 bg-white border-2 border-[#8b1e3f] text-[#8b1e3f] rounded-lg text-sm font-bold hover:bg-[#8b1e3f] hover:text-white transition-all duration-200">
+            <i class="bi bi-arrow-repeat"></i>
+            Load More Courses
+        </button>
+        
+        <a href="?page={{ courses.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}" 
+           class="text-xs text-slate-400 hover:text-[#8b1e3f] transition">
+            Go to last page <i class="bi bi-arrow-right"></i>
+        </a>
     </div>
 </div>
 {% endif %}

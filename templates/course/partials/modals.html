@@ -1,131 +1,417 @@
 <!-- ADD/EDIT COURSE DRAWER -->
 <div id="courseDrawer" class="drawer fixed inset-0 z-50 hidden" aria-labelledby="drawer-title" role="dialog">
-    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" onclick="closeCourseDrawer()"></div>
-    <div class="drawer-scrollable absolute inset-y-0 right-0 w-full max-w-xl bg-slate-50 shadow-2xl overflow-y-auto transform transition-transform duration-300">
-        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white">
+    <div class="drawer-backdrop absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" onclick="window.courseApp.closeDrawer()"></div>
+    
+    <div class="drawer-scrollable absolute inset-y-0 right-0 w-full max-w-4xl bg-slate-50 shadow-2xl overflow-y-auto transform transition-transform duration-300">
+        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-20">
             <div>
-                <h2 id="drawer-title" class="text-xl font-bold text-jmc-maroon">New Course Record</h2>
+                <h2 id="drawer-title" class="text-xl font-bold text-[#8b1e3f]">New Course Record</h2>
                 <p id="drawer-subtitle" class="text-md text-slate-500 mt-0.5">Fields marked with <span class="text-rose-500 font-bold">*</span> are required.</p>
             </div>
-            <button onclick="closeCourseDrawer()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+            <button onclick="window.courseApp.closeDrawer()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
                 <i class="bi bi-x-lg text-sm"></i>
             </button>
         </div>
+        
         <form id="courseForm" class="px-6 pb-6 space-y-6">
             {% csrf_token %}
-            <input type="hidden" name="course_code" id="editCourseId" value="">
+            <input type="hidden" name="id" id="editCourseId" value="">
 
-            <!-- Section: Course Details (Indigo) -->
-            <div class="bg-white rounded-xl border border-indigo-100 shadow-sm overflow-hidden space-y-4 pb-5">
+            <!-- Section 1: Program Information -->
+            <div class="bg-white rounded-xl border border-indigo-100 shadow-sm overflow-hidden">
                 <div class="flex items-center gap-2 bg-indigo-50/60 px-5 py-3 border-b border-indigo-100/50">
-                    <i class="bi bi-info-circle text-indigo-600 text-base"></i>
-                    <h3 class="font-bold text-xs tracking-wider text-indigo-900 uppercase">Course Details</h3>
+                    <i class="bi bi-mortarboard text-indigo-600 text-base"></i>
+                    <h3 class="font-bold text-xs tracking-wider text-indigo-900 uppercase">Program Information</h3>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 px-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Course Code : <span class="text-rose-500">*</span></label>
-                        <input type="text" name="course_code" id="drawerCourseCode" required class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Course ID : <span class="text-rose-500">*</span></label>
-                        <input type="text" name="course_id" id="drawerCourseId" required class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white">
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Course Title : <span class="text-rose-500">*</span></label>
-                        <input type="text" name="course_title" id="drawerCourseTitle" required class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white">
-                    </div>
-                    <div class="h-full">
-                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Program : <span class="text-rose-500">*</span></label>
-                        <div class="flex gap-6 mt-4">
-                            <label class="inline-flex items-center gap-2 text-sm">
-                                <input type="radio" name="program" value="UG" required class="w-4 h-4 text-indigo-600"> UG
-                            </label>
-                            <label class="inline-flex items-center gap-2 text-sm">
-                                <input type="radio" name="program" value="PG" required class="w-4 h-4 text-indigo-600"> PG
-                            </label>
-                        </div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Program Type <span class="text-rose-500">*</span></label>
+                        <select name="program_type" id="drawerProgramType" required class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+                            <option value="">Select Program Type</option>
+                        </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Semester : <span class="text-rose-500">*</span></label>
-                        <select name="semester" id="drawerSemester" required class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white">
-                            <option value="">Select</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                            <option value="6">6</option>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Degree</label>
+                        <select name="degree" id="drawerDegree" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+                            <option value="">Select Degree</option>
                         </select>
                     </div>
                 </div>
             </div>
 
-            <!-- Section: Assessment & Examiner (Emerald) -->
-            <div class="bg-white rounded-xl border border-emerald-100 shadow-sm overflow-hidden space-y-4 pb-5">
+            <!-- Section 2: Department Information -->
+            <div class="bg-white rounded-xl border border-emerald-100 shadow-sm overflow-hidden">
                 <div class="flex items-center gap-2 bg-emerald-50/60 px-5 py-3 border-b border-emerald-100/50">
-                    <i class="bi bi-bar-chart-steps text-emerald-600 text-base"></i>
-                    <h3 class="font-bold text-xs tracking-wider text-emerald-900 uppercase">Assessment & Examiner</h3>
+                    <i class="bi bi-diagram-3 text-emerald-600 text-base"></i>
+                    <h3 class="font-bold text-xs tracking-wider text-emerald-900 uppercase">Department Information</h3>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 px-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">External Mark :</label>
-                        <input type="text" name="external_mark" id="drawerExternalMark" class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white">
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Branch</label>
+                        <select name="branch" id="drawerBranch" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100">
+                            <option value="">Select Branch</option>
+                        </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Examiner :</label>
-                        <select name="examiner" id="drawerExaminer" class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 bg-white">
-                            <option value="">Select</option>
-                            <option value="Internal">Internal</option>
-                            <option value="External">External</option>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Branch Final</label>
+                        <select name="branch_final" id="drawerBranchFinal" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100">
+                            <option value="">Select Branch Final</option>
                         </select>
                     </div>
                 </div>
+            </div>
+
+            <!-- Section 3: Course Information -->
+            <div class="bg-white rounded-xl border border-purple-100 shadow-sm overflow-hidden">
+                <div class="flex items-center gap-2 bg-purple-50/60 px-5 py-3 border-b border-purple-100/50">
+                    <i class="bi bi-book text-purple-600 text-base"></i>
+                    <h3 class="font-bold text-xs tracking-wider text-purple-900 uppercase">Course Information</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Course Code <span class="text-rose-500">*</span></label>
+                        <input type="text" name="course_code" id="drawerCourseCode" required 
+                               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 font-mono"
+                               placeholder="e.g., CS101">
+                        <p class="text-[10px] text-slate-400 mt-1">Unique identifier for the course</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Course ID</label>
+                        <input type="text" name="course_id" id="drawerCourseId" 
+                               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 font-mono"
+                               placeholder="e.g., CSC101">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Course Category</label>
+                        <select name="course_category" id="drawerCourseCategory" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100">
+                            <option value="">Select Category</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Course Title <span class="text-rose-500">*</span></label>
+                        <input type="text" name="course_title" id="drawerCourseTitle" required 
+                               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+                               placeholder="Enter complete course name">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Academic Information -->
+            <div class="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
+                <div class="flex items-center gap-2 bg-blue-50/60 px-5 py-3 border-b border-blue-100/50">
+                    <i class="bi bi-calendar-week text-blue-600 text-base"></i>
+                    <h3 class="font-bold text-xs tracking-wider text-blue-900 uppercase">Academic Information</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 p-5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Semester</label>
+                        <select name="semester" id="drawerSemester" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                            <option value="">Select</option>
+                            <option value="1">Semester 1</option>
+                            <option value="2">Semester 2</option>
+                            <option value="3">Semester 3</option>
+                            <option value="4">Semester 4</option>
+                            <option value="5">Semester 5</option>
+                            <option value="6">Semester 6</option>
+                            <option value="7">Semester 7</option>
+                            <option value="8">Semester 8</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Part</label>
+                        <select name="part" id="drawerPart" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                            <option value="">Select</option>
+                            <option value="1">Part 1</option>
+                            <option value="2">Part 2</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Hours/Week</label>
+                        <input type="number" name="hours" id="drawerHours" 
+                               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                               placeholder="Contact hours">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Credits</label>
+                        <input type="number" step="0.5" name="credit" id="drawerCredit" 
+                               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                               placeholder="e.g., 3.0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 5: Marks Information -->
+            <div class="bg-white rounded-xl border border-amber-100 shadow-sm overflow-hidden">
+                <div class="flex items-center gap-2 bg-amber-50/60 px-5 py-3 border-b border-amber-100/50">
+                    <i class="bi bi-bar-chart-steps text-amber-600 text-base"></i>
+                    <h3 class="font-bold text-xs tracking-wider text-amber-900 uppercase">Marks Distribution</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Internal Mark</label>
+                        <input type="number" name="internal_mark" id="drawerInternalMark" 
+                               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
+                               placeholder="Max internal marks">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">External Mark</label>
+                        <input type="number" name="external_mark" id="drawerExternalMark" 
+                               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
+                               placeholder="Max external marks">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Total Mark</label>
+                        <input type="number" name="total_mark" id="drawerTotalMark" readonly
+                               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 bg-slate-50 text-slate-600 font-semibold"
+                               placeholder="Auto-calculated">
+                        <p class="text-[10px] text-slate-400 mt-1">Auto-calculated from internal + external</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 6: Examiner Information -->
+            <div class="bg-white rounded-xl border border-teal-100 shadow-sm overflow-hidden">
+                <div class="flex items-center gap-2 bg-teal-50/60 px-5 py-3 border-b border-teal-100/50">
+                    <i class="bi bi-person-check text-teal-600 text-base"></i>
+                    <h3 class="font-bold text-xs tracking-wider text-teal-900 uppercase">Examiner Information</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Examiner Type</label>
+                        <select name="examiner_type" id="drawerExaminerType" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
+                            <option value="">Select Examiner Type</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Examiner</label>
+                        <select name="examiner" id="drawerExaminer" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
+                            <option value="">Select Examiner</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 7: Additional Information -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="flex items-center gap-2 bg-slate-100 px-5 py-3 border-b border-slate-200">
+                    <i class="bi bi-chat-left-text text-slate-600 text-base"></i>
+                    <h3 class="font-bold text-xs tracking-wider text-slate-800 uppercase">Additional Information</h3>
+                </div>
+                <div class="p-5">
+                    <textarea name="remark" id="drawerRemark" rows="3" 
+                              class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-100 resize-none"
+                              placeholder="Additional notes about the course..."></textarea>
+                </div>
+            </div>
+            
+            <div class="flex gap-3 sticky bottom-0 bg-slate-50 py-4 -mx-6 px-6 border-t border-slate-200 mt-6">
+                <button type="button" onclick="window.courseApp.closeDrawer()" 
+                        class="flex-1 px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 font-bold text-sm rounded-xl transition-colors border border-slate-200">
+                    Cancel
+                </button>
+                <button type="submit" form="courseForm" 
+                        class="flex-1 px-4 py-2.5 bg-[#8b1e3f] hover:bg-[#721833] text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-[0.99]">
+                    <i class="bi bi-save"></i> Save Course Record
+                </button>
             </div>
         </form>
-        <div class="px-6 pb-6 flex gap-3">
-            <button onclick="closeCourseDrawer()" class="flex-1 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-sm rounded-xl border border-slate-200">Cancel</button>
-            <button type="submit" form="courseForm" class="flex-1 px-4 py-2.5 bg-[#8b1e3f] hover:bg-[#721833] text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-md">
-                <i class="bi bi-save"></i> Save Course Record
-            </button>
-        </div>
     </div>
 </div>
 
 <!-- DELETE DRAWER -->
-<div id="deleteDrawer" class="drawer fixed inset-0 z-50 hidden" aria-labelledby="delete-drawer-title" role="dialog">
-    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" onclick="closeDeleteDrawer()"></div>
+<div id="deleteDrawer" class="drawer fixed inset-0 z-50 hidden" aria-labelledby="delete-drawer-title" role="dialog" aria-modal="true">
+    <div class="drawer-backdrop absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" onclick="window.courseApp.closeDeleteDrawer()"></div>
+    
     <div class="absolute inset-y-0 right-0 w-full max-w-xl bg-slate-50 shadow-2xl flex flex-col h-full overflow-hidden transform transition-transform duration-300">
         <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
             <div>
-                <h2 id="delete-drawer-title" class="text-xl font-bold text-[#8b1e3f]">Delete Course Record</h2>
-                <p class="text-sm text-slate-500 mt-0.5">This action cannot be undone.</p>
+                <h2 class="text-xl font-bold text-[#8b1e3f]">Delete Course Record</h2>
+                <p class="text-sm text-slate-500 mt-0.5">This administrative action cannot be undone.</p>
             </div>
-            <button onclick="closeDeleteDrawer()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg"><i class="bi bi-x-lg text-sm"></i></button>
+            <button onclick="window.courseApp.closeDeleteDrawer()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                <i class="bi bi-x-lg text-sm"></i>
+            </button>
         </div>
-        <div class="drawer-scrollable flex-1 overflow-y-auto p-6 space-y-6">
+        
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-8 text-center">
-                <div class="flex justify-center h-14 w-14 rounded-full bg-rose-50 border border-rose-100 text-rose-600 mb-4 mx-auto items-center">
+                <div class="flex items-center justify-center h-14 w-14 rounded-full bg-rose-50 border border-rose-100 text-rose-600 mb-4 mx-auto">
                     <i class="bi bi-exclamation-triangle text-2xl"></i>
                 </div>
-                <h3 class="text-base font-bold text-slate-900" id="deleteDrawerMessage">Are you sure you want to delete this course?</h3>
-                <p class="text-xs text-slate-500 mt-2">This will permanently remove the course from the catalog.</p>
-                <div class="mt-5 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700">
-                    <span class="text-slate-400">Course Title :</span>
-                    <span id="deleteDrawerCourseTitle" class="font-mono font-bold text-rose-600"></span>
+                
+                <h3 class="text-base font-bold text-slate-900" id="deleteDrawerMessage">
+                    Are you certain you want to permanently delete this course?
+                </h3>
+                <p class="text-xs text-slate-500 mt-2">
+                    This will permanently remove the course from the database registry.
+                </p>
+                
+                <div class="mt-5 inline-flex flex-col items-center gap-2 px-4 py-2 rounded-lg bg-slate-50 border border-slate-200">
+                    <div class="flex items-center gap-2 text-xs font-semibold text-slate-600">
+                        <span>Course Code:</span>
+                        <span id="deleteDrawerCourseCode" class="font-mono font-bold text-rose-600"></span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-slate-500">
+                        <span>Course Title:</span>
+                        <span id="deleteDrawerCourseTitle" class="font-medium text-slate-700"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-amber-50 rounded-xl p-4 border border-amber-100">
+                <div class="flex items-start gap-2">
+                    <i class="bi bi-exclamation-circle text-amber-600 text-sm mt-0.5"></i>
+                    <p class="text-xs text-amber-800">
+                        <span class="font-bold">Warning:</span> This action will also remove all associated examination records and mappings.
+                    </p>
                 </div>
             </div>
         </div>
+        
         <div class="px-6 pb-6 flex gap-3 bg-slate-50 shrink-0">
-            <button onclick="closeDeleteDrawer()" class="flex-1 px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 font-bold text-sm rounded-xl border border-slate-200">Cancel</button>
-            <button id="confirmDeleteBtn" class="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-md">
+            <button onclick="window.courseApp.closeDeleteDrawer()" 
+                    class="flex-1 px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 font-bold text-sm rounded-xl transition-colors border border-slate-200">
+                Cancel
+            </button>
+            <button id="confirmDeleteBtn" 
+                    class="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all">
                 <i class="bi bi-trash3"></i> Delete Permanently
             </button>
         </div>
     </div>
 </div>
 
-<style>
-    .drawer-scrollable { scrollbar-width: none; -ms-overflow-style: none; }
-    .drawer-scrollable::-webkit-scrollbar { display: none; }
-    body.drawer-open { overflow: hidden !important; position: fixed; width: 100%; height: 100%; }
-</style>
+<!-- UPLOAD DRAWER -->
+<div id="uploadDrawer" class="drawer fixed inset-0 z-50 hidden" aria-labelledby="upload-drawer-title" role="dialog">
+    <div class="drawer-backdrop absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" onclick="window.courseApp.closeUploadDrawer()"></div>
+    
+    <div class="drawer-scrollable absolute inset-y-0 right-0 w-full max-w-xl bg-slate-50 shadow-2xl flex flex-col h-full overflow-hidden transform transition-transform duration-300">
+        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+            <div>
+                <h2 class="text-xl font-bold text-[#8b1e3f]">Upload Course List</h2>
+                <p class="text-sm text-slate-500 mt-0.5">Upload Excel file with course data</p>
+            </div>
+            <button onclick="window.courseApp.closeUploadDrawer()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                <i class="bi bi-x-lg text-sm"></i>
+            </button>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+            <div class="bg-white rounded-xl border-2 border-dashed border-slate-200 hover:border-[#8b1e3f] transition-all p-8 text-center">
+                <input type="file" id="excelFile" accept=".xlsx, .xls" class="hidden" />
+                <div id="uploadArea" class="cursor-pointer" onclick="document.getElementById('excelFile').click()">
+                    <i class="bi bi-box-arrow-in-down-right text-5xl text-emerald-600 mb-3 inline-block"></i>
+                    <h3 class="text-base font-bold text-slate-800 mb-1">Choose Excel File</h3>
+                    <p class="text-xs text-slate-500 mb-3">.xlsx or .xls format, max 5MB</p>
+                    <button type="button" class="px-4 py-2 bg-[#8b1e3f] text-white text-xs font-bold rounded-lg hover:bg-[#721833] transition">
+                        Browse Files
+                    </button>
+                </div>
+                <div id="fileInfo" class="hidden mt-4 p-3 bg-slate-50 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="bi bi-file-earmark-excel text-emerald-600"></i>
+                            <span id="fileName" class="text-sm font-medium text-slate-700"></span>
+                        </div>
+                        <button onclick="window.courseApp.clearFile()" class="text-red-500 hover:text-red-700">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                <div class="flex items-start gap-3">
+                    <i class="bi bi-info-circle text-blue-600 text-lg"></i>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-bold text-blue-900 mb-1">Template Instructions</h4>
+                        <p class="text-xs text-blue-700 mb-2">Download the sample template to ensure correct format</p>
+                        <a href="{% url 'courses:course_sample' %}" class="inline-flex items-center gap-2 text-xs font-semibold text-blue-700 hover:text-blue-900">
+                            <i class="bi bi-download"></i> Download Sample Template
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-green-50 rounded-xl p-4 border border-green-100">
+                <div class="flex items-start gap-3">
+                    <i class="bi bi-check-circle text-green-600 text-lg"></i>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-bold text-green-900 mb-1">Excel Format Requirements</h4>
+                        <ul class="text-xs text-green-700 space-y-1 list-disc list-inside">
+                            <li>Course Code and Course Title are required fields</li>
+                            <li>Keep the column headers as in the template</li>
+                            <li>Date format: YYYY-MM-DD</li>
+                            <li>Maximum file size: 5MB</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="uploadProgress" class="hidden">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold text-slate-700">Uploading...</span>
+                    <span id="progressPercent" class="text-xs font-bold text-[#8b1e3f]">0%</span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div id="progressBar" class="bg-[#8b1e3f] h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <p id="uploadStatus" class="text-xs text-slate-500 mt-2">Preparing to upload...</p>
+            </div>
+            
+            <div id="uploadResults" class="hidden bg-white rounded-xl border border-slate-200 p-4 space-y-2">
+                <h4 class="text-sm font-bold text-slate-800">Upload Results</h4>
+                <div class="flex gap-4 text-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span>Success: <strong id="successCount">0</strong></span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block w-2 h-2 rounded-full bg-red-500"></span>
+                        <span>Errors: <strong id="errorCount">0</strong></span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block w-2 h-2 rounded-full bg-amber-500"></span>
+                        <span>New Options: <strong id="newOptionsCount">0</strong></span>
+                    </div>
+                </div>
+                <div id="errorList" class="hidden max-h-40 overflow-y-auto text-xs text-red-600 space-y-1 mt-2 pt-2 border-t border-slate-100"></div>
+            </div>
+        </div>
+        
+        <div class="px-6 pb-6 flex gap-3 bg-slate-50 shrink-0">
+            <button onclick="window.courseApp.closeUploadDrawer()" 
+                    class="flex-1 px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 font-bold text-sm rounded-xl transition-colors border border-slate-200">
+                Cancel
+            </button>
+            <button id="uploadBtn" onclick="window.courseApp.uploadFile()" disabled
+                    class="flex-1 px-4 py-2.5 bg-[#8b1e3f] hover:bg-[#721833] text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="bi bi-cloud-upload"></i> Upload File
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- COURSE DETAILS DRAWER -->
+<div id="detailsDrawer" class="drawer fixed inset-0 z-50 hidden" aria-labelledby="details-drawer-title" role="dialog">
+    
+    <div class="drawer-backdrop absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" onclick="window.courseApp.closeDetailsDrawer()"></div>
+    <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-slate-50 shadow-2xl flex flex-col h-full overflow-hidden transform transition-transform duration-300">
+        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-[#8b1e3f] to-[#721833] text-white shrink-0">
+            <div>
+                <h2 class="text-xl font-bold">Course Details</h2>
+                <p class="text-sm text-white/80 mt-0.5">Complete course information</p>
+            </div>
+            <button onclick="window.courseApp.closeDetailsDrawer()" class="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                <i class="bi bi-x-lg text-sm"></i>
+            </button>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-6" id="detailsContent">
+            <div class="flex justify-center items-center py-12">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8b1e3f]"></div>
+                <span class="ml-3 text-slate-500">Loading course details...</span>
+            </div>
+        </div>
+    </div>
+</div>

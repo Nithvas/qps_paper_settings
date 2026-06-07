@@ -1,34 +1,93 @@
 {% extends 'layout.html' %}
 {% load static %}
-{% block title %}Course Directory | JMC QPS Portal{% endblock %}
+{% block title %}Course Master | JMC QPS Portal{% endblock %}
 {% block content %}
 
 <div class="min-h-screen mx-auto space-y-6 antialiased">
-    {% include 'course/partials/header_actions.html' %}
+    
+    <!-- Header Actions -->
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between pb-6 border-b border-slate-200 gap-4">
+        <div class="space-y-1">
+            <h2 class="text-2xl font-black tracking-tight text-slate-900">
+                Course Master
+            </h2>
+            <p class="text-xs sm:text-sm font-medium text-slate-500">
+                Comprehensive course management system with academic structure, credit hours, and examination patterns.
+            </p>
+        </div>
+        <div class="flex items-center gap-3 self-start lg:self-center">
+            <button type="button" onclick="window.courseApp.openDrawer()" class="inline-flex items-center gap-2 px-5 py-3 bg-[#8b1e3f] text-white text-xs font-bold rounded-lg transition-all duration-150 tracking-wider uppercase shadow-md hover:shadow-lg hover:bg-[#721833]">
+                <i class="bi bi-book-plus-fill mt-1 text-sm"></i>
+                Create Course
+            </button>
+            <!-- Excel Dropdown Menu -->
+            <div class="relative">
+               <button onclick="window.courseApp.toggleExcelMenu()" class="inline-flex items-center gap-2 px-5 py-3 bg-[#107C41] hover:bg-[#0d6434] text-white text-xs font-bold rounded-lg tracking-wider uppercase shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-150">
+                    <i class="bi bi-box-arrow-in-down-right mt-1 text-sm"></i>
+                    <span>Excel Actions</span>
+                </button>
+                <div id="excelMenu" class="hidden absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+                    <div class="py-1">
+                        <a href="{% url 'courses:course_export' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                            </svg>
+                            Download Course List
+                        </a>
+                        <div class="border-t border-gray-100"></div>
+                        <button onclick="window.courseApp.openUploadDrawer()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                            Upload Course List
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
     {% include 'course/partials/filter_section.html' %}
+
+    <!-- Search Bar -->
+    <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mt-6">
+        <div class="flex-1 max-w-2xl relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <i class="bi bi-search text-sm"></i>
+            </div>
+            <input type="text" id="globalSearch" value="{{ search|default:'' }}" 
+                   placeholder="Search by course code, title, branch, program type..." 
+                   class="w-full h-12 pl-10 pr-4 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-800 placeholder:text-slate-400 transition-all focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+        </div>
+        <div class="flex items-center gap-4 text-xs sm:border-l sm:border-slate-200 sm:pl-6">
+            <div class="flex items-center gap-2">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span class="text-slate-400 uppercase tracking-wider text-[12px] font-bold">Total course</span>
+            </div>
+            <span class="font-mono bg-white shadow-sm px-2.5 py-1 rounded-md text-slate-700 font-semibold border border-slate-200/80">{{ total_count|default:0 }}</span>
+        </div>
+    </div>
+
+    <!-- Course Table -->
     {% include 'course/partials/course_table.html' %}
+
+    <!-- Pagination -->
     {% include 'course/partials/pagination.html' %}
+
+    <!-- Modals/Drawers -->
+    {% include 'course/partials/modals.html' %}
 </div>
 
-{# Messages passed from Django #}
 <div id="django-messages" class="hidden">
     {% for msg in messages %}
         <div class="message" data-level="{{ msg.tags }}" data-message="{{ msg }}"></div>
     {% endfor %}
 </div>
 
-{% include 'course/partials/modals.html' %}
-
 <script src="{% static 'js/course.js' %}"></script>
-<script>
-    document.querySelectorAll('#django-messages .message').forEach(msg => {
-        Swal.fire({
-            icon: msg.dataset.level === 'success' ? 'success' : (msg.dataset.level === 'error' ? 'error' : 'info'),
-            title: msg.dataset.message,
-            timer: 3000, toast: true,
-            position: 'top-end',
-            showConfirmButton: false
-        });
-    });
-</script>
+
 {% endblock %}
