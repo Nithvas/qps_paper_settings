@@ -165,6 +165,7 @@ def get_field_options(request):
         'district': 'district',
         'bank_name': 'bank_name',
         'bank_city': 'bank_city',
+        'place': 'place',
     }
     
     model_field = field_mapping.get(field_name)

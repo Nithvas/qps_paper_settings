@@ -1,3 +1,4 @@
+// course/static/course/js/course_management.js
 // ===================================================================
 // COURSE MANAGEMENT APPLICATION - COMPLETE MODULE
 // ===================================================================
@@ -15,9 +16,8 @@
 // 11. Excel Upload Operations
 // 12. Excel Menu Dropdown
 // 13. View Details Operation
-// 14. Load More Functionality
-// 15. Global Event Listeners
-// 16. Initialization
+// 14. Global Event Listeners
+// 15. Initialization
 // ===================================================================
 
 (function () {
@@ -41,16 +41,33 @@
     function lockBodyScroll() {
         window.openDrawerCount = (window.openDrawerCount || 0) + 1;
         if (window.openDrawerCount === 1) {
+            const scrollY = window.scrollY;
             document.body.classList.add('drawer-open');
+            document.body.style.position = 'fixed';
+            document.body.style.top = `-${scrollY}px`;
+            document.body.style.left = '0';
+            document.body.style.right = '0';
+            document.body.style.width = '100%';
             document.body.style.overflow = 'hidden';
+            document.body.dataset.scrollPosition = scrollY;
         }
     }
 
     function unlockBodyScroll() {
         window.openDrawerCount = (window.openDrawerCount || 0) - 1;
         if (window.openDrawerCount === 0) {
+            const scrollY = document.body.dataset.scrollPosition;
             document.body.classList.remove('drawer-open');
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.left = '';
+            document.body.style.right = '';
+            document.body.style.width = '';
             document.body.style.overflow = '';
+            if (scrollY) {
+                window.scrollTo(0, parseInt(scrollY));
+                delete document.body.dataset.scrollPosition;
+            }
         }
     }
 
@@ -66,6 +83,16 @@
         } catch (e) {
             return dateString;
         }
+    }
+
+    function preventNumberScroll() {
+        const numberInputs = document.querySelectorAll('input[type="number"]');
+        numberInputs.forEach(input => {
+            input.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                return false;
+            });
+        });
     }
 
     // ===================================================================
@@ -108,7 +135,6 @@
 
     const DrawerManager = {
 
-        // Course Add/Edit Drawer
         courseDrawer: null,
         deleteDrawer: null,
         uploadDrawer: null,
@@ -133,7 +159,6 @@
 
             form?.reset();
 
-            // Clear all creatable selects
             if (window.creatableSelects) {
                 Object.values(window.creatableSelects).forEach(select => {
                     if (select && typeof select.setValue === 'function') {
@@ -142,7 +167,6 @@
                 });
             }
 
-            // Reset manual input fields
             const manualFields = ['drawerCourseCode', 'drawerCourseId', 'drawerCourseTitle',
                 'drawerHours', 'drawerCredit', 'drawerInternalMark',
                 'drawerExternalMark', 'drawerTotalMark', 'drawerRemark'];
@@ -151,16 +175,9 @@
                 if (field) field.value = '';
             });
 
-            // Reset select dropdowns to default
-            const selects = ['drawerSemester', 'drawerPart'];
-            selects.forEach(selectId => {
-                const select = document.getElementById(selectId);
-                if (select) select.value = '';
-            });
-
             if (editCourseId) editCourseId.value = '';
-            if (title) title.innerText = 'New Course Record';
-            if (subtitle) subtitle.innerText = 'Fields marked with * are required.';
+            if (title) title.innerText = 'Register New Course';
+            if (subtitle) subtitle.innerText = 'Complete all mandatory fields';
 
             if (submitButton) {
                 submitButton.disabled = false;
@@ -182,25 +199,30 @@
                 submitButton.innerHTML = '<i class="bi bi-hourglass-split animate-spin"></i> Loading...';
             }
 
-            fetch(`/courses/edit/${courseCode}/?format=json`, {
+            fetch(`/course/details/${courseCode}/`, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return res.json();
+                })
                 .then(data => {
                     if (data.success) {
                         this.populateCourseForm(data.course);
-                        if (editCourseId) editCourseId.value = data.course.id;
+                        if (editCourseId) editCourseId.value = courseCode;
                         if (title) title.innerText = 'Update Course Record';
-                        if (subtitle) subtitle.innerText = `Editing: ${data.course.course_code}`;
+                        if (subtitle) subtitle.innerText = `Editing: ${data.course.course_code} - ${data.course.course_title}`;
                         this.courseDrawer.classList.remove('hidden');
                         lockBodyScroll();
                     } else {
-                        alert('Error loading course data: ' + (data.error || 'Unknown error'));
+                        showToast('Error loading course data: ' + (data.error || 'Unknown error'), 'error');
+                        this.closeCourse();
                     }
                 })
                 .catch(err => {
                     console.error('Fetch error:', err);
-                    alert('Failed to load course details.');
+                    showToast('Failed to load course details. Course may not exist.', 'error');
+                    this.closeCourse();
                 })
                 .finally(() => {
                     if (submitButton) {
@@ -212,27 +234,29 @@
 
         populateCourseForm(course) {
 
-            // Basic fields
-            document.getElementById('drawerCourseCode').value = course.course_code || '';
-            document.getElementById('drawerCourseId').value = course.course_id || '';
-            document.getElementById('drawerCourseTitle').value = course.course_title || '';
-            document.getElementById('drawerHours').value = course.hours || '';
-            document.getElementById('drawerCredit').value = course.credit || '';
-            document.getElementById('drawerInternalMark').value = course.internal_mark || '';
-            document.getElementById('drawerExternalMark').value = course.external_mark || '';
-            document.getElementById('drawerRemark').value = course.remark || '';
+            const courseCodeField = document.getElementById('drawerCourseCode');
+            const courseIdField = document.getElementById('drawerCourseId');
+            const courseTitleField = document.getElementById('drawerCourseTitle');
+            const hoursField = document.getElementById('drawerHours');
+            const creditField = document.getElementById('drawerCredit');
+            const internalMarkField = document.getElementById('drawerInternalMark');
+            const externalMarkField = document.getElementById('drawerExternalMark');
+            const totalMarkField = document.getElementById('drawerTotalMark');
+            const remarkField = document.getElementById('drawerRemark');
 
-            // Calculate total mark
+            if (courseCodeField) courseCodeField.value = course.course_code || '';
+            if (courseIdField) courseIdField.value = course.course_id || '';
+            if (courseTitleField) courseTitleField.value = course.course_title || '';
+            if (hoursField) hoursField.value = course.hours || '';
+            if (creditField) creditField.value = course.credit || '';
+            if (internalMarkField) internalMarkField.value = course.internal_mark || '';
+            if (externalMarkField) externalMarkField.value = course.external_mark || '';
+            if (remarkField) remarkField.value = course.remark || '';
+
             const internal = parseFloat(course.internal_mark) || 0;
             const external = parseFloat(course.external_mark) || 0;
-            const totalMarkField = document.getElementById('drawerTotalMark');
             if (totalMarkField) totalMarkField.value = internal + external;
 
-            // Semester and Part
-            if (course.semester) document.getElementById('drawerSemester').value = course.semester;
-            if (course.part) document.getElementById('drawerPart').value = course.part;
-
-            // Creatable selects mappings
             const selectMappings = {
                 'drawerProgramType': course.program_type,
                 'drawerDegree': course.degree,
@@ -240,7 +264,9 @@
                 'drawerBranchFinal': course.branch_final,
                 'drawerCourseCategory': course.course_category,
                 'drawerExaminerType': course.examiner_type,
-                'drawerExaminer': course.examiner
+                'drawerExaminer': course.examiner,
+                'drawerSemester': course.semester,
+                'drawerPart': course.part
             };
 
             for (const [id, value] of Object.entries(selectMappings)) {
@@ -262,10 +288,9 @@
             if (!this.deleteDrawer) return;
 
             document.getElementById('deleteDrawerCourseCode').innerText = courseCode;
-            document.getElementById('deleteDrawerCourseTitle').innerText = courseTitle;
             const msgSpan = document.getElementById('deleteDrawerMessage');
             if (msgSpan) {
-                msgSpan.innerHTML = `Are you certain you want to permanently delete <strong class="text-rose-700">${escapeHtml(courseTitle)}</strong>?`;
+                msgSpan.innerHTML = `Are you completely certain you want to purge the record of <strong class="text-rose-700">${escapeHtml(courseTitle)}</strong>? This action cannot be undone.`;
             }
 
             window.pendingDeleteCallback = onConfirmCallback;
@@ -318,6 +343,13 @@
             this.loadCourseDetails(courseCode);
         },
 
+        closeDetails() {
+            if (this.detailsDrawer) {
+                this.detailsDrawer.classList.add('hidden');
+                unlockBodyScroll();
+            }
+        },
+
         loadCourseDetails(courseCode) {
             const detailsContent = document.getElementById('detailsContent');
             if (!detailsContent) return;
@@ -329,10 +361,13 @@
                 </div>
             `;
 
-            fetch(`/courses/details/${courseCode}/?format=json`, {
+            fetch(`/course/details/${courseCode}/`, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return res.json();
+                })
                 .then(data => {
                     if (data.success && data.course) {
                         this.renderCourseDetails(data.course);
@@ -375,7 +410,6 @@
 
             detailsContent.innerHTML = `
                 <div class="space-y-6">
-                    <!-- Header Section -->
                     <div class="bg-gradient-to-r from-[#8b1e3f]/5 to-transparent rounded-xl p-5 border border-[#8b1e3f]/10">
                         <div class="flex items-start justify-between">
                             <div>
@@ -394,7 +428,6 @@
                         </div>
                     </div>
 
-                    <!-- Program Information -->
                     <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
                         <div class="flex items-center gap-2 bg-indigo-50 px-5 py-3 border-b border-indigo-100">
                             <i class="bi bi-mortarboard text-indigo-600"></i>
@@ -412,7 +445,6 @@
                         </div>
                     </div>
 
-                    <!-- Department Information -->
                     <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
                         <div class="flex items-center gap-2 bg-emerald-50 px-5 py-3 border-b border-emerald-100">
                             <i class="bi bi-diagram-3 text-emerald-600"></i>
@@ -430,7 +462,6 @@
                         </div>
                     </div>
 
-                    <!-- Academic Information -->
                     <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
                         <div class="flex items-center gap-2 bg-blue-50 px-5 py-3 border-b border-blue-100">
                             <i class="bi bi-calendar-week text-blue-600"></i>
@@ -448,7 +479,6 @@
                         </div>
                     </div>
 
-                    <!-- Marks Distribution -->
                     <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
                         <div class="flex items-center gap-2 bg-amber-50 px-5 py-3 border-b border-amber-100">
                             <i class="bi bi-bar-chart-steps text-amber-600"></i>
@@ -470,7 +500,6 @@
                         </div>
                     </div>
 
-                    <!-- Examiner Information -->
                     <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
                         <div class="flex items-center gap-2 bg-teal-50 px-5 py-3 border-b border-teal-100">
                             <i class="bi bi-person-check text-teal-600"></i>
@@ -489,7 +518,6 @@
                     </div>
 
                     ${course.remark ? `
-                    <!-- Remarks -->
                     <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
                         <div class="flex items-center gap-2 bg-slate-100 px-5 py-3 border-b border-slate-200">
                             <i class="bi bi-chat-left-text text-slate-600"></i>
@@ -501,19 +529,11 @@
                     </div>
                     ` : ''}
 
-                    <!-- Metadata -->
                     <div class="text-center text-[10px] text-slate-400 pt-4 border-t border-slate-100">
                         <p>Created: ${formatDate(course.created_at)} | Last Modified: ${formatDate(course.updated_at)}</p>
                     </div>
                 </div>
             `;
-        },
-
-        closeDetails() {
-            if (this.detailsDrawer) {
-                this.detailsDrawer.classList.add('hidden');
-                unlockBodyScroll();
-            }
         }
     };
 
@@ -530,12 +550,16 @@
                 applyBtn.addEventListener('click', () => filterForm.submit());
             }
 
-            // Auto-submit on filter select change
-            document.querySelectorAll('.filter-select').forEach(select => {
-                select.addEventListener('change', () => {
-                    if (filterForm) filterForm.submit();
+            const resetBtn = document.getElementById('resetFiltersBtn');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', () => {
+                    const url = new URL(window.location.href);
+                    const filterFields = ['program_type', 'degree', 'branch', 'branch_final', 'course_category', 'semester', 'part', 'examiner_type', 'search'];
+                    filterFields.forEach(field => url.searchParams.delete(field));
+                    url.searchParams.delete('page');
+                    window.location.href = url.toString();
                 });
-            });
+            }
         }
     };
 
@@ -548,19 +572,83 @@
             const globalSearch = document.getElementById('globalSearch');
             if (globalSearch) {
                 let searchTimeout;
-                globalSearch.addEventListener('input', function () {
+                globalSearch.addEventListener('input', (e) => {
                     clearTimeout(searchTimeout);
                     searchTimeout = setTimeout(() => {
-                        const url = new URL(window.location.href);
-                        if (this.value) {
-                            url.searchParams.set('search', this.value);
-                        } else {
-                            url.searchParams.delete('search');
-                        }
-                        url.searchParams.delete('page');
-                        window.location.href = url.toString();
-                    }, 500);
+                        SearchManager.filterTable();
+                    }, 300);
                 });
+
+                globalSearch.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        return false;
+                    }
+                });
+
+                if (globalSearch.value.trim() !== '') {
+                    SearchManager.filterTable();
+                }
+            }
+        },
+
+        filterTable() {
+            const globalSearch = document.getElementById('globalSearch');
+            const searchTerm = (globalSearch?.value || '').toLowerCase().trim();
+            const tbody = document.getElementById('courseTableBody');
+
+            if (!tbody) return;
+
+            const rows = Array.from(tbody.querySelectorAll('tr.course-row'));
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                let rowContent = '';
+
+                cells.forEach(cell => {
+                    rowContent += cell.textContent + ' ';
+                });
+
+                const rowText = rowContent.toLowerCase();
+                const matches = searchTerm === '' || rowText.includes(searchTerm);
+
+                if (matches) {
+                    row.style.display = 'table-row';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            const totalCountElement = document.getElementById('courseTotalCount');
+            if (totalCountElement) {
+                totalCountElement.textContent = visibleCount;
+            }
+
+            let noResultsRow = tbody.querySelector('tr.no-results');
+
+            if (visibleCount === 0 && searchTerm !== '') {
+                if (!noResultsRow) {
+                    noResultsRow = document.createElement('tr');
+                    noResultsRow.className = 'no-results';
+                    noResultsRow.innerHTML = `
+                        <td colspan="20" class="py-12 text-center bg-gradient-to-b from-slate-50 to-white">
+                            <div class="mx-auto">
+                                <div class="w-12 h-12 mx-auto rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shadow-inner mb-4">
+                                    <i class="bi bi-search text-2xl text-slate-400"></i>
+                                </div>
+                                <h3 class="text-lg font-black text-slate-800 tracking-tight">No Results Found</h3>
+                                <p class="mt-3 text-sm text-slate-400 leading-relaxed">No courses match "${searchTerm}"</p>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(noResultsRow);
+                }
+            } else {
+                if (noResultsRow) {
+                    noResultsRow.remove();
+                }
             }
         }
     };
@@ -589,26 +677,23 @@
             });
         },
 
-        getCellValue(row, colName) {
-            // Find cell by data attribute or column name
-            const cells = row.cells;
-            const colIndex = this.getColumnIndex(colName);
-            if (colIndex === -1) return '';
-            return cells[colIndex]?.innerText?.trim() || '';
-        },
-
         getColumnIndex(colName) {
             const headers = document.querySelectorAll('.sortable-th');
             for (let i = 0; i < headers.length; i++) {
                 if (headers[i].getAttribute('data-col') === colName) {
-                    return headers[i].cellIndex;
+                    return i;
                 }
             }
             return -1;
         },
 
-        sortByColumn(colName, thElement) {
+        getCellValueByIndex(row, colIndex) {
+            const cells = row.cells;
+            if (!cells[colIndex]) return '';
+            return cells[colIndex]?.innerText?.trim() || '';
+        },
 
+        sortByColumn(colName, thElement) {
             const tbody = document.getElementById('courseTableBody');
             if (!tbody) return;
             const rows = Array.from(tbody.querySelectorAll('tr.course-row'));
@@ -626,7 +711,6 @@
 
             this.currentSort = { col: direction ? colName : null, dir: direction };
 
-            // Update sort icons
             document.querySelectorAll('.sortable-th .sort-icon').forEach(icon => {
                 icon.classList.remove('bi-arrow-up', 'bi-arrow-down');
                 icon.classList.add('bi-arrow-down-up');
@@ -649,9 +733,8 @@
                     let valA = this.getCellValueByIndex(a, colIndex);
                     let valB = this.getCellValueByIndex(b, colIndex);
 
-                    // Try numeric comparison first
-                    const numA = parseFloat(valA);
-                    const numB = parseFloat(valB);
+                    const numA = parseFloat(valA.replace(/[^0-9.-]+/g, ''));
+                    const numB = parseFloat(valB.replace(/[^0-9.-]+/g, ''));
                     if (!isNaN(numA) && !isNaN(numB)) {
                         return direction === 'asc' ? numA - numB : numB - numA;
                     }
@@ -675,15 +758,9 @@
             });
         },
 
-        getCellValueByIndex(row, colIndex) {
-            const cells = row.cells;
-            if (!cells[colIndex]) return '';
-            return cells[colIndex]?.innerText?.trim() || '';
-        },
-
         attachSortingHandlers() {
             document.querySelectorAll('.sortable-th').forEach(th => {
-                th.addEventListener('click', (e) => {
+                th.addEventListener('click', () => {
                     const colName = th.getAttribute('data-col');
                     if (colName) this.sortByColumn(colName, th);
                 });
@@ -703,6 +780,7 @@
             this.placeholder = options.placeholder || `Search or add ${this.fieldName.replace(/_/g, ' ')}...`;
             this.loadRemote = options.loadRemote !== false;
             this.allowCreate = options.allowCreate !== false;
+            this.initialValue = options.initialValue || null;
             this.optionsList = [];
             this.filteredOptions = [];
             this.selectedIndex = -1;
@@ -713,25 +791,52 @@
             this.hasLoaded = false;
             this.scrollHandler = null;
             this.resizeHandler = null;
+            this.blurTimeout = null;
+
+            this.isRequired = this.element.hasAttribute('required');
+
+            const currentSelectedOption = this.element.options[this.element.selectedIndex];
+            if (currentSelectedOption && currentSelectedOption.value) {
+                this.originalSelectedValue = currentSelectedOption.value;
+            } else {
+                this.originalSelectedValue = null;
+            }
+
             this.createComponent();
+
+            if (this.isRequired) {
+                this.input.setAttribute('required', 'required');
+                this.element.removeAttribute('required');
+            }
+
             if (!this.loadRemote) {
                 this.initializeStaticOptions();
             }
+
             this.setupEventListeners();
+
+            if (this.initialValue && this.initialValue !== '') {
+                this.setValue(this.initialValue);
+            } else if (this.originalSelectedValue && this.originalSelectedValue !== '') {
+                this.setValue(this.originalSelectedValue);
+            } else {
+                this.selectedValue = '';
+                this.input.value = '';
+                this.element.value = '';
+            }
         }
 
         createComponent() {
-
             this.element.style.display = 'none';
             this.wrapper = document.createElement('div');
             this.wrapper.className = 'creatable-select-wrapper';
-            this.wrapper.style.cssText = 'position: relative; width: 100%;';
+            this.wrapper.style.cssText = 'position: relative; width: 100%; display: inline-block; overflow: visible;';
             this.element.parentNode.insertBefore(this.wrapper, this.element);
             this.wrapper.appendChild(this.element);
 
             this.container = document.createElement('div');
             this.container.className = 'creatable-select-container';
-            this.container.style.cssText = 'position: relative; width: 100%;';
+            this.container.style.cssText = 'position: relative; width: 100%; overflow: visible;';
             this.wrapper.appendChild(this.container);
 
             this.input = document.createElement('input');
@@ -741,20 +846,35 @@
             this.input.autocomplete = 'off';
             this.container.appendChild(this.input);
 
+            this.clearBtn = document.createElement('button');
+            this.clearBtn.type = 'button';
+            this.clearBtn.innerHTML = '✕';
+            this.clearBtn.style.cssText = 'position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; display: none; z-index: 1; font-size: 14px; padding: 0 4px; color: #9ca3af;';
+            this.clearBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.clearInput();
+            });
+            this.container.appendChild(this.clearBtn);
+            this.container.style.position = 'relative';
+            this.input.style.paddingRight = '30px';
+
+            this.input.addEventListener('input', () => {
+                this.clearBtn.style.display = this.input.value ? 'block' : 'none';
+            });
+
             this.dropdown = document.createElement('div');
             this.dropdown.className = 'creatable-select-dropdown';
             this.dropdown.style.cssText = `
-                position: absolute;
+                position: fixed;
                 display: none;
                 background: white;
                 border: 1px solid #e2e8f0;
                 border-radius: 0.5rem;
-                box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
-                max-height: 200px;
+                box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+                max-height: 240px;
                 overflow-y: auto;
                 z-index: 999999;
                 min-width: 200px;
-                margin: 0;
                 padding: 4px 0;
             `;
             document.body.appendChild(this.dropdown);
@@ -787,7 +907,6 @@
         }
 
         async loadOptions(search = '') {
-
             if (!this.loadRemote) {
                 this.filterOptions(search);
                 return;
@@ -799,7 +918,7 @@
             this.showLoading();
 
             try {
-                const url = `/courses/get-field-options/?field=${this.fieldName}&search=${encodeURIComponent(search)}`;
+                const url = `/course/get-field-options/?field=${this.fieldName}&search=${encodeURIComponent(search)}`;
                 const response = await fetch(url, {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
@@ -839,7 +958,6 @@
         }
 
         renderDropdown() {
-
             if (!this.dropdown) return;
             this.dropdown.innerHTML = '';
             this.dropdown.style.padding = '4px 0';
@@ -865,6 +983,7 @@
                         optionElement.style.padding = '10px 12px';
                         optionElement.addEventListener('click', (e) => {
                             e.stopPropagation();
+                            e.preventDefault();
                             this.selectOption(option);
                         });
                         this.dropdown.appendChild(optionElement);
@@ -887,13 +1006,9 @@
             }
 
             this.positionDropdown();
-            if (document.activeElement !== this.input) {
-                this.input.focus({ preventScroll: true });
-            }
         }
 
         createOptionElement(value, isNew) {
-
             const div = document.createElement('div');
             div.className = `cursor-pointer text-sm flex items-center justify-between transition-colors ${isNew ? 'bg-green-50 hover:bg-green-100' : 'hover:bg-indigo-50'}`;
 
@@ -924,7 +1039,6 @@
         }
 
         async selectOption(value) {
-
             if (!value) return;
 
             const exists = this.optionsList.some(opt => opt && opt.toLowerCase && opt.toLowerCase() === value.toLowerCase());
@@ -934,7 +1048,7 @@
                     return;
                 }
                 try {
-                    const response = await fetch('/courses/save-field-option/', {
+                    const response = await fetch('/course/save-field-option/', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -950,15 +1064,22 @@
                     if (data.success) {
                         this.optionsList.push(value);
                         this.optionsList.sort();
+                        if (data.created) {
+                            showToast(`New option "${value}" added successfully`, 'success');
+                        }
+                    } else {
+                        showToast(data.error || 'Failed to save option', 'error');
                     }
                 } catch (error) {
                     console.error('Error saving option:', error);
+                    showToast('Network error saving option', 'error');
                 }
             }
 
             this.selectedValue = value;
             this.input.value = value;
             this.element.value = value;
+            this.clearBtn.style.display = 'block';
 
             let optionExists = false;
             for (let i = 0; i < this.element.options.length; i++) {
@@ -985,44 +1106,57 @@
         }
 
         positionDropdown() {
-
             if (!this.input || !this.dropdown) return;
 
             const rect = this.input.getBoundingClientRect();
-            const dropdownHeight = Math.min(this.dropdown.scrollHeight, 200);
+            const dropdownHeight = Math.min(this.dropdown.scrollHeight, 240);
             const viewportHeight = window.innerHeight;
             const spaceBelow = viewportHeight - rect.bottom;
-            const spaceAbove = rect.top;
 
-            let top = rect.bottom + window.scrollY;
+            let top = rect.bottom;
 
-            if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
-                top = rect.top + window.scrollY - dropdownHeight;
+            if (spaceBelow < dropdownHeight) {
+                top = rect.top - dropdownHeight;
             }
 
-            this.dropdown.style.width = `${rect.width}px`;
+            this.dropdown.style.position = 'fixed';
+            this.dropdown.style.left = `${rect.left}px`;
             this.dropdown.style.top = `${top}px`;
-            this.dropdown.style.left = `${rect.left + window.scrollX}px`;
+            this.dropdown.style.width = `${rect.width}px`;
+            this.dropdown.style.zIndex = '999999';
+            this.dropdown.style.display = this.isOpen ? 'block' : 'none';
         }
 
-        updateDropdownPosition() { if (this.isOpen) this.positionDropdown() }
-
         openDropdown() {
-
             if (this.isOpen) return;
+
+            if (this.blurTimeout) {
+                clearTimeout(this.blurTimeout);
+                this.blurTimeout = null;
+            }
 
             this.isOpen = true;
             this.dropdown.style.display = 'block';
+            this.dropdown.style.zIndex = '999999';
+            this.dropdown.style.position = 'fixed';
+            this.dropdown.offsetHeight;
+            this.positionDropdown();
 
-            this.scrollHandler = () => this.updateDropdownPosition();
-            this.resizeHandler = () => this.updateDropdownPosition();
+            this.scrollHandler = () => this.positionDropdown();
+            this.resizeHandler = () => this.positionDropdown();
 
             window.addEventListener('scroll', this.scrollHandler, true);
             window.addEventListener('resize', this.resizeHandler);
 
-            this.searchTerm = this.input.value || '';
+            const currentValue = this.input.value || '';
+            
+            if (currentValue === '') {
+                this.searchTerm = '';
+            } else {
+                this.searchTerm = currentValue;
+            }
 
-            if (!this.hasLoaded || this.searchTerm) {
+            if (!this.hasLoaded || this.searchTerm !== '') {
                 this.loadOptions(this.searchTerm);
             } else {
                 this.filterOptions('');
@@ -1032,8 +1166,8 @@
         }
 
         closeDropdown() {
-
             if (!this.isOpen) return;
+
             this.isOpen = false;
             this.dropdown.style.display = 'none';
             this.selectedIndex = -1;
@@ -1058,13 +1192,9 @@
             this.dropdown.appendChild(loadingDiv);
             this.positionDropdown();
             this.dropdown.style.display = 'block';
-            if (document.activeElement !== this.input) {
-                this.input.focus({ preventScroll: true });
-            }
         }
 
         navigateOptions(direction) {
-
             if (!this.isOpen) {
                 this.openDropdown();
                 return;
@@ -1099,20 +1229,71 @@
             }
         }
 
-        setupEventListeners() {
+        clearInput() {
+            this.selectedValue = '';
+            this.input.value = '';
+            this.element.value = '';
+            this.searchTerm = '';
+            this.clearBtn.style.display = 'none';
+            
+            Array.from(this.element.options).forEach(opt => {
+                opt.selected = false;
+            });
+            
+            const event = new Event('change', { bubbles: true });
+            this.element.dispatchEvent(event);
+            
+            this.loadOptions('');
+            this.openDropdown();
+            this.input.focus();
+        }
 
+        setupEventListeners() {
             let typingTimer;
 
-            this.input.addEventListener('focus', () => this.openDropdown());
+            this.input.addEventListener('focus', () => {
+                if (this.blurTimeout) {
+                    clearTimeout(this.blurTimeout);
+                    this.blurTimeout = null;
+                }
+                this.openDropdown();
+            });
+            
             this.input.addEventListener('click', (e) => {
                 e.stopPropagation();
-                this.openDropdown();
+                if (!this.isOpen) {
+                    this.openDropdown();
+                }
             });
 
             this.input.addEventListener('input', (e) => {
                 clearTimeout(typingTimer);
-                this.searchTerm = e.target.value;
-                typingTimer = setTimeout(() => this.loadOptions(this.searchTerm), 150);
+                const value = e.target.value.trim();
+
+                if (!value) {
+                    this.selectedValue = '';
+                    this.element.value = '';
+                    this.searchTerm = '';
+                    
+                    Array.from(this.element.options).forEach(opt => {
+                        opt.selected = false;
+                    });
+                    
+                    typingTimer = setTimeout(() => {
+                        this.loadOptions('');
+                        if (!this.isOpen) {
+                            this.openDropdown();
+                        }
+                    }, 50);
+                } else {
+                    this.searchTerm = value;
+                    typingTimer = setTimeout(() => {
+                        this.loadOptions(this.searchTerm);
+                        if (!this.isOpen) {
+                            this.openDropdown();
+                        }
+                    }, 150);
+                }
             });
 
             this.input.addEventListener('keydown', (e) => {
@@ -1131,23 +1312,38 @@
             });
 
             this.input.addEventListener('blur', () => {
-                setTimeout(() => {
-                    if (!this.dropdown.matches(':hover')) this.closeDropdown();
+                this.blurTimeout = setTimeout(() => {
+                    if (this.dropdown && !this.dropdown.matches(':hover') && !this.input.matches(':hover')) {
+                        this.closeDropdown();
+                    }
                 }, 200);
             });
 
+            this.dropdown.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+            });
+            
+            this.dropdown.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+
             document.addEventListener('click', (e) => {
-                if (!this.wrapper.contains(e.target) && !this.dropdown.contains(e.target)) {
+                if (!this.wrapper.contains(e.target) && this.dropdown && !this.dropdown.contains(e.target)) {
                     this.closeDropdown();
                 }
             });
         }
 
         setValue(value) {
-            if (value) {
-                this.selectedValue = value;
-                this.input.value = value;
-                this.element.value = value;
+            this.selectedValue = value || '';
+            this.input.value = value || '';
+            this.element.value = value || '';
+            this.clearBtn.style.display = value ? 'block' : 'none';
+            if (!value) {
+                this.searchTerm = '';
+                Array.from(this.element.options).forEach(opt => {
+                    opt.selected = false;
+                });
             }
         }
 
@@ -1176,7 +1372,6 @@
             const form = document.getElementById('courseForm');
             if (!form) return;
 
-            // Auto-calculate total mark
             const internalField = document.getElementById('drawerInternalMark');
             const externalField = document.getElementById('drawerExternalMark');
             const totalField = document.getElementById('drawerTotalMark');
@@ -1199,7 +1394,7 @@
             const form = e.target;
             const submitBtn = form.querySelector('button[type="submit"]');
             const originalBtnText = submitBtn.innerHTML;
-            const editCourseId = document.getElementById('editCourseId');
+            const editCourseCode = document.getElementById('editCourseId');
 
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="bi bi-hourglass-split animate-spin"></i> Saving...';
@@ -1216,8 +1411,8 @@
                 }
             }
 
-            const courseId = editCourseId?.value || '';
-            const url = courseId ? `/courses/edit/${courseId}/` : '/courses/add/';
+            const courseCode = editCourseCode?.value || '';
+            const url = courseCode ? `/course/edit/${courseCode}/` : '/course/add/';
 
             try {
                 const response = await fetch(url, {
@@ -1235,15 +1430,15 @@
 
                 if (data.success) {
                     showToast(data.message || 'Course saved successfully', 'success');
-                    setTimeout(() => window.location.reload(), 1000);
+                    setTimeout(() => window.location.reload(), 1500);
                 } else {
-                    alert('Error: ' + (data.error || 'Could not save course.'));
+                    showToast('Error: ' + (data.error || 'Could not save.'), 'error');
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalBtnText;
                 }
             } catch (error) {
                 console.error('Fetch error:', error);
-                alert('Network error: ' + error.message);
+                showToast('Network error: ' + error.message, 'error');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnText;
             }
@@ -1264,7 +1459,7 @@
 
         async executeDelete(courseCode) {
             try {
-                const response = await fetch(`/courses/delete/${courseCode}/`, {
+                const response = await fetch(`/course/delete/${courseCode}/`, {
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': csrftoken,
@@ -1277,11 +1472,11 @@
                     showToast(data.message || 'Course deleted successfully', 'success');
                     setTimeout(() => window.location.reload(), 1000);
                 } else {
-                    alert('Delete failed: ' + (data.error || 'Unknown error'));
+                    showToast('Delete failed: ' + (data.error || 'Unknown error'), 'error');
                 }
             } catch (error) {
                 console.error('Delete error:', error);
-                alert('Network error while deleting');
+                showToast('Network error while deleting', 'error');
             }
         }
     };
@@ -1326,7 +1521,6 @@
         },
 
         handleFileSelect(e) {
-
             if (e.target.files && e.target.files[0]) {
                 this.selectedFile = e.target.files[0];
 
@@ -1353,7 +1547,6 @@
         },
 
         async upload() {
-
             if (!this.selectedFile) {
                 showToast('Please select a file first', 'error');
                 return;
@@ -1406,23 +1599,23 @@
 
                     if (successCount) successCount.textContent = result.success_count || 0;
                     if (errorCount) errorCount.textContent = result.error_count || 0;
-                    if (newOptionsCount) newOptionsCount.textContent = result.new_options_count || 0;
+                    if (newOptionsCount) newOptionsCount.textContent = result.new_options_added || 0;
 
                     if (result.errors && result.errors.length > 0) {
                         const errorList = document.getElementById('errorList');
                         if (errorList) {
-                            errorList.innerHTML = result.errors.map(err => `<div>⚠️ ${escapeHtml(err)}</div>`).join('');
+                            errorList.innerHTML = result.errors.map(err => `<div class="text-red-600 text-sm">⚠️ ${escapeHtml(err)}</div>`).join('');
                             errorList.classList.remove('hidden');
                         }
                     }
 
                     if (uploadResults) uploadResults.classList.remove('hidden');
 
-                    if (result.success_count > 0) {
-                        showToast(`Successfully uploaded ${result.success_count} courses`, 'success');
+                    if (result.success_count > 0 || result.update_count > 0) {
+                        showToast(`Successfully processed ${result.success_count + result.update_count} courses`, 'success');
                         setTimeout(() => window.location.reload(), 2000);
                     } else if (result.error_count > 0) {
-                        showToast(`Upload failed with ${result.error_count} errors`, 'error');
+                        showToast(`Upload completed with ${result.error_count} errors`, 'error');
                     }
                 } else {
                     throw new Error(result.error || 'Upload failed');
@@ -1471,91 +1664,12 @@
     };
 
     // ===================================================================
-    // 14. LOAD MORE FUNCTIONALITY
-    // ===================================================================
-
-    const LoadMoreManager = {
-        init() {
-            const loadMoreBtn = document.getElementById('loadMoreBtn');
-            if (loadMoreBtn) {
-                loadMoreBtn.addEventListener('click', this.loadMore.bind(this));
-            }
-        },
-
-        async loadMore(e) {
-            const btn = e.target.closest('#loadMoreBtn');
-            if (!btn) return;
-
-            const nextPage = btn.getAttribute('data-next-page');
-            if (!nextPage) return;
-
-            btn.disabled = true;
-            btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin"></i> Loading...';
-
-            // Preserve current filters and search
-            const urlParams = new URLSearchParams(window.location.search);
-            urlParams.set('page', nextPage);
-
-            // If it's an AJAX request, we want to append content
-            urlParams.set('ajax', '1');
-
-            try {
-                const response = await fetch(`${window.location.pathname}?${urlParams.toString()}`, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                const html = await response.text();
-
-                // Parse the HTML to extract new rows
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const newRows = doc.querySelectorAll('#courseTableBody tr.course-row');
-                const tbody = document.getElementById('courseTableBody');
-
-                if (tbody && newRows.length) {
-                    newRows.forEach(row => tbody.appendChild(row));
-                }
-
-                // Update pagination info
-                const hasNext = doc.querySelector('#loadMoreBtn');
-                if (hasNext) {
-                    const newNextPage = hasNext.getAttribute('data-next-page');
-                    btn.setAttribute('data-next-page', newNextPage);
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Load More Courses';
-
-                    // If no more pages, hide the button
-                    if (!newNextPage || newNextPage === 'None') {
-                        btn.style.display = 'none';
-                    }
-                } else {
-                    btn.style.display = 'none';
-                }
-
-                // Update total count display
-                const totalCountSpan = document.querySelector('.font-mono.bg-white.shadow-sm');
-                const newTotalCount = doc.querySelector('.font-mono.bg-white.shadow-sm');
-                if (totalCountSpan && newTotalCount) {
-                    totalCountSpan.textContent = newTotalCount.textContent;
-                }
-
-            } catch (error) {
-                console.error('Error loading more courses:', error);
-                showToast('Failed to load more courses', 'error');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Load More Courses';
-            }
-        }
-    };
-
-    // ===================================================================
-    // 15. GLOBAL EVENT LISTENERS
+    // 14. GLOBAL EVENT LISTENERS
     // ===================================================================
 
     const GlobalEventManager = {
 
         init() {
-
-            // Backdrop clicks
             document.addEventListener('click', (e) => {
                 const addBackdrop = document.querySelector('#courseDrawer .drawer-backdrop');
                 if (addBackdrop && addBackdrop === e.target) DrawerManager.closeCourse();
@@ -1570,7 +1684,6 @@
                 if (detailsBackdrop && detailsBackdrop === e.target) DrawerManager.closeDetails();
             });
 
-            // ESC key
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
                     const deleteDrawer = document.getElementById('deleteDrawer');
@@ -1590,51 +1703,95 @@
     };
 
     // ===================================================================
-    // 16. CREATABLE SELECTS INITIALIZATION
+    // 15. CREATABLE SELECTS INITIALIZATION
     // ===================================================================
 
     const CreatableSelectManager = {
+
         init() {
-            const selectFields = [
-                { id: 'drawerProgramType', fieldName: 'program_type', placeholder: 'Search or add program type...', allowCreate: true },
-                { id: 'drawerDegree', fieldName: 'degree', placeholder: 'Search or add degree...', allowCreate: true },
-                { id: 'drawerBranch', fieldName: 'branch', placeholder: 'Search or add branch...', allowCreate: true },
-                { id: 'drawerBranchFinal', fieldName: 'branch_final', placeholder: 'Search or add branch final...', allowCreate: true },
-                { id: 'drawerCourseCategory', fieldName: 'course_category', placeholder: 'Search or add course category...', allowCreate: true },
-                { id: 'drawerExaminerType', fieldName: 'examiner_type', placeholder: 'Search or add examiner type...', allowCreate: true },
-                { id: 'drawerExaminer', fieldName: 'examiner', placeholder: 'Search or add examiner...', allowCreate: true }
+            const formSelectFields = [
+                { id: 'drawerProgramType', fieldName: 'program_type', placeholder: 'Search or add program type...' },
+                { id: 'drawerDegree', fieldName: 'degree', placeholder: 'Search or add degree...' },
+                { id: 'drawerBranch', fieldName: 'branch', placeholder: 'Search or add branch...' },
+                { id: 'drawerBranchFinal', fieldName: 'branch_final', placeholder: 'Search or add branch final...' },
+                { id: 'drawerCourseCategory', fieldName: 'course_category', placeholder: 'Search or add course category...' },
+                { id: 'drawerExaminerType', fieldName: 'examiner_type', placeholder: 'Search or add examiner type...' },
+                { id: 'drawerExaminer', fieldName: 'examiner', placeholder: 'Search or add examiner...' },
+                { id: 'drawerSemester', fieldName: 'semester', placeholder: 'Search or add semester...' },
+                { id: 'drawerPart', fieldName: 'part', placeholder: 'Search or add part...' }
             ];
 
             window.creatableSelects = {};
 
-            selectFields.forEach(field => {
+            formSelectFields.forEach(field => {
                 const element = document.getElementById(field.id);
                 if (element && !element.hasAttribute('data-initialized')) {
                     window.creatableSelects[field.id] = new CreatableSelect(element, {
                         fieldName: field.fieldName,
                         placeholder: field.placeholder,
-                        allowCreate: field.allowCreate
+                        loadRemote: true,
+                        allowCreate: true
                     });
                     element.setAttribute('data-initialized', 'true');
+                }
+            });
+
+            const filterSelects = [
+                { name: 'program_type' },
+                { name: 'degree' },
+                { name: 'branch' },
+                { name: 'branch_final' },
+                { name: 'course_category' },
+                { name: 'semester' },
+                { name: 'part' },
+                { name: 'examiner_type' }
+            ];
+
+            filterSelects.forEach(field => {
+                const element = document.querySelector(`select[name="${field.name}"]`);
+                if (element && !element.hasAttribute('data-initialized')) {
+                    const key = `filter-${field.name}`;
+                    window.creatableSelects[key] = new CreatableSelect(element, {
+                        fieldName: field.name,
+                        placeholder: `Search or select ${field.name.replace(/_/g, ' ')}`,
+                        loadRemote: true,
+                        allowCreate: false
+                    });
+                    element.setAttribute('data-initialized', 'true');
+
+                    const urlValue = getUrlParameter(field.name);
+                    if (urlValue) {
+                        window.creatableSelects[key].setValue(urlValue);
+                    }
+                }
+            });
+        }
+    };
+
+    function getUrlParameter(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+    }
+
+    // ===================================================================
+    // 16. DJANGO MESSAGES
+    // ===================================================================
+
+    const DjangoMessageManager = {
+        init() {
+            const messages = document.querySelectorAll('#django-messages .message');
+            messages.forEach(msg => {
+                const message = msg.getAttribute('data-message');
+                const level = msg.getAttribute('data-level');
+                if (message) {
+                    showToast(message, level === 'success' ? 'success' : (level === 'error' ? 'error' : 'info'));
                 }
             });
         }
     };
 
     // ===================================================================
-    // 17. DJANGO MESSAGES
-    // ===================================================================
-
-    const DjangoMessageManager = {
-        init() {
-            document.querySelectorAll('#django-messages .message').forEach(msg => {
-                showToast(msg.dataset.message, msg.dataset.level);
-            });
-        }
-    };
-
-    // ===================================================================
-    // 18. MAIN INITIALIZATION
+    // 17. MAIN INITIALIZATION
     // ===================================================================
 
     function init() {
@@ -1645,46 +1802,38 @@
         FormManager.init();
         UploadManager.init();
         ExcelMenuManager.init();
-        LoadMoreManager.init();
         GlobalEventManager.init();
         CreatableSelectManager.init();
         DjangoMessageManager.init();
+        preventNumberScroll();
     }
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
-    } else { init() }
+    } else {
+        init();
+    }
 
     // ===================================================================
-    // 19. PUBLIC API
+    // 18. PUBLIC API
     // ===================================================================
 
     window.courseApp = {
-
-        // Drawer Management
         openDrawer: (courseCode) => DrawerManager.openCourse(courseCode),
         closeDrawer: () => DrawerManager.closeCourse(),
-        openDeleteDrawer: (courseCode, courseTitle, callback) => DrawerManager.openDelete(courseCode, courseTitle, callback),
+        openDeleteDrawer: (courseCode, courseTitle) => DrawerManager.openDelete(courseCode, courseTitle, () => {
+            DeleteManager.executeDelete(courseCode);
+        }),
         closeDeleteDrawer: () => DrawerManager.closeDelete(),
         openUploadDrawer: () => DrawerManager.openUpload(),
         closeUploadDrawer: () => DrawerManager.closeUpload(),
         openDetailsDrawer: (courseCode) => DrawerManager.openDetails(courseCode),
         closeDetailsDrawer: () => DrawerManager.closeDetails(),
-
-        // View Details
         viewDetails: (courseCode) => ViewDetailsManager.open(courseCode),
-
-        // Delete Operations
         deleteCourse: (courseCode, courseTitle) => DeleteManager.openModal(courseCode, courseTitle),
-
-        // Edit Operations
         editCourse: (courseCode) => DrawerManager.openCourse(courseCode),
-
-        // Upload Operations
         clearFile: () => UploadManager.clear(),
         uploadFile: () => UploadManager.upload(),
-
-        // Excel Menu
         toggleExcelMenu: () => ExcelMenuManager.toggle()
     };
 

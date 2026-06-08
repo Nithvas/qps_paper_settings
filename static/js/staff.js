@@ -136,7 +136,7 @@
                 Object.values(window.creatableSelects).forEach(select => select.setValue(''));
             }
 
-            if (editStaffPhone) editStaffPhone.value = ''; // Clear the hidden field
+            if (editStaffPhone) editStaffPhone.value = '';
             if (title) title.innerText = 'Register New Staff';
             if (subtitle) subtitle.innerText = 'Complete all mandatory fields';
 
@@ -212,7 +212,6 @@
                 if (element) element.value = value || '';
             }
 
-            // Add this line to set the hidden editStaffPhone field
             const editStaffPhoneField = document.getElementById('editStaffPhone');
             if (editStaffPhoneField && staff.phone) {
                 editStaffPhoneField.value = staff.phone;
@@ -315,7 +314,6 @@
                 applyBtn.addEventListener('click', () => filterForm.submit());
             }
 
-            // Reset filters button
             const resetBtn = document.getElementById('resetFiltersBtn');
             if (resetBtn) {
                 resetBtn.addEventListener('click', () => {
@@ -338,19 +336,72 @@
             const globalSearch = document.getElementById('globalSearch');
             if (globalSearch) {
                 let searchTimeout;
-                globalSearch.addEventListener('input', function () {
+                globalSearch.addEventListener('input', (e) => {
                     clearTimeout(searchTimeout);
                     searchTimeout = setTimeout(() => {
-                        const url = new URL(window.location.href);
-                        if (this.value) {
-                            url.searchParams.set('search', this.value);
-                        } else {
-                            url.searchParams.delete('search');
-                        }
-                        url.searchParams.delete('page');
-                        window.location.href = url.toString();
-                    }, 500);
+                        SearchManager.filterTable();
+                    }, 300);
                 });
+            }
+        },
+
+        filterTable() {
+            const globalSearch = document.getElementById('globalSearch');
+            const searchTerm = (globalSearch?.value || '').toLowerCase().trim();
+            const tbody = document.getElementById('staffTableBody');
+
+            if (!tbody) return;
+
+            const rows = Array.from(tbody.querySelectorAll('tr.staff-row'));
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                let rowContent = '';
+
+                cells.forEach(cell => {
+                    rowContent += cell.textContent + ' ';
+                });
+
+                const rowText = rowContent.toLowerCase();
+                const matches = searchTerm === '' || rowText.includes(searchTerm);
+
+                if (matches) {
+                    row.style.display = 'table-row';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            const totalCountElement = document.getElementById('staffTotalCount');
+            if (totalCountElement) {
+                totalCountElement.textContent = visibleCount;
+            }
+
+            let noResultsRow = tbody.querySelector('tr.no-results');
+
+            if (visibleCount === 0 && searchTerm !== '') {
+                if (!noResultsRow) {
+                    noResultsRow = document.createElement('tr');
+                    noResultsRow.className = 'no-results';
+                    noResultsRow.innerHTML = `
+                        <td colspan="16" class="py-12 text-center bg-gradient-to-b from-slate-50 to-white">
+                            <div class="mx-auto">
+                                <div class="w-12 h-12 mx-auto rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shadow-inner mb-4">
+                                    <i class="bi bi-search text-2xl text-slate-400"></i>
+                                </div>
+                                <h3 class="text-lg font-black text-slate-800 tracking-tight">No Results Found</h3>
+                                <p class="mt-3 text-sm text-slate-400 leading-relaxed">No staff members match "${searchTerm}"</p>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(noResultsRow);
+                }
+            } else {
+                if (noResultsRow) {
+                    noResultsRow.remove();
+                }
             }
         }
     };
@@ -413,7 +464,6 @@
 
             this.currentSort = { col: direction ? colName : null, dir: direction };
 
-            // Update sort icons
             document.querySelectorAll('.sortable-th .sort-icon').forEach(icon => {
                 icon.classList.remove('bi-arrow-up', 'bi-arrow-down');
                 icon.classList.add('bi-arrow-down-up');
@@ -494,6 +544,7 @@
             this.hasLoaded = false;
             this.scrollHandler = null;
             this.resizeHandler = null;
+            this.blurTimeout = null;
 
             const currentSelectedOption = this.element.options[this.element.selectedIndex];
             if (currentSelectedOption && currentSelectedOption.value) {
@@ -522,17 +573,16 @@
         }
 
         createComponent() {
-
             this.element.style.display = 'none';
             this.wrapper = document.createElement('div');
             this.wrapper.className = 'creatable-select-wrapper';
-            this.wrapper.style.cssText = 'position: relative; width: 100%;';
+            this.wrapper.style.cssText = 'position: relative; width: 100%; display: inline-block; overflow: visible;';
             this.element.parentNode.insertBefore(this.wrapper, this.element);
             this.wrapper.appendChild(this.element);
 
             this.container = document.createElement('div');
             this.container.className = 'creatable-select-container';
-            this.container.style.cssText = 'position: relative; width: 100%;';
+            this.container.style.cssText = 'position: relative; width: 100%; overflow: visible;';
             this.wrapper.appendChild(this.container);
 
             this.input = document.createElement('input');
@@ -542,27 +592,42 @@
             this.input.autocomplete = 'off';
             this.container.appendChild(this.input);
 
+            this.clearBtn = document.createElement('button');
+            this.clearBtn.type = 'button';
+            this.clearBtn.innerHTML = '✕';
+            this.clearBtn.className = 'absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none';
+            this.clearBtn.style.cssText = 'position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; display: none; z-index: 1; font-size: 14px; padding: 0 4px;';
+            this.clearBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.clearInput();
+            });
+            this.container.appendChild(this.clearBtn);
+            this.container.style.position = 'relative';
+            this.input.style.paddingRight = '30px';
+
+            this.input.addEventListener('input', () => {
+                this.clearBtn.style.display = this.input.value ? 'block' : 'none';
+            });
+
             this.dropdown = document.createElement('div');
             this.dropdown.className = 'creatable-select-dropdown';
             this.dropdown.style.cssText = `
-                position: absolute;
+                position: fixed;
                 display: none;
                 background: white;
                 border: 1px solid #e2e8f0;
                 border-radius: 0.5rem;
-                box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
-                max-height: 200px;
+                box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+                max-height: 240px;
                 overflow-y: auto;
                 z-index: 999999;
                 min-width: 200px;
-                margin: 0;
                 padding: 4px 0;
             `;
             document.body.appendChild(this.dropdown);
         }
 
         initializeStaticOptions() {
-
             const options = [];
             let selectedValue = '';
 
@@ -665,6 +730,7 @@
                         optionElement.style.padding = '10px 12px';
                         optionElement.addEventListener('click', (e) => {
                             e.stopPropagation();
+                            e.preventDefault();
                             this.selectOption(option);
                         });
                         this.dropdown.appendChild(optionElement);
@@ -687,9 +753,6 @@
             }
 
             this.positionDropdown();
-            if (document.activeElement !== this.input) {
-                this.input.focus({ preventScroll: true });
-            }
         }
 
         createOptionElement(value, isNew) {
@@ -763,6 +826,7 @@
             this.selectedValue = value;
             this.input.value = value;
             this.element.value = value;
+            this.clearBtn.style.display = 'block';
 
             let optionExists = false;
             for (let i = 0; i < this.element.options.length; i++) {
@@ -792,39 +856,54 @@
             if (!this.input || !this.dropdown) return;
 
             const rect = this.input.getBoundingClientRect();
-            const dropdownHeight = Math.min(this.dropdown.scrollHeight, 200);
+            const dropdownHeight = Math.min(this.dropdown.scrollHeight, 240);
             const viewportHeight = window.innerHeight;
             const spaceBelow = viewportHeight - rect.bottom;
-            const spaceAbove = rect.top;
 
-            let top = rect.bottom + window.scrollY;
+            let top = rect.bottom;
 
-            if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
-                top = rect.top + window.scrollY - dropdownHeight;
+            if (spaceBelow < dropdownHeight) {
+                top = rect.top - dropdownHeight;
             }
 
-            this.dropdown.style.width = `${rect.width}px`;
+            this.dropdown.style.position = 'fixed';
+            this.dropdown.style.left = `${rect.left}px`;
             this.dropdown.style.top = `${top}px`;
-            this.dropdown.style.left = `${rect.left + window.scrollX}px`;
+            this.dropdown.style.width = `${rect.width}px`;
+            this.dropdown.style.zIndex = '999999';
+            this.dropdown.style.display = this.isOpen ? 'block' : 'none';
         }
-
-        updateDropdownPosition() { if (this.isOpen) this.positionDropdown() }
 
         openDropdown() {
             if (this.isOpen) return;
 
+            if (this.blurTimeout) {
+                clearTimeout(this.blurTimeout);
+                this.blurTimeout = null;
+            }
+
             this.isOpen = true;
             this.dropdown.style.display = 'block';
+            this.dropdown.style.zIndex = '999999';
+            this.dropdown.style.position = 'fixed';
+            this.dropdown.offsetHeight;
+            this.positionDropdown();
 
-            this.scrollHandler = () => this.updateDropdownPosition();
-            this.resizeHandler = () => this.updateDropdownPosition();
+            this.scrollHandler = () => this.positionDropdown();
+            this.resizeHandler = () => this.positionDropdown();
 
             window.addEventListener('scroll', this.scrollHandler, true);
             window.addEventListener('resize', this.resizeHandler);
 
-            this.searchTerm = this.input.value || '';
+            const currentValue = this.input.value || '';
+            
+            if (currentValue === '') {
+                this.searchTerm = '';
+            } else {
+                this.searchTerm = currentValue;
+            }
 
-            if (!this.hasLoaded || this.searchTerm) {
+            if (!this.hasLoaded || this.searchTerm !== '') {
                 this.loadOptions(this.searchTerm);
             } else {
                 this.filterOptions('');
@@ -835,6 +914,7 @@
 
         closeDropdown() {
             if (!this.isOpen) return;
+
             this.isOpen = false;
             this.dropdown.style.display = 'none';
             this.selectedIndex = -1;
@@ -859,9 +939,6 @@
             this.dropdown.appendChild(loadingDiv);
             this.positionDropdown();
             this.dropdown.style.display = 'block';
-            if (document.activeElement !== this.input) {
-                this.input.focus({ preventScroll: true });
-            }
         }
 
         navigateOptions(direction) {
@@ -899,26 +976,71 @@
             }
         }
 
+        clearInput() {
+            this.selectedValue = '';
+            this.input.value = '';
+            this.element.value = '';
+            this.searchTerm = '';
+            this.clearBtn.style.display = 'none';
+            
+            Array.from(this.element.options).forEach(opt => {
+                opt.selected = false;
+            });
+            
+            const event = new Event('change', { bubbles: true });
+            this.element.dispatchEvent(event);
+            
+            this.loadOptions('');
+            this.openDropdown();
+            this.input.focus();
+        }
+
         setupEventListeners() {
             let typingTimer;
 
-            this.input.addEventListener('focus', () => this.openDropdown());
+            this.input.addEventListener('focus', () => {
+                if (this.blurTimeout) {
+                    clearTimeout(this.blurTimeout);
+                    this.blurTimeout = null;
+                }
+                this.openDropdown();
+            });
+            
             this.input.addEventListener('click', (e) => {
                 e.stopPropagation();
-                this.openDropdown();
+                if (!this.isOpen) {
+                    this.openDropdown();
+                }
             });
 
             this.input.addEventListener('input', (e) => {
                 clearTimeout(typingTimer);
                 const value = e.target.value.trim();
+
                 if (!value) {
                     this.selectedValue = '';
                     this.element.value = '';
+                    this.searchTerm = '';
+                    
+                    Array.from(this.element.options).forEach(opt => {
+                        opt.selected = false;
+                    });
+                    
+                    typingTimer = setTimeout(() => {
+                        this.loadOptions('');
+                        if (!this.isOpen) {
+                            this.openDropdown();
+                        }
+                    }, 50);
+                } else {
+                    this.searchTerm = value;
+                    typingTimer = setTimeout(() => {
+                        this.loadOptions(this.searchTerm);
+                        if (!this.isOpen) {
+                            this.openDropdown();
+                        }
+                    }, 150);
                 }
-                this.searchTerm = value;
-                typingTimer = setTimeout(() => {
-                    this.loadOptions(this.searchTerm);
-                }, 150);
             });
 
             this.input.addEventListener('keydown', (e) => {
@@ -937,13 +1059,23 @@
             });
 
             this.input.addEventListener('blur', () => {
-                setTimeout(() => {
-                    if (!this.dropdown.matches(':hover')) this.closeDropdown();
+                this.blurTimeout = setTimeout(() => {
+                    if (this.dropdown && !this.dropdown.matches(':hover') && !this.input.matches(':hover')) {
+                        this.closeDropdown();
+                    }
                 }, 200);
             });
 
+            this.dropdown.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+            });
+            
+            this.dropdown.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+
             document.addEventListener('click', (e) => {
-                if (!this.wrapper.contains(e.target) && !this.dropdown.contains(e.target)) {
+                if (!this.wrapper.contains(e.target) && this.dropdown && !this.dropdown.contains(e.target)) {
                     this.closeDropdown();
                 }
             });
@@ -953,6 +1085,7 @@
             this.selectedValue = value || '';
             this.input.value = value || '';
             this.element.value = value || '';
+            this.clearBtn.style.display = value ? 'block' : 'none';
             if (!value) {
                 this.searchTerm = '';
                 Array.from(this.element.options).forEach(opt => {
@@ -1261,7 +1394,6 @@
     const GlobalEventManager = {
 
         init() {
-            // Backdrop clicks
             document.addEventListener('click', (e) => {
                 const addBackdrop = document.querySelector('#staffDrawer .drawer-backdrop');
                 if (addBackdrop && addBackdrop === e.target) DrawerManager.closeStaff();
@@ -1273,7 +1405,6 @@
                 if (uploadBackdrop && uploadBackdrop === e.target) DrawerManager.closeUpload();
             });
 
-            // ESC key
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
                     const deleteDrawer = document.getElementById('deleteDrawer');
@@ -1402,7 +1533,6 @@
     // ===================================================================
 
     window.staffApp = {
-        // Drawer Management
         openDrawer: (staffPhone) => DrawerManager.openStaff(staffPhone),
         closeDrawer: () => DrawerManager.closeStaff(),
         openDeleteDrawer: (staffPhone, staffName) => DrawerManager.openDelete(staffPhone, staffName, () => {
@@ -1411,14 +1541,8 @@
         closeDeleteDrawer: () => DrawerManager.closeDelete(),
         openUploadDrawer: () => DrawerManager.openUpload(),
         closeUploadDrawer: () => DrawerManager.closeUpload(),
-
-        // Delete Operations
         openDeleteModal: (staffPhone, staffName) => DeleteManager.openModal(staffPhone, staffName),
-
-        // Upload Operations
         uploadFile: () => UploadManager.upload(),
-
-        // Excel Menu
         toggleExcelMenu: () => ExcelMenuManager.toggle()
     };
 

@@ -4,7 +4,6 @@
     overflow-x: hidden;
 }
 
-/* Fix for sticky header inside scrollable container */
 .drawer-scrollable > *:first-child {
     margin-top: 0 !important;
     padding-top: 0 !important;
@@ -17,7 +16,6 @@ body.drawer-open {
     height: 100%;
 }
 
-/* Ensure proper scrollbar behavior */
 .drawer-scrollable::-webkit-scrollbar {
     width: 6px;
 }
@@ -54,3 +52,4 @@ body.drawer-open {
 .animate-fade-in {
     animation: fade-in 0.3s ease-out;
 }
+
