@@ -18,11 +18,13 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# -------------------------------------------------------------------------------------------------------------------------
+
+# Display paginated list of staff with search, filters, and sorting
+# Uses: SystemSetting (pagination, logging), AuditLog (optional), FieldReference (filters)
 
 @login_required
 def staff_list(request):
-    
-   # Display paginated list of staff with search, filters, and sorting
     
     staff_queryset = Staff.objects.all()
 
@@ -132,12 +134,14 @@ def staff_list(request):
 
     return render(request, 'staff/staff_list.html', context)
 
+# -------------------------------------------------------------------------------------------------------------------------
+
+# AJAX endpoint to get field options dynamically from FieldReference
+# Uses: FieldReference (read)
 
 @require_http_methods(["GET"])
 def get_field_options(request):
-
-   # AJAX endpoint to get field options dynamically
-    
+  
     field_name = request.GET.get('field')
     search_query = request.GET.get('search', '')
     
@@ -185,13 +189,15 @@ def get_field_options(request):
         logger.error(f"Error getting field options: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
+# -------------------------------------------------------------------------------------------------------------------------
+
+# Add new staff member
+# Uses: FieldReference (GET - form options), AuditLog (POST - create log)
 
 @require_http_methods(["GET", "POST"])
 @login_required
 def staff_add(request):
-
-   # Add new staff member
-    
+   
     if request.method == "POST":
         try:
             # Handle both JSON and form data
@@ -288,7 +294,7 @@ def staff_add(request):
             logger.error(f"Error adding staff: {str(e)}")
             return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
-    # GET request - return form with options
+    # GET request - return form with options from FieldReference
     context = {
         'field_options': {
             'designations': FieldReference.get_options(Staff, 'designation'),
@@ -310,13 +316,15 @@ def staff_add(request):
     }
     return render(request, 'staff/staff_form.html', context)
 
+# -------------------------------------------------------------------------------------------------------------------------
+
+# Edit existing staff member
+# Uses: AuditLog (POST - update log)
 
 @require_http_methods(["GET", "POST"])
 @login_required
 def staff_edit(request, phone):
-
-   # Edit existing staff member
-    
+   
     staff = get_object_or_404(Staff, phone=phone)
 
     if request.method == "GET":
@@ -416,19 +424,33 @@ def staff_edit(request, phone):
                     if old_values.get(field) is not None:
                         changes[field] = {'old': str(old_values.get(field)), 'new': None}
 
-            # Check if phone is being changed and if new phone exists
+            # FIXED: Check if phone is being changed and if new phone exists
             new_phone = request.POST.get('phone')
-            if new_phone and new_phone != staff.phone:
-                if Staff.objects.filter(phone=new_phone).exists():
-                    return JsonResponse({'success': False, 'error': 'Phone number already exists'}, status=400)
-                staff.phone = new_phone
-                changes['phone'] = {'old': staff.phone, 'new': new_phone}
+            if new_phone and new_phone.strip():
+                new_phone = new_phone.strip()
+                # Only check if the phone number is actually changing
+                if new_phone != old_values['phone']:
+                    if Staff.objects.filter(phone=new_phone).exists():
+                        return JsonResponse({'success': False, 'error': 'Phone number already exists'}, status=400)
+                    staff.phone = new_phone
+                    changes['phone'] = {'old': old_values['phone'], 'new': new_phone}
+            else:
+                # Phone is required, so this should not happen
+                return JsonResponse({'success': False, 'error': 'Phone number is required'}, status=400)
             
-            # Check if staff_id is being changed and if new staff_id exists
+            # FIXED: Check if staff_id is being changed and if new staff_id exists
             new_staff_id = request.POST.get('staff_id')
-            if new_staff_id and new_staff_id != staff.staff_id:
-                if Staff.objects.filter(staff_id=new_staff_id).exists():
-                    return JsonResponse({'success': False, 'error': 'Staff ID already exists'}, status=400)
+            if new_staff_id and new_staff_id.strip():
+                new_staff_id = new_staff_id.strip()
+                # Only check if the staff_id is actually changing
+                if new_staff_id != old_values['staff_id']:
+                    if Staff.objects.filter(staff_id=new_staff_id).exists():
+                        return JsonResponse({'success': False, 'error': 'Staff ID already exists'}, status=400)
+                    staff.staff_id = new_staff_id
+                    changes['staff_id'] = {'old': old_values['staff_id'], 'new': new_staff_id}
+            else:
+                # Staff ID is required
+                return JsonResponse({'success': False, 'error': 'Staff ID is required'}, status=400)
 
             staff.full_clean()
             staff.save()
@@ -451,12 +473,14 @@ def staff_edit(request, phone):
             logger.error(f"Error editing staff: {str(e)}")
             return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
+# -------------------------------------------------------------------------------------------------------------------------
+
+# Delete staff member
+# Uses: SystemSetting (soft_delete setting), AuditLog (delete log)
 
 @require_http_methods(["DELETE", "POST"])
 @login_required
 def staff_delete(request, phone):
-
-   # Delete staff member 
     
     try:
         staff = get_object_or_404(Staff, phone=phone)
@@ -476,20 +500,51 @@ def staff_delete(request, phone):
         soft_delete = SystemSetting.get_setting('soft_delete_staff', False)
         
         if soft_delete:
-            staff.delete()
-            message = 'Staff member deleted successfully'
+            # Implement soft delete if you have a is_active field
+            staff.is_active = False
+            staff.save()
+            message = 'Staff member soft deleted successfully'
+            action = 'UPDATE' 
+            
+            # Correct way to call log method - pass request as first parameter
+            AuditLog.log(
+                request=request,
+                action=action,
+                obj=staff,
+                changes=staff_data,
+                object_repr=f"Soft deleted: {staff_info}"
+            )
         else:
+            # Store information before deletion
+            staff_id = str(staff.id) 
+            staff_app_label = staff._meta.app_label
+            staff_model_name = staff.__class__.__name__
+            
+            # Hard delete
             staff.delete()
             message = 'Staff member deleted successfully'
-        
-        # Add audit log
-        AuditLog.log(
-            request=request,
-            action='DELETE',
-            obj=None,
-            object_repr=staff_info,
-            changes=staff_data
-        )
+            action = 'DELETE'
+            
+            # Create audit log entry manually for hard delete
+            # Since the object is deleted, we can't use obj parameter
+            audit_data = {
+                'action': action,
+                'changes': staff_data,
+                'app_label': staff_app_label,
+                'model_name': staff_model_name,
+                'object_id': staff_id,
+                'object_repr': staff_info,
+                'ip_address': AuditLog._get_client_ip(request),
+                'user_agent': request.META.get('HTTP_USER_AGENT', ''),
+                'request_path': request.path,
+            }
+            
+            # Add user information
+            if request.user.is_authenticated:
+                audit_data['user_id'] = str(request.user.id) 
+                audit_data['user_name'] = request.user.username  
+            
+            AuditLog.objects.create(**audit_data)
         
         return JsonResponse({'success': True, 'message': message})
         
@@ -497,12 +552,57 @@ def staff_delete(request, phone):
         logger.error(f"Error deleting staff: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
+# -------------------------------------------------------------------------------------------------------------------------
+
+# Save a new field option to FieldReference
+
+@require_http_methods(["POST"])
+@login_required
+def save_field_option(request):
+
+    try:
+        data = json.loads(request.body)
+        field_name = data.get('field_name')
+        value = data.get('value')
+        
+        if not field_name or not value:
+            return JsonResponse({'success': False, 'error': 'Field name and value required'}, status=400)
+        
+        # Validate field name
+        valid_fields = [
+            'designation', 'program', 'department', 'college', 'city', 'district',
+            'bank_name', 'program_type', 'staff_category', 'dept_category',
+            'examiner_type', 'branch', 'branch_final', 'place', 'qualification', 'bank_city'
+        ]
+        
+        if field_name not in valid_fields:
+            return JsonResponse({'success': False, 'error': 'Invalid field name'}, status=400)
+        
+        obj, created = FieldReference.add_option(
+            model=Staff,
+            field_name=field_name,
+            value=value,
+            created_by=request.user.username
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'created': created,
+            'message': 'Option saved successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error saving field option: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+# -------------------------------------------------------------------------------------------------------------------------
+
+# Upload staff data from Excel file
+# Uses: FieldReference (create new options), AuditLog (bulk upload log)
 
 @require_http_methods(["POST"])
 @login_required
 def staff_upload(request):
-    
-   # Upload staff data from Excel file
     
     if request.method == "POST" and request.FILES.get('file'):
         try:
@@ -552,7 +652,7 @@ def staff_upload(request):
                         error_count += 1
                         continue
 
-                    # Collect field options
+                    # Collect field options for FieldReference
                     if row[2]: new_field_options['designation'].add(str(row[2]).strip())
                     if row[3]: new_field_options['program'].add(str(row[3]).strip())
                     if row[4]: new_field_options['department'].add(str(row[4]).strip())
@@ -652,11 +752,11 @@ def staff_upload(request):
                         except Exception as e:
                             logger.error(f"Error adding {field_name}={value}: {str(e)}")
 
-            # Add audit log for bulk upload
-            AuditLog.log(
-                request=request,
+            # Add audit log for bulk upload with fully populated fields
+            AuditLog.objects.create(
                 action='UPLOAD',
-                obj=None,
+                app_label=Staff._meta.app_label, 
+                model_name=Staff.__name__,        
                 object_repr=f"Bulk upload: {success_count} new, {update_count} updated",
                 changes={
                     'filename': file.name,
@@ -664,10 +764,14 @@ def staff_upload(request):
                     'update_count': update_count,
                     'error_count': error_count,
                     'new_options_added': added_options_count,
-                    'created_staff_ids': created_staff_ids,
-                    'updated_staff_ids': updated_staff_ids,
-                    'errors': errors[:10]  # First 10 errors only
-                }
+                    'created_staff_ids': created_staff_ids[:10],  # First 10 only to avoid huge data
+                    'updated_staff_ids': updated_staff_ids[:10]
+                },
+                ip_address=AuditLog._get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                request_path=request.path,
+                user_id=request.user.id if request.user.is_authenticated else None,
+                user_name=request.user.username if request.user.is_authenticated else ''
             )
 
             # Prepare response message
@@ -676,6 +780,8 @@ def staff_upload(request):
                 message_parts.append(f"{success_count} new staff added")
             if update_count > 0:
                 message_parts.append(f"{update_count} staff updated")
+            if added_options_count > 0:
+                message_parts.append(f"{added_options_count} new dropdown options added")
             
             message = f"Successfully processed: {', '.join(message_parts)}"
             if error_count > 0:
@@ -701,11 +807,13 @@ def staff_upload(request):
 
     return JsonResponse({'success': False, 'error': 'No file provided'}, status=400)
 
+# -------------------------------------------------------------------------------------------------------------------------
+
+# Export all staff data to Excel
+# Uses: AuditLog (export log with model info)
 
 @login_required
 def staff_export(request):
-
-   # Export all staff data to Excel
     
     try:
         wb = Workbook()
@@ -732,6 +840,7 @@ def staff_export(request):
             cell.alignment = header_alignment
 
         staff_members = Staff.objects.all().order_by('id')
+        total_count = staff_members.count()
         
         for row_idx, staff in enumerate(staff_members, start=2):
             ws.cell(row=row_idx, column=1, value=staff.staff_id)
@@ -774,19 +883,28 @@ def staff_export(request):
             adjusted_width = min(max_length + 2, 50)
             ws.column_dimensions[column_letter].width = adjusted_width
 
-        # Add audit log for export
-        AuditLog.log(
-            request=request,
+        # Add audit log for export with fully populated fields
+        AuditLog.objects.create(
             action='EXPORT',
-            obj=None,
-            object_repr=f"Staff export - {staff_members.count()} records",
-            changes={'total_records': staff_members.count()}
+            app_label=Staff._meta.app_label,
+            model_name=Staff.__name__,
+            object_repr=f"Staff export - {total_count} records",
+            changes={
+                'total_records': total_count,
+                'file_format': 'xlsx',
+                'export_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            },
+            ip_address=AuditLog._get_client_ip(request),
+            user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            request_path=request.path,
+            user_id=request.user.id if request.user.is_authenticated else None,
+            user_name=request.user.username if request.user.is_authenticated else ''
         )
 
         response = HttpResponse(
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
-        response['Content-Disposition'] = f'attachment; filename=Staff_Data_{datetime.now().strftime("%Y%m%d")}.xlsx'
+        response['Content-Disposition'] = f'attachment; filename=Staff Data.xlsx'
         wb.save(response)
         return response
         
@@ -795,11 +913,13 @@ def staff_export(request):
         messages.error(request, f"Error exporting data: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
+# -------------------------------------------------------------------------------------------------------------------------
+
+# Download sample Excel template for staff upload
+# No core table usage - just template generation
 
 @login_required
 def staff_sample(request):
-
-    # Download sample Excel template for staff upload
     
     try:
         wb = Workbook()
@@ -869,7 +989,7 @@ def staff_sample(request):
         response = HttpResponse(
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
-        response['Content-Disposition'] = 'attachment; filename=Staff_Template.xlsx'
+        response['Content-Disposition'] = 'attachment; filename=Staff Template.xlsx'
         wb.save(response)
         return response
         
@@ -877,12 +997,14 @@ def staff_sample(request):
         logger.error(f"Error generating sample template: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
+# -------------------------------------------------------------------------------------------------------------------------
+
+# Get detailed information of a staff member
+# Uses: SystemSetting (log_detail_views), AuditLog (optional view log)
 
 @require_http_methods(["GET"])
 @login_required
 def staff_details(request, phone):
-
-    # Get detailed information of a staff member
     
     try:
         staff = get_object_or_404(Staff, phone=phone)

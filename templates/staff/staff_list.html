@@ -16,14 +16,21 @@
             </p>
         </div>
         <div class="flex items-center gap-3 self-start lg:self-center">
-            <button type="button" onclick="window.staffApp.openDrawer()" class="flex items-center justify-center gap-2 px-5 py-3 bg-[#8b1e3f] text-white text-xs font-bold rounded-lg transition-all duration-150 tracking-wider uppercase shadow-md hover:shadow-lg hover:bg-[#721833]">
-                <i class="bi bi-person-plus-fill text-sm w-4 h-4"></i>
-                Create Staff
+            <button
+                type="button"
+                onclick="window.staffApp.openDrawer()"
+                class="flex items-center justify-center gap-2 px-5 py-3 bg-[#8b1e3f] text-white text-xs font-bold rounded-lg transition-all duration-150 tracking-wider uppercase shadow-md hover:shadow-lg hover:bg-[#721833]"
+            >
+                <i class="bi bi-person-plus-fill text-sm leading-none"></i>
+                <span>Create Staff</span>
             </button>
             <!-- Excel Dropdown Menu -->
             <div class="relative">
-               <button onclick="window.staffApp.toggleExcelMenu()" class="flex items-center justify-center gap-2 px-5 py-3 bg-[#107C41] hover:bg-[#0d6434] text-white text-xs font-bold rounded-lg tracking-wider uppercase shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-150">
-                    <i class="bi bi-box-arrow-in-down-right text-sm w-4 h-4"></i>
+               <button
+                    onclick="window.staffApp.toggleExcelMenu()"
+                    class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#107C41] hover:bg-[#0d6434] text-white text-xs font-bold rounded-lg tracking-wider uppercase shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-150"
+                >
+                    <i class="bi bi-box-arrow-in-down-right text-sm leading-none"></i>
                     <span>Excel Actions</span>
                 </button>
                 <div id="excelMenu" class="hidden absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
@@ -78,7 +85,9 @@
     <!-- Pagination -->
     {% include 'staff/partials/pagination.html' %}
 
-    <!-- Modals/Drawers -->
+</div>
+
+<div>
     {% include 'staff/partials/modals.html' %}
 </div>
 

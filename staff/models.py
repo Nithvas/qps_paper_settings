@@ -6,11 +6,6 @@ from django.contrib.contenttypes.models import ContentType
 class Staff(models.Model):
     
     # =======================================================================
-    # Primary Key (Auto-added by Django)
-    # =======================================================================
-    # id field as auto-incrementing primary key
-    
-    # =======================================================================
     # Contact Details
     # =======================================================================
     phone = models.CharField(

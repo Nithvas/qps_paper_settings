@@ -1,3 +1,4 @@
+// staff/static/staff/js/staff_management.js
 // ===================================================================
 // STAFF MANAGEMENT APPLICATION - COMPLETE MODULE
 // ===================================================================
@@ -39,16 +40,33 @@
     function lockBodyScroll() {
         window.openDrawerCount = (window.openDrawerCount || 0) + 1;
         if (window.openDrawerCount === 1) {
+            const scrollY = window.scrollY;
             document.body.classList.add('drawer-open');
+            document.body.style.position = 'fixed';
+            document.body.style.top = `-${scrollY}px`;
+            document.body.style.left = '0';
+            document.body.style.right = '0';
+            document.body.style.width = '100%';
             document.body.style.overflow = 'hidden';
+            document.body.dataset.scrollPosition = scrollY;
         }
     }
 
     function unlockBodyScroll() {
         window.openDrawerCount = (window.openDrawerCount || 0) - 1;
         if (window.openDrawerCount === 0) {
+            const scrollY = document.body.dataset.scrollPosition;
             document.body.classList.remove('drawer-open');
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.left = '';
+            document.body.style.right = '';
+            document.body.style.width = '';
             document.body.style.overflow = '';
+            if (scrollY) {
+                window.scrollTo(0, parseInt(scrollY));
+                delete document.body.dataset.scrollPosition;
+            }
         }
     }
 
@@ -92,7 +110,6 @@
 
     const DrawerManager = {
 
-        // Staff Add/Edit Drawer
         staffDrawer: null,
         deleteDrawer: null,
         uploadDrawer: null,
@@ -103,12 +120,12 @@
             this.uploadDrawer = document.getElementById('uploadDrawer');
         },
 
-        openStaff(staffId = null) {
+        openStaff(staffPhone = null) {
 
             if (!this.staffDrawer) return;
 
             const form = document.getElementById('staffForm');
-            const editStaffId = document.getElementById('editStaffId');
+            const editStaffPhone = document.getElementById('editStaffPhone');
             const title = document.getElementById('drawer-title');
             const subtitle = document.getElementById('drawer-subtitle');
             const submitButton = document.querySelector('#staffForm button[type="submit"]');
@@ -119,7 +136,7 @@
                 Object.values(window.creatableSelects).forEach(select => select.setValue(''));
             }
 
-            if (editStaffId) editStaffId.value = '';
+            if (editStaffPhone) editStaffPhone.value = ''; // Clear the hidden field
             if (title) title.innerText = 'Register New Staff';
             if (subtitle) subtitle.innerText = 'Complete all mandatory fields';
 
@@ -129,39 +146,44 @@
                 submitButton.innerHTML = '<i class="bi bi-save"></i> Save Staff Record';
             }
 
-            if (staffId) {
-                this.loadStaffData(staffId, submitButton, editStaffId, title, subtitle);
+            if (staffPhone) {
+                this.loadStaffData(staffPhone, submitButton, editStaffPhone, title, subtitle);
             } else {
                 this.staffDrawer.classList.remove('hidden');
                 lockBodyScroll();
             }
         },
 
-        loadStaffData(staffId, submitButton, editStaffId, title, subtitle) {
+        loadStaffData(staffPhone, submitButton, editStaffPhone, title, subtitle) {
             if (submitButton) {
                 submitButton.disabled = true;
                 submitButton.innerHTML = '<i class="bi bi-hourglass-split animate-spin"></i> Loading...';
             }
 
-            fetch(`/staff/edit/${staffId}/?format=json`, {
+            fetch(`/staff/details/${staffPhone}/`, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return res.json();
+                })
                 .then(data => {
                     if (data.success) {
                         this.populateStaffForm(data.staff);
-                        if (editStaffId) editStaffId.value = staffId;
+                        if (editStaffPhone) editStaffPhone.value = staffPhone;
                         if (title) title.innerText = 'Update Staff Record';
-                        if (subtitle) subtitle.innerText = `Editing ID: ${data.staff.staff_id}`;
+                        if (subtitle) subtitle.innerText = `Editing: ${data.staff.staff_id} - ${data.staff.name}`;
                         this.staffDrawer.classList.remove('hidden');
                         lockBodyScroll();
                     } else {
-                        alert('Error loading staff data: ' + (data.error || 'Unknown error'));
+                        showToast('Error loading staff data: ' + (data.error || 'Unknown error'), 'error');
+                        this.closeStaff();
                     }
                 })
                 .catch(err => {
                     console.error('Fetch error:', err);
-                    alert('Failed to load staff details.');
+                    showToast('Failed to load staff details. Staff may not exist.', 'error');
+                    this.closeStaff();
                 })
                 .finally(() => {
                     if (submitButton) {
@@ -172,17 +194,29 @@
         },
 
         populateStaffForm(staff) {
+            const fields = {
+                'drawerStaffId': staff.staff_id,
+                'drawerName': staff.name,
+                'drawerPhone': staff.phone,
+                'drawerEmail': staff.email,
+                'drawerDoj': staff.doj,
+                'drawerDor': staff.dor,
+                'drawerBankAccount': staff.bank_account,
+                'drawerIfsc': staff.ifsc_code,
+                'drawerRemark': staff.remark,
+                'drawerBankCode': staff.branch_code
+            };
 
-            document.getElementById('drawerStaffId').value = staff.staff_id || '';
-            document.getElementById('drawerName').value = staff.name || '';
-            document.getElementById('drawerPhone').value = staff.phone || '';
-            document.getElementById('drawerEmail').value = staff.email || '';
-            document.getElementById('drawerDoj').value = staff.doj || '';
-            document.getElementById('drawerDor').value = staff.dor || '';
-            document.getElementById('drawerBankAccount').value = staff.bank_account || '';
-            document.getElementById('drawerIfsc').value = staff.ifsc_code || '';
-            document.getElementById('drawerRemark').value = staff.remark || '';
-            document.getElementById('drawerBankCode').value = staff.branch_code || '';
+            for (const [id, value] of Object.entries(fields)) {
+                const element = document.getElementById(id);
+                if (element) element.value = value || '';
+            }
+
+            // Add this line to set the hidden editStaffPhone field
+            const editStaffPhoneField = document.getElementById('editStaffPhone');
+            if (editStaffPhoneField && staff.phone) {
+                editStaffPhoneField.value = staff.phone;
+            }
 
             const selectMappings = {
                 'drawerDesignation': staff.designation,
@@ -209,7 +243,6 @@
                 }
             }
         },
-
         closeStaff() {
             if (this.staffDrawer) {
                 this.staffDrawer.classList.add('hidden');
@@ -217,11 +250,10 @@
             }
         },
 
-        openDelete(staffId, staffName, onConfirmCallback) {
-
+        openDelete(staffPhone, staffName, onConfirmCallback) {
             if (!this.deleteDrawer) return;
 
-            document.getElementById('deleteDrawerStaffId').innerText = staffId;
+            document.getElementById('deleteDrawerStaffId').innerText = staffPhone;
             const msgSpan = document.getElementById('deleteDrawerMessage');
             if (msgSpan) {
                 msgSpan.innerHTML = `Are you completely certain you want to purge the record of <strong class="text-rose-700">${escapeHtml(staffName)}</strong>? This action cannot be undone.`;
@@ -282,11 +314,18 @@
             if (applyBtn && filterForm) {
                 applyBtn.addEventListener('click', () => filterForm.submit());
             }
-        },
 
-        reset() {
+            // Reset filters button
             const resetBtn = document.getElementById('resetFiltersBtn');
-            if (resetBtn) { }
+            if (resetBtn) {
+                resetBtn.addEventListener('click', () => {
+                    const url = new URL(window.location.href);
+                    const filterFields = ['designation', 'program_type', 'staff_category', 'dept_category', 'branch', 'program', 'department', 'college', 'search'];
+                    filterFields.forEach(field => url.searchParams.delete(field));
+                    url.searchParams.delete('page');
+                    window.location.href = url.toString();
+                });
+            }
         }
     };
 
@@ -357,7 +396,6 @@
         },
 
         sortByColumn(colName, thElement) {
-
             const tbody = document.getElementById('staffTableBody');
             if (!tbody) return;
             const rows = Array.from(tbody.querySelectorAll('tr.staff-row'));
@@ -445,6 +483,7 @@
             this.placeholder = options.placeholder || `Search or add ${this.fieldName.replace(/_/g, ' ')}...`;
             this.loadRemote = options.loadRemote !== false;
             this.allowCreate = options.allowCreate !== false;
+            this.initialValue = options.initialValue || null;
             this.optionsList = [];
             this.filteredOptions = [];
             this.selectedIndex = -1;
@@ -455,11 +494,31 @@
             this.hasLoaded = false;
             this.scrollHandler = null;
             this.resizeHandler = null;
+
+            const currentSelectedOption = this.element.options[this.element.selectedIndex];
+            if (currentSelectedOption && currentSelectedOption.value) {
+                this.originalSelectedValue = currentSelectedOption.value;
+            } else {
+                this.originalSelectedValue = null;
+            }
+
             this.createComponent();
+
             if (!this.loadRemote) {
                 this.initializeStaticOptions();
             }
+
             this.setupEventListeners();
+
+            if (this.initialValue && this.initialValue !== '') {
+                this.setValue(this.initialValue);
+            } else if (this.originalSelectedValue && this.originalSelectedValue !== '') {
+                this.setValue(this.originalSelectedValue);
+            } else {
+                this.selectedValue = '';
+                this.input.value = '';
+                this.element.value = '';
+            }
         }
 
         createComponent() {
@@ -503,6 +562,7 @@
         }
 
         initializeStaticOptions() {
+
             const options = [];
             let selectedValue = '';
 
@@ -529,7 +589,6 @@
         }
 
         async loadOptions(search = '') {
-
             if (!this.loadRemote) {
                 this.filterOptions(search);
                 return;
@@ -581,7 +640,6 @@
         }
 
         renderDropdown() {
-
             if (!this.dropdown) return;
             this.dropdown.innerHTML = '';
             this.dropdown.style.padding = '4px 0';
@@ -635,7 +693,6 @@
         }
 
         createOptionElement(value, isNew) {
-
             const div = document.createElement('div');
             div.className = `cursor-pointer text-sm flex items-center justify-between transition-colors ${isNew ? 'bg-green-50 hover:bg-green-100' : 'hover:bg-indigo-50'}`;
 
@@ -666,7 +723,6 @@
         }
 
         async selectOption(value) {
-
             if (!value) return;
 
             const exists = this.optionsList.some(opt => opt && opt.toLowerCase && opt.toLowerCase() === value.toLowerCase());
@@ -692,9 +748,15 @@
                     if (data.success) {
                         this.optionsList.push(value);
                         this.optionsList.sort();
+                        if (data.created) {
+                            showToast(`New option "${value}" added successfully`, 'success');
+                        }
+                    } else {
+                        showToast(data.error || 'Failed to save option', 'error');
                     }
                 } catch (error) {
                     console.error('Error saving option:', error);
+                    showToast('Network error saving option', 'error');
                 }
             }
 
@@ -727,7 +789,6 @@
         }
 
         positionDropdown() {
-
             if (!this.input || !this.dropdown) return;
 
             const rect = this.input.getBoundingClientRect();
@@ -750,7 +811,6 @@
         updateDropdownPosition() { if (this.isOpen) this.positionDropdown() }
 
         openDropdown() {
-
             if (this.isOpen) return;
 
             this.isOpen = true;
@@ -774,7 +834,6 @@
         }
 
         closeDropdown() {
-
             if (!this.isOpen) return;
             this.isOpen = false;
             this.dropdown.style.display = 'none';
@@ -806,7 +865,6 @@
         }
 
         navigateOptions(direction) {
-
             if (!this.isOpen) {
                 this.openDropdown();
                 return;
@@ -842,7 +900,6 @@
         }
 
         setupEventListeners() {
-
             let typingTimer;
 
             this.input.addEventListener('focus', () => this.openDropdown());
@@ -853,8 +910,15 @@
 
             this.input.addEventListener('input', (e) => {
                 clearTimeout(typingTimer);
-                this.searchTerm = e.target.value;
-                typingTimer = setTimeout(() => this.loadOptions(this.searchTerm), 150);
+                const value = e.target.value.trim();
+                if (!value) {
+                    this.selectedValue = '';
+                    this.element.value = '';
+                }
+                this.searchTerm = value;
+                typingTimer = setTimeout(() => {
+                    this.loadOptions(this.searchTerm);
+                }, 150);
             });
 
             this.input.addEventListener('keydown', (e) => {
@@ -886,10 +950,14 @@
         }
 
         setValue(value) {
-            if (value) {
-                this.selectedValue = value;
-                this.input.value = value;
-                this.element.value = value;
+            this.selectedValue = value || '';
+            this.input.value = value || '';
+            this.element.value = value || '';
+            if (!value) {
+                this.searchTerm = '';
+                Array.from(this.element.options).forEach(opt => {
+                    opt.selected = false;
+                });
             }
         }
 
@@ -927,7 +995,7 @@
             const form = e.target;
             const submitBtn = form.querySelector('button[type="submit"]');
             const originalBtnText = submitBtn.innerHTML;
-            const editStaffId = document.getElementById('editStaffId');
+            const editStaffPhone = document.getElementById('editStaffPhone');
 
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="bi bi-hourglass-split animate-spin"></i> Saving...';
@@ -944,8 +1012,8 @@
                 }
             }
 
-            const staffId = editStaffId?.value || '';
-            const url = staffId ? `/staff/edit/${staffId}/` : '/staff/add/';
+            const staffPhone = editStaffPhone?.value || '';
+            const url = staffPhone ? `/staff/edit/${staffPhone}/` : '/staff/add/';
 
             try {
                 const response = await fetch(url, {
@@ -962,15 +1030,16 @@
                 if (!response.ok) throw new Error(data.error || 'Server error');
 
                 if (data.success) {
-                    window.location.reload();
+                    showToast(data.message || 'Staff saved successfully', 'success');
+                    setTimeout(() => window.location.reload(), 1500);
                 } else {
-                    alert('Error: ' + (data.error || 'Could not save.'));
+                    showToast('Error: ' + (data.error || 'Could not save.'), 'error');
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalBtnText;
                 }
             } catch (error) {
                 console.error('Fetch error:', error);
-                alert('Network error: ' + error.message);
+                showToast('Network error: ' + error.message, 'error');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnText;
             }
@@ -983,15 +1052,15 @@
 
     const DeleteManager = {
 
-        openModal(staffId, staffName) {
-            DrawerManager.openDelete(staffId, staffName, () => {
-                this.executeDelete(staffId);
+        openModal(staffPhone, staffName) {
+            DrawerManager.openDelete(staffPhone, staffName, () => {
+                this.executeDelete(staffPhone);
             });
         },
 
-        async executeDelete(staffId) {
+        async executeDelete(staffPhone) {
             try {
-                const response = await fetch(`/staff/delete/${staffId}/`, {
+                const response = await fetch(`/staff/delete/${staffPhone}/`, {
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': csrftoken,
@@ -1001,13 +1070,14 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    window.location.reload();
+                    showToast(data.message || 'Staff deleted successfully', 'success');
+                    setTimeout(() => window.location.reload(), 1000);
                 } else {
-                    alert('Delete failed: ' + (data.error || 'Unknown error'));
+                    showToast('Delete failed: ' + (data.error || 'Unknown error'), 'error');
                 }
             } catch (error) {
                 console.error('Delete error:', error);
-                alert('Network error while deleting');
+                showToast('Network error while deleting', 'error');
             }
         }
     };
@@ -1052,7 +1122,6 @@
         },
 
         handleFileSelect(e) {
-
             if (e.target.files && e.target.files[0]) {
                 this.selectedFile = e.target.files[0];
 
@@ -1079,7 +1148,6 @@
         },
 
         async upload() {
-
             if (!this.selectedFile) {
                 showToast('Please select a file first', 'error');
                 return;
@@ -1131,21 +1199,24 @@
                     if (successCount) successCount.textContent = result.success_count || 0;
                     if (errorCount) errorCount.textContent = result.error_count || 0;
 
+                    const newOptionsCount = document.getElementById('newOptionsCount');
+                    if (newOptionsCount) newOptionsCount.textContent = result.new_options_added || 0;
+
                     if (result.errors && result.errors.length > 0) {
                         const errorList = document.getElementById('errorList');
                         if (errorList) {
-                            errorList.innerHTML = result.errors.map(err => `<div>⚠️ ${err}</div>`).join('');
+                            errorList.innerHTML = result.errors.map(err => `<div class="text-red-600 text-sm">⚠️ ${escapeHtml(err)}</div>`).join('');
                             errorList.classList.remove('hidden');
                         }
                     }
 
                     if (uploadResults) uploadResults.classList.remove('hidden');
 
-                    if (result.success_count > 0) {
-                        showToast(`Successfully uploaded ${result.success_count} records`, 'success');
+                    if (result.success_count > 0 || result.update_count > 0) {
+                        showToast(`Successfully processed ${result.success_count + result.update_count} records`, 'success');
                         setTimeout(() => window.location.reload(), 2000);
                     } else if (result.error_count > 0) {
-                        showToast(`Upload failed with ${result.error_count} errors`, 'error');
+                        showToast(`Upload completed with ${result.error_count} errors`, 'error');
                     }
                 } else {
                     throw new Error(result.error || 'Upload failed');
@@ -1190,7 +1261,6 @@
     const GlobalEventManager = {
 
         init() {
-
             // Backdrop clicks
             document.addEventListener('click', (e) => {
                 const addBackdrop = document.querySelector('#staffDrawer .drawer-backdrop');
@@ -1225,7 +1295,14 @@
     // ===================================================================
 
     const CreatableSelectManager = {
+
         init() {
+
+            function getUrlParameter(name) {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get(name);
+            }
+
             const selectFields = [
                 { id: 'drawerDesignation', fieldName: 'designation', placeholder: 'Search or add designation...' },
                 { id: 'drawerProgram', fieldName: 'program', placeholder: 'Search or add programme...' },
@@ -1261,13 +1338,20 @@
             document.querySelectorAll('.filter-select').forEach(element => {
                 const key = element.id || `filter-${element.name}`;
                 if (!element.hasAttribute('data-initialized')) {
+                    const fieldName = element.name;
+                    const urlValue = getUrlParameter(fieldName);
+
                     window.creatableSelects[key] = new CreatableSelect(element, {
-                        fieldName: element.name,
-                        placeholder: `Search or select ${element.name.replace(/_/g, ' ')}`,
-                        loadRemote: false,
+                        fieldName: fieldName,
+                        placeholder: `Search or select ${fieldName.replace(/_/g, ' ')}`,
+                        loadRemote: true,
                         allowCreate: false
                     });
                     element.setAttribute('data-initialized', 'true');
+
+                    if (urlValue) {
+                        window.creatableSelects[key].setValue(urlValue);
+                    }
                 }
             });
         }
@@ -1279,16 +1363,12 @@
 
     const DjangoMessageManager = {
         init() {
-            document.querySelectorAll('#django-messages .message').forEach(msg => {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: msg.dataset.level === 'success' ? 'success' : (msg.dataset.level === 'error' ? 'error' : 'info'),
-                        title: msg.dataset.message,
-                        timer: 3000,
-                        toast: true,
-                        position: 'top-end',
-                        showConfirmButton: false
-                    });
+            const messages = document.querySelectorAll('#django-messages .message');
+            messages.forEach(msg => {
+                const message = msg.getAttribute('data-message');
+                const level = msg.getAttribute('data-level');
+                if (message) {
+                    showToast(message, level === 'success' ? 'success' : (level === 'error' ? 'error' : 'info'));
                 }
             });
         }
@@ -1313,27 +1393,29 @@
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
-    } else { init() }
+    } else {
+        init();
+    }
 
     // ===================================================================
     // 17. PUBLIC API
     // ===================================================================
 
     window.staffApp = {
-
         // Drawer Management
-        openDrawer: (staffId) => DrawerManager.openStaff(staffId),
+        openDrawer: (staffPhone) => DrawerManager.openStaff(staffPhone),
         closeDrawer: () => DrawerManager.closeStaff(),
-        openDeleteDrawer: (staffId, staffName, callback) => DrawerManager.openDelete(staffId, staffName, callback),
+        openDeleteDrawer: (staffPhone, staffName) => DrawerManager.openDelete(staffPhone, staffName, () => {
+            DeleteManager.executeDelete(staffPhone);
+        }),
         closeDeleteDrawer: () => DrawerManager.closeDelete(),
         openUploadDrawer: () => DrawerManager.openUpload(),
         closeUploadDrawer: () => DrawerManager.closeUpload(),
 
         // Delete Operations
-        openDeleteModal: (staffId, staffName) => DeleteManager.openModal(staffId, staffName),
+        openDeleteModal: (staffPhone, staffName) => DeleteManager.openModal(staffPhone, staffName),
 
         // Upload Operations
-        clearFile: () => UploadManager.clear(),
         uploadFile: () => UploadManager.upload(),
 
         // Excel Menu

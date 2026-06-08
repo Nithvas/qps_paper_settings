@@ -1,9 +1,39 @@
 .drawer-scrollable {
     scrollbar-width: thin;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Fix for sticky header inside scrollable container */
+.drawer-scrollable > *:first-child {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
 }
 
 body.drawer-open {
     overflow: hidden !important;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+
+/* Ensure proper scrollbar behavior */
+.drawer-scrollable::-webkit-scrollbar {
+    width: 6px;
+}
+
+.drawer-scrollable::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.drawer-scrollable::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.drawer-scrollable::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
 }
 
 .creatable-select-wrapper,

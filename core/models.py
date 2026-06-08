@@ -124,6 +124,7 @@ class FieldReference(models.Model):
 
 
 class AuditLog(models.Model):
+
     """Track all changes made to any model in the system"""
     
     ACTION_CHOICES = [
@@ -207,6 +208,7 @@ class AuditLog(models.Model):
 
 
 class SystemSetting(models.Model):
+    
     """Store system-wide configuration settings"""
     
     SETTING_TYPES = [

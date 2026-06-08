@@ -1,8 +1,7 @@
 <!-- ADD/EDIT STAFF DRAWER -->
 <div id="staffDrawer" class="drawer fixed inset-0 z-50 hidden" aria-labelledby="drawer-title" role="dialog">
     <div class="drawer-backdrop absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" onclick="window.staffApp.closeDrawer()"></div>
-    
-    <div class="drawer-scrollable absolute inset-y-0 right-0 w-full max-w-4xl bg-slate-50 shadow-2xl overflow-y-auto transform transition-transform duration-300">
+    <div class="drawer-scrollable absolute inset-y-0 right-0 w-full max-w-3xl bg-slate-50 shadow-2xl overflow-y-auto transition-transform duration-300" style="transform: translateX(0);">
         <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-20">
             <div>
                 <h2 id="drawer-title" class="text-xl font-bold text-[#8b1e3f]">New Staff Record</h2>
@@ -13,8 +12,9 @@
             </button>
         </div>
         
-        <form id="staffForm" class="px-6 pb-6 space-y-6">
+        <form id="staffForm" class="px-6 space-y-6">
             {% csrf_token %}
+            <input type="hidden" name="editStaffPhone" id="editStaffPhone" value="">
             <input type="hidden" name="staff_id" id="editStaffId" value="">
 
             <!-- Section 1: Personal Information -->
@@ -231,7 +231,7 @@
                 </div>
             </div>
             
-            <div class="flex gap-3 sticky bottom-0 bg-slate-50 py-4 -mx-6 px-6 border-t border-slate-200 mt-6">
+            <div class="flex gap-6 bg-slate-50 p-6 -mx-6 border-t border-slate-200 mt-6">
                 <button type="button" onclick="window.staffApp.closeDrawer()" 
                         class="flex-1 px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 font-bold text-sm rounded-xl transition-colors border border-slate-200">
                     Cancel
@@ -248,8 +248,7 @@
 <!-- DELETE DRAWER -->
 <div id="deleteDrawer" class="drawer fixed inset-0 z-50 hidden" aria-labelledby="delete-drawer-title" role="dialog" aria-modal="true">
     <div class="drawer-backdrop absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" onclick="window.staffApp.closeDeleteDrawer()"></div>
-    
-    <div class="absolute inset-y-0 right-0 w-full max-w-xl bg-slate-50 shadow-2xl flex flex-col h-full overflow-hidden transform transition-transform duration-300">
+    <div class="absolute inset-y-0 right-0 w-full max-w-xl bg-slate-50 shadow-2xl flex flex-col h-full overflow-hidden transition-transform duration-300" style="transform: translateX(0);">
         <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
             <div>
                 <h2 class="text-xl font-bold text-[#8b1e3f]">Purge Staff Record</h2>
@@ -295,10 +294,8 @@
 
 <!-- UPLOAD DRAWER -->
 <div id="uploadDrawer" class="drawer fixed inset-0 z-50 hidden" aria-labelledby="upload-drawer-title" role="dialog">
-    
-         <div class="drawer-backdrop absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" onclick="window.staffApp.closeUploadDrawer()"></div>
-    
-    <div class="drawer-scrollable absolute inset-y-0 right-0 w-full max-w-xl bg-slate-50 shadow-2xl flex flex-col h-full overflow-hidden transform transition-transform duration-300">
+    <div class="drawer-backdrop absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" onclick="window.staffApp.closeUploadDrawer()"></div>
+    <div class="drawer-scrollable absolute inset-y-0 right-0 w-full max-w-xl bg-slate-50 shadow-2xl flex flex-col h-full overflow-hidden transition-transform duration-300" style="transform: translateX(0);">
         <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
             <div>
                 <h2 class="text-xl font-bold text-[#8b1e3f]">Upload Staff List</h2>
