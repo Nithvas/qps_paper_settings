@@ -322,59 +322,112 @@
 
     const TableManager = {
 
-        currentSort: { col: null, dir: 'asc' },
+        currentSort: { col: null, dir: null },
 
         init() {
             this.attachSortingHandlers();
+            this.markOriginalRowOrder();
         },
 
-        getCellValue(row, colIndex) {
+        markOriginalRowOrder() {
+            const tbody = document.getElementById('staffTableBody');
+            if (!tbody) return;
+            const rows = Array.from(tbody.querySelectorAll('tr.staff-row'));
+            rows.forEach((row, index) => {
+                if (typeof row.dataset.originalIndex === 'undefined') {
+                    row.dataset.originalIndex = index;
+                }
+            });
+        },
+
+        getColumnIndex(colName) {
+            const headers = document.querySelectorAll('.sortable-th');
+            for (let i = 0; i < headers.length; i++) {
+                if (headers[i].getAttribute('data-col') === colName) {
+                    return headers[i].cellIndex;
+                }
+            }
+            return -1;
+        },
+
+        getCellValueByIndex(row, colIndex) {
             const cells = row.cells;
             if (!cells[colIndex]) return '';
             return cells[colIndex]?.innerText?.trim() || '';
         },
 
-        sortByColumn(colIndex, thElement) {
+        sortByColumn(colName, thElement) {
 
             const tbody = document.getElementById('staffTableBody');
             if (!tbody) return;
             const rows = Array.from(tbody.querySelectorAll('tr.staff-row'));
             if (!rows.length) return;
+            this.markOriginalRowOrder();
 
-            let direction = (this.currentSort.col === colIndex && this.currentSort.dir === 'asc') ? 'desc' : 'asc';
-            this.currentSort = { col: colIndex, dir: direction };
+            let direction;
+            if (this.currentSort.col === colName) {
+                if (this.currentSort.dir === 'asc') direction = 'desc';
+                else if (this.currentSort.dir === 'desc') direction = null;
+                else direction = 'asc';
+            } else {
+                direction = 'asc';
+            }
+
+            this.currentSort = { col: direction ? colName : null, dir: direction };
 
             // Update sort icons
             document.querySelectorAll('.sortable-th .sort-icon').forEach(icon => {
                 icon.classList.remove('bi-arrow-up', 'bi-arrow-down');
                 icon.classList.add('bi-arrow-down-up');
+                icon.style.color = '';
             });
             const targetIcon = thElement.querySelector('.sort-icon');
-            if (targetIcon) {
+            if (targetIcon && direction) {
                 targetIcon.classList.remove('bi-arrow-down-up');
                 targetIcon.classList.add(direction === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down');
                 targetIcon.style.color = '#4f46e5';
             }
 
-            // Sort rows
-            rows.sort((a, b) => {
-                let valA = this.getCellValue(a, colIndex);
-                let valB = this.getCellValue(b, colIndex);
-                if (typeof valA === 'string') valA = valA.toLowerCase();
-                if (typeof valB === 'string') valB = valB.toLowerCase();
-                if (valA < valB) return direction === 'asc' ? -1 : 1;
-                if (valA > valB) return direction === 'asc' ? 1 : -1;
-                return 0;
-            });
+            if (direction === null) {
+                rows.sort((a, b) => Number(a.dataset.originalIndex) - Number(b.dataset.originalIndex));
+            } else {
+                const colIndex = this.getColumnIndex(colName);
+                if (colIndex === -1) return;
 
-            rows.forEach(row => tbody.appendChild(row));
+                rows.sort((a, b) => {
+                    let valA = this.getCellValueByIndex(a, colIndex);
+                    let valB = this.getCellValueByIndex(b, colIndex);
+
+                    const numA = parseFloat(valA.replace(/[^0-9.-]+/g, ''));
+                    const numB = parseFloat(valB.replace(/[^0-9.-]+/g, ''));
+                    if (!isNaN(numA) && !isNaN(numB)) {
+                        return direction === 'asc' ? numA - numB : numB - numA;
+                    }
+
+                    if (typeof valA === 'string') valA = valA.toLowerCase();
+                    if (typeof valB === 'string') valB = valB.toLowerCase();
+                    if (valA < valB) return direction === 'asc' ? -1 : 1;
+                    if (valA > valB) return direction === 'asc' ? 1 : -1;
+                    return 0;
+                });
+            }
+
+            rows.forEach((row, index) => {
+                const serialCell = row.querySelector('td:first-child span');
+                if (serialCell) {
+                    serialCell.textContent = index + 1;
+                } else if (row.cells[0]) {
+                    row.cells[0].textContent = index + 1;
+                }
+                tbody.appendChild(row);
+            });
         },
 
         attachSortingHandlers() {
             document.querySelectorAll('.sortable-th').forEach(th => {
-                th.addEventListener('click', (e) => {
-                    const colIdx = parseInt(th.getAttribute('data-col-index'), 10);
-                    if (!isNaN(colIdx)) this.sortByColumn(colIdx, th);
+                th.addEventListener('click', () => {
+                    const colName = th.getAttribute('data-col');
+                    if (colName) this.sortByColumn(colName, th);
                 });
             });
         }

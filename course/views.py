@@ -9,12 +9,10 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from datetime import datetime
 from .models import Course
-from core.models import FieldReference
+from core.models import FieldReference, AuditLog, SystemSetting
 import json
 
-
 def course_list(request):
-    """Display paginated list of courses with search, filter, and sorting"""
     
     course_queryset = Course.objects.all()
 
@@ -103,10 +101,8 @@ def course_list(request):
 
     return render(request, 'course/course_list.html', context)
 
-
 @require_http_methods(["GET"])
 def get_field_options(request):
-    """AJAX endpoint to get field options for dropdowns"""
     
     field_name = request.GET.get('field')
     search_query = request.GET.get('search', '')
@@ -147,10 +143,8 @@ def get_field_options(request):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
-
 @require_http_methods(["GET", "POST"])
 def course_add(request):
-    """Add a new course"""
     
     if request.method == "POST":
         try:
@@ -228,11 +222,9 @@ def course_add(request):
     }
     return render(request, 'courses/course_form.html', context)
 
-
 @require_http_methods(["GET", "POST"])
 def course_edit(request, course_code):
-    """Edit an existing course"""
-    
+
     course = get_object_or_404(Course, course_code=course_code)
 
     if request.method == "GET":
@@ -302,10 +294,8 @@ def course_edit(request, course_code):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
-
 @require_http_methods(["POST"])
 def course_delete(request, course_code):
-    """Delete a course"""
     try:
         course = get_object_or_404(Course, course_code=course_code)
         course.delete()
@@ -313,10 +303,8 @@ def course_delete(request, course_code):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
-
 @require_http_methods(["POST"])
 def course_upload(request):
-    """Upload courses from Excel file"""
     
     if request.method == "POST" and request.FILES.get('file'):
 
@@ -341,51 +329,93 @@ def course_upload(request):
                 'examiner': set(),
             }
 
-            for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+            # Helper function to safely convert to integer (handles decimals)
+            def safe_int(value, default=0):
+                if value is None or str(value).strip() == '':
+                    return default
                 try:
-                    # Validate required fields
-                    if not row[7]:  # course_code
+                    return int(float(value))
+                except (ValueError, TypeError):
+                    return default
+
+            # Helper function to safely convert to float (for credit)
+            def safe_float(value, default=0.0):
+                if value is None or str(value).strip() == '':
+                    return default
+                try:
+                    return float(value)
+                except (ValueError, TypeError):
+                    return default
+
+            # Helper function to safely convert to string
+            def safe_str(value, default=''):
+                if value is None:
+                    return default
+                return str(value).strip()
+
+            for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+
+                try:
+
+                    row_list = list(row) if row else []
+                    
+                    if len(row_list) <= 5 or not row_list[5]:
                         errors.append(f"Row {row_idx}: Course code is required")
                         error_count += 1
                         continue
 
-                    if not row[9]:  # course_title
+                    if len(row_list) <= 7 or not row_list[7]:
                         errors.append(f"Row {row_idx}: Course title is required")
                         error_count += 1
                         continue
 
-                    # Collect field options
-                    if row[0]: new_field_options['program_type'].add(str(row[0]).strip())
-                    if row[1]: new_field_options['degree'].add(str(row[1]).strip())
-                    if row[2]: new_field_options['branch'].add(str(row[2]).strip())
-                    if row[3]: new_field_options['branch_final'].add(str(row[3]).strip())
-                    if row[5]: new_field_options['course_category'].add(str(row[5]).strip())
-                    if row[10]: new_field_options['semester'].add(str(row[10]).strip())
-                    if row[11]: new_field_options['part'].add(str(row[11]).strip())
-                    if row[16]: new_field_options['examiner_type'].add(str(row[16]).strip())
-                    if row[17]: new_field_options['examiner'].add(str(row[17]).strip())
+                    # Collect field options 
+                    if len(row_list) > 0 and row_list[0]: 
+                        new_field_options['program_type'].add(safe_str(row_list[0]))
+                    if len(row_list) > 1 and row_list[1]: 
+                        new_field_options['degree'].add(safe_str(row_list[1]))
+                    if len(row_list) > 2 and row_list[2]: 
+                        new_field_options['branch'].add(safe_str(row_list[2]))
+                    if len(row_list) > 3 and row_list[3]: 
+                        new_field_options['branch_final'].add(safe_str(row_list[3]))
+                    if len(row_list) > 4 and row_list[4]: 
+                        new_field_options['course_category'].add(safe_str(row_list[4]))
+                    if len(row_list) > 8 and row_list[8]: 
+                        new_field_options['semester'].add(safe_str(row_list[8]))
+                    if len(row_list) > 9 and row_list[9]: 
+                        new_field_options['part'].add(safe_str(row_list[9]))
+                    if len(row_list) > 15 and row_list[15]: 
+                        new_field_options['examiner_type'].add(safe_str(row_list[15]))
+                    if len(row_list) > 16 and row_list[16]: 
+                        new_field_options['examiner'].add(safe_str(row_list[16]))
+
+                    # Calculate total mark if not provided
+                    internal_mark = safe_int(row_list[12] if len(row_list) > 12 else None)
+                    external_mark = safe_int(row_list[13] if len(row_list) > 13 else None)
+                    total_mark = safe_int(row_list[14] if len(row_list) > 14 else None, internal_mark + external_mark)
 
                     course_data = {
-                        'program_type': row[0] if row[0] else None,
-                        'degree': row[1] if row[1] else None,
-                        'branch': row[2] if row[2] else None,
-                        'branch_final': row[3] if row[3] else None,
-                        'course_code': str(row[7]).strip() if row[7] else None,
-                        'course_id': str(row[8]).strip() if row[8] else None,
-                        'course_category': row[5] if row[5] else None,
-                        'course_title': str(row[9]).strip() if row[9] else None,
-                        'semester': row[10] if row[10] else None,
-                        'part': row[11] if row[11] else None,
-                        'hours': int(row[12]) if row[12] and str(row[12]).strip() else 0,
-                        'credit': float(row[13]) if row[13] and str(row[13]).strip() else 0,
-                        'internal_mark': int(row[14]) if row[14] and str(row[14]).strip() else 0,
-                        'external_mark': int(row[15]) if row[15] and str(row[15]).strip() else 0,
-                        'total_mark': int(row[16]) if len(row) > 16 and row[16] and str(row[16]).strip() else 0,
-                        'examiner_type': row[17] if len(row) > 17 and row[17] else None,
-                        'examiner': row[18] if len(row) > 18 and row[18] else None,
-                        'remark': row[19] if len(row) > 19 and row[19] else None,
+                        'program_type': safe_str(row_list[0] if len(row_list) > 0 else None) or None,
+                        'degree': safe_str(row_list[1] if len(row_list) > 1 else None) or None,
+                        'branch': safe_str(row_list[2] if len(row_list) > 2 else None) or None,
+                        'branch_final': safe_str(row_list[3] if len(row_list) > 3 else None) or None,
+                        'course_category': safe_str(row_list[4] if len(row_list) > 4 else None) or None,
+                        'course_code': safe_str(row_list[5] if len(row_list) > 5 else None),
+                        'course_id': safe_str(row_list[6] if len(row_list) > 6 else None) or None,
+                        'course_title': safe_str(row_list[7] if len(row_list) > 7 else None),
+                        'semester': safe_str(row_list[8] if len(row_list) > 8 else None) or None,
+                        'part': safe_str(row_list[9] if len(row_list) > 9 else None) or None,
+                        'hours': safe_int(row_list[10] if len(row_list) > 10 else None),
+                        'credit': safe_float(row_list[11] if len(row_list) > 11 else None),
+                        'internal_mark': safe_int(row_list[12] if len(row_list) > 12 else None),
+                        'external_mark': safe_int(row_list[13] if len(row_list) > 13 else None),
+                        'total_mark': safe_int(row_list[14] if len(row_list) > 14 else None),
+                        'examiner_type': safe_str(row_list[15] if len(row_list) > 15 else None) or None,
+                        'examiner': safe_str(row_list[16] if len(row_list) > 16 else None) or None,
+                        'remark': safe_str(row_list[17] if len(row_list) > 17 else None) or None,   
                     }
 
+                    # Update or create course
                     course, created = Course.objects.update_or_create(
                         course_code=course_data['course_code'],
                         defaults=course_data
@@ -395,6 +425,7 @@ def course_upload(request):
                 except Exception as e:
                     error_count += 1
                     errors.append(f"Row {row_idx}: {str(e)}")
+                    print(f"Error on row {row_idx}: {str(e)}")  
 
             # Add new options to FieldReference
             added_options_count = 0
@@ -423,18 +454,21 @@ def course_upload(request):
                 'success': True,
                 'success_count': success_count,
                 'error_count': error_count,
-                'errors': errors,
+                'errors': errors[:50],  
                 'new_options_added': added_options_count
             })
 
         except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
+            import traceback
+            return JsonResponse({
+                'success': False, 
+                'error': str(e),
+                'traceback': traceback.format_exc()
+            })
 
     return JsonResponse({'success': False, 'error': 'No file provided'})
 
-
 def course_export(request):
-    """Export all courses to Excel"""
     
     wb = Workbook()
     ws = wb.active
@@ -446,10 +480,10 @@ def course_export(request):
     header_alignment = Alignment(horizontal="center", vertical="center")
 
     headers = [
-        'Program Type', 'Degree', 'Branch', 'Branch Final', 'ID', 'Course Category',
+        'Program Type', 'Degree', 'Branch', 'Branch Final', 'Course Category',
         'Course Code', 'Course ID', 'Course Title', 'Semester', 'Part', 'Hours',
         'Credit', 'Internal Mark', 'External Mark', 'Total Mark', 'Examiner Type',
-        'Examiner', 'Remark', 'Created At', 'Updated At'
+        'Examiner', 'Remark'
     ]
 
     for col_idx, header in enumerate(headers, start=1):
@@ -464,23 +498,20 @@ def course_export(request):
         ws.cell(row=row_idx, column=2, value=course.degree or '')
         ws.cell(row=row_idx, column=3, value=course.branch or '')
         ws.cell(row=row_idx, column=4, value=course.branch_final or '')
-        ws.cell(row=row_idx, column=5, value=course.id)
-        ws.cell(row=row_idx, column=6, value=course.course_category or '')
-        ws.cell(row=row_idx, column=7, value=course.course_code or '')
-        ws.cell(row=row_idx, column=8, value=course.course_id or '')
-        ws.cell(row=row_idx, column=9, value=course.course_title or '')
-        ws.cell(row=row_idx, column=10, value=course.semester or '')
-        ws.cell(row=row_idx, column=11, value=course.part or '')
-        ws.cell(row=row_idx, column=12, value=course.hours or '')
-        ws.cell(row=row_idx, column=13, value=str(course.credit) if course.credit else '')
-        ws.cell(row=row_idx, column=14, value=course.internal_mark or '')
-        ws.cell(row=row_idx, column=15, value=course.external_mark or '')
-        ws.cell(row=row_idx, column=16, value=course.total_mark or '')
-        ws.cell(row=row_idx, column=17, value=course.examiner_type or '')
-        ws.cell(row=row_idx, column=18, value=course.examiner or '')
-        ws.cell(row=row_idx, column=19, value=course.remark or '')
-        ws.cell(row=row_idx, column=20, value=course.created_at.strftime('%Y-%m-%d %H:%M:%S') if course.created_at else '')
-        ws.cell(row=row_idx, column=21, value=course.updated_at.strftime('%Y-%m-%d %H:%M:%S') if course.updated_at else '')
+        ws.cell(row=row_idx, column=5, value=course.course_category or '')
+        ws.cell(row=row_idx, column=6, value=course.course_code or '')
+        ws.cell(row=row_idx, column=7, value=course.course_id or '')
+        ws.cell(row=row_idx, column=8, value=course.course_title or '')
+        ws.cell(row=row_idx, column=9, value=course.semester or '')
+        ws.cell(row=row_idx, column=10, value=course.part or '')
+        ws.cell(row=row_idx, column=11, value=course.hours or '')
+        ws.cell(row=row_idx, column=12, value=str(course.credit) if course.credit else '')
+        ws.cell(row=row_idx, column=13, value=course.internal_mark or '')
+        ws.cell(row=row_idx, column=14, value=course.external_mark or '')
+        ws.cell(row=row_idx, column=15, value=course.total_mark or '')
+        ws.cell(row=row_idx, column=16, value=course.examiner_type or '')
+        ws.cell(row=row_idx, column=17, value=course.examiner or '')
+        ws.cell(row=row_idx, column=18, value=course.remark or '')
 
     # Auto-adjust column widths
     for column in ws.columns:
@@ -502,9 +533,7 @@ def course_export(request):
     wb.save(response)
     return response
 
-
 def course_sample(request):
-    """Download sample Excel template for course upload"""
     
     wb = Workbook()
     ws = wb.active
@@ -515,8 +544,8 @@ def course_sample(request):
     header_alignment = Alignment(horizontal="center", vertical="center")
 
     headers = [
-        'Program Type', 'Degree', 'Branch', 'Branch Final', 'ID', 'Course Category',
-        'Course Code*', 'Course ID', 'Course Title*', 'Semester', 'Part', 'Hours',
+        'Program Type', 'Degree', 'Branch', 'Branch Final', 'Course Category',
+        'Course Code', 'Course ID', 'Course Title', 'Semester', 'Part', 'Hours',
         'Credit', 'Internal Mark', 'External Mark', 'Total Mark', 'Examiner Type',
         'Examiner', 'Remark'
     ]
@@ -528,7 +557,7 @@ def course_sample(request):
         cell.alignment = header_alignment
 
     sample_data = [
-        'Regular', 'B.Tech', 'Computer Science', 'CSE Final', '1', 'Core',
+        'Regular', 'B.Tech', 'Computer Science', 'CSE Final', 'Core',
         'CS101', 'CS101', 'Introduction to Programming', '1', '1', '4',
         '3.0', '40', '60', '100', 'Internal', 'Dr. John Smith', 'Sample course record'
     ]
@@ -565,7 +594,6 @@ def course_sample(request):
     response['Content-Disposition'] = 'attachment; filename=Course Template.xlsx'
     wb.save(response)
     return response
-
 
 def course_details(request, course_code):
     """Get detailed information of a specific course"""

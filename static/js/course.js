@@ -143,9 +143,9 @@
             }
 
             // Reset manual input fields
-            const manualFields = ['drawerCourseCode', 'drawerCourseId', 'drawerCourseTitle', 
-                                  'drawerHours', 'drawerCredit', 'drawerInternalMark', 
-                                  'drawerExternalMark', 'drawerTotalMark', 'drawerRemark'];
+            const manualFields = ['drawerCourseCode', 'drawerCourseId', 'drawerCourseTitle',
+                'drawerHours', 'drawerCredit', 'drawerInternalMark',
+                'drawerExternalMark', 'drawerTotalMark', 'drawerRemark'];
             manualFields.forEach(fieldId => {
                 const field = document.getElementById(fieldId);
                 if (field) field.value = '';
@@ -312,7 +312,7 @@
 
         openDetails(courseCode) {
             if (!this.detailsDrawer) return;
-            
+
             this.detailsDrawer.classList.remove('hidden');
             lockBodyScroll();
             this.loadCourseDetails(courseCode);
@@ -571,10 +571,22 @@
 
     const TableManager = {
 
-        currentSort: { col: null, dir: 'asc' },
+        currentSort: { col: null, dir: null },
 
         init() {
             this.attachSortingHandlers();
+            this.markOriginalRowOrder();
+        },
+
+        markOriginalRowOrder() {
+            const tbody = document.getElementById('courseTableBody');
+            if (!tbody) return;
+            const rows = Array.from(tbody.querySelectorAll('tr.course-row'));
+            rows.forEach((row, index) => {
+                if (typeof row.dataset.originalIndex === 'undefined') {
+                    row.dataset.originalIndex = index;
+                }
+            });
         },
 
         getCellValue(row, colName) {
@@ -589,8 +601,7 @@
             const headers = document.querySelectorAll('.sortable-th');
             for (let i = 0; i < headers.length; i++) {
                 if (headers[i].getAttribute('data-col') === colName) {
-                    // +1 because first column is S.No
-                    return i + 1;
+                    return headers[i].cellIndex;
                 }
             }
             return -1;
@@ -602,9 +613,18 @@
             if (!tbody) return;
             const rows = Array.from(tbody.querySelectorAll('tr.course-row'));
             if (!rows.length) return;
+            this.markOriginalRowOrder();
 
-            let direction = (this.currentSort.col === colName && this.currentSort.dir === 'asc') ? 'desc' : 'asc';
-            this.currentSort = { col: colName, dir: direction };
+            let direction;
+            if (this.currentSort.col === colName) {
+                if (this.currentSort.dir === 'asc') direction = 'desc';
+                else if (this.currentSort.dir === 'desc') direction = null;
+                else direction = 'asc';
+            } else {
+                direction = 'asc';
+            }
+
+            this.currentSort = { col: direction ? colName : null, dir: direction };
 
             // Update sort icons
             document.querySelectorAll('.sortable-th .sort-icon').forEach(icon => {
@@ -613,34 +633,46 @@
                 icon.style.color = '';
             });
             const targetIcon = thElement.querySelector('.sort-icon');
-            if (targetIcon) {
+            if (targetIcon && direction) {
                 targetIcon.classList.remove('bi-arrow-down-up');
                 targetIcon.classList.add(direction === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down');
                 targetIcon.style.color = '#4f46e5';
             }
 
-            const colIndex = this.getColumnIndex(colName);
+            if (direction === null) {
+                rows.sort((a, b) => Number(a.dataset.originalIndex) - Number(b.dataset.originalIndex));
+            } else {
+                const colIndex = this.getColumnIndex(colName);
+                if (colIndex === -1) return;
 
-            // Sort rows
-            rows.sort((a, b) => {
-                let valA = this.getCellValueByIndex(a, colIndex);
-                let valB = this.getCellValueByIndex(b, colIndex);
-                
-                // Try numeric comparison first
-                const numA = parseFloat(valA);
-                const numB = parseFloat(valB);
-                if (!isNaN(numA) && !isNaN(numB)) {
-                    return direction === 'asc' ? numA - numB : numB - numA;
+                rows.sort((a, b) => {
+                    let valA = this.getCellValueByIndex(a, colIndex);
+                    let valB = this.getCellValueByIndex(b, colIndex);
+
+                    // Try numeric comparison first
+                    const numA = parseFloat(valA);
+                    const numB = parseFloat(valB);
+                    if (!isNaN(numA) && !isNaN(numB)) {
+                        return direction === 'asc' ? numA - numB : numB - numA;
+                    }
+
+                    if (typeof valA === 'string') valA = valA.toLowerCase();
+                    if (typeof valB === 'string') valB = valB.toLowerCase();
+                    if (valA < valB) return direction === 'asc' ? -1 : 1;
+                    if (valA > valB) return direction === 'asc' ? 1 : -1;
+                    return 0;
+                });
+            }
+
+            rows.forEach((row, index) => {
+                const serialCell = row.querySelector('td:first-child span');
+                if (serialCell) {
+                    serialCell.textContent = index + 1;
+                } else if (row.cells[0]) {
+                    row.cells[0].textContent = index + 1;
                 }
-                
-                if (typeof valA === 'string') valA = valA.toLowerCase();
-                if (typeof valB === 'string') valB = valB.toLowerCase();
-                if (valA < valB) return direction === 'asc' ? -1 : 1;
-                if (valA > valB) return direction === 'asc' ? 1 : -1;
-                return 0;
+                tbody.appendChild(row);
             });
-
-            rows.forEach(row => tbody.appendChild(row));
         },
 
         getCellValueByIndex(row, colIndex) {
@@ -1350,7 +1382,7 @@
             }, 200);
 
             try {
-                const response = await fetch("/courses/upload/", {
+                const response = await fetch("/course/upload/", {
                     method: 'POST',
                     body: formData,
                     headers: { 'X-CSRFToken': csrftoken }
@@ -1371,7 +1403,7 @@
                     const successCount = document.getElementById('successCount');
                     const errorCount = document.getElementById('errorCount');
                     const newOptionsCount = document.getElementById('newOptionsCount');
-                    
+
                     if (successCount) successCount.textContent = result.success_count || 0;
                     if (errorCount) errorCount.textContent = result.error_count || 0;
                     if (newOptionsCount) newOptionsCount.textContent = result.new_options_count || 0;
@@ -1463,7 +1495,7 @@
             // Preserve current filters and search
             const urlParams = new URLSearchParams(window.location.search);
             urlParams.set('page', nextPage);
-            
+
             // If it's an AJAX request, we want to append content
             urlParams.set('ajax', '1');
 
@@ -1472,17 +1504,17 @@
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
                 const html = await response.text();
-                
+
                 // Parse the HTML to extract new rows
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 const newRows = doc.querySelectorAll('#courseTableBody tr.course-row');
                 const tbody = document.getElementById('courseTableBody');
-                
+
                 if (tbody && newRows.length) {
                     newRows.forEach(row => tbody.appendChild(row));
                 }
-                
+
                 // Update pagination info
                 const hasNext = doc.querySelector('#loadMoreBtn');
                 if (hasNext) {
@@ -1490,7 +1522,7 @@
                     btn.setAttribute('data-next-page', newNextPage);
                     btn.disabled = false;
                     btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Load More Courses';
-                    
+
                     // If no more pages, hide the button
                     if (!newNextPage || newNextPage === 'None') {
                         btn.style.display = 'none';
@@ -1498,14 +1530,14 @@
                 } else {
                     btn.style.display = 'none';
                 }
-                
+
                 // Update total count display
                 const totalCountSpan = document.querySelector('.font-mono.bg-white.shadow-sm');
                 const newTotalCount = doc.querySelector('.font-mono.bg-white.shadow-sm');
                 if (totalCountSpan && newTotalCount) {
                     totalCountSpan.textContent = newTotalCount.textContent;
                 }
-                
+
             } catch (error) {
                 console.error('Error loading more courses:', error);
                 showToast('Failed to load more courses', 'error');
