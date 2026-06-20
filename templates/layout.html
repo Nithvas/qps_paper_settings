@@ -18,15 +18,23 @@
                 </div>
             </div>
 
-            <div class="flex-1 p-4 space-y-6 overflow-y-auto">
+            <div class="flex-1 p-4 space-y-6 overflow-y-auto sidebar-scroll">
                 
+                <!-- DASHBOARD & OVERVIEW -->
                 <div>
-                    <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 px-2.5 mb-4">Core Operations</p>
+                    <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 px-2.5 mb-4">Overview</p>
                     <nav class="space-y-2.5">
                         <a href="{% url 'dashboard' %}" class="menu-item group flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all duration-150">
                             <i class="bi bi-columns-gap text-[14px] text-slate-400 group-hover:text-[#8b1e3f] transition-colors"></i>
                             <span>System Dashboard</span>
                         </a>
+                    </nav>
+                </div>
+
+                <!-- MASTER DATA -->
+                <div>
+                    <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 px-2.5 mb-4">Master Data</p>
+                    <nav class="space-y-2.5">
                         <a href="{% url 'staff:staff_list' %}" class="menu-item group flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all duration-150">
                             <i class="bi bi-person-workspace text-[14px] text-slate-400 group-hover:text-[#8b1e3f] transition-colors"></i>
                             <span>Staff Directory</span>
@@ -35,24 +43,89 @@
                             <i class="bi bi-journal-code text-[14px] text-slate-400 group-hover:text-[#8b1e3f] transition-colors"></i>
                             <span>Course Master</span>
                         </a>
-                        <a href="#" class="menu-item group flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all duration-150">
-                            <i class="bi bi-file-earmark-text text-[14px] text-slate-400 group-hover:text-[#8b1e3f] transition-colors"></i>
-                            <span>Syllabus Registries</span>
-                        </a>
-                        <a href="{% url 'qps_allocations' %}" class="menu-item group flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all duration-150">
-                            <i class="bi bi-ui-checks-grid text-[14px] text-slate-400 group-hover:text-[#8b1e3f] transition-colors"></i>
-                            <span>QPS Allocations</span>
+                        <a href="{% url 'academic:academic_year_list' %}" class="menu-item group flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all duration-150">
+                            <i class="bi bi-calendar-event text-[14px] text-slate-400 group-hover:text-[#8b1e3f] transition-colors"></i>
+                            <span>Academic Years</span>
                         </a>
                     </nav>
                 </div>
 
+                <!-- QPS MANAGEMENT -->
                 <div>
-                    <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 px-2.5 mb-4">Administrative</p>
+                    <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 px-2.5 mb-4">QPS Management</p>
+                    <nav class="space-y-2.5">
+                        <a href="{% url 'qps_allocations' %}" class="menu-item group flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all duration-150">
+                            <i class="bi bi-ui-checks-grid text-[14px] text-slate-400 group-hover:text-[#8b1e3f] transition-colors"></i>
+                            <span>QPS Allocations</span>
+                            <span class="ml-auto bg-amber-100 text-amber-700 text-[9px] font-black px-2 py-0.5 rounded-full">12</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- SYLLABUS -->
+                <div>
+                    <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 px-2.5 mb-4">Syllabus</p>
+                    <nav class="space-y-2.5">
+                        <a href="#" class="menu-item group flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all duration-150">
+                            <i class="bi bi-file-earmark-text text-[14px] text-slate-400 group-hover:text-[#8b1e3f] transition-colors"></i>
+                            <span>Syllabus Registry</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- TEMPLATES -->
+                <div>
+                    <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 px-2.5 mb-4">Patterns</p>
+                    <nav class="space-y-2.5">
+                        <a href="{% url 'pattern:pattern_list' %}" class="menu-item group flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all duration-150">
+                            <i class="bi bi-layout-three-columns text-[14px] text-slate-400 group-hover:text-[#8b1e3f] transition-colors"></i>
+                            <span>Question Patterns</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- QUESTION PAPERS -->
+                <div>
+                    <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 px-2.5 mb-4">Question Papers</p>
+                    <nav class="space-y-2.5">
+                        <a href="#" class="menu-item group flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all duration-150">
+                            <i class="bi bi-check2-square text-[14px] text-slate-400 group-hover:text-[#8b1e3f] transition-colors"></i>
+                            <span>Review & Approve</span>
+                            <span class="ml-auto bg-purple-100 text-purple-700 text-[9px] font-black px-2 py-0.5 rounded-full">4</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- REPORTS & ANALYTICS -->
+                <div>
+                    <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 px-2.5 mb-4">Reports & Analytics</p>
+                    <nav class="space-y-2.5">
+                        <a href="#" class="menu-item group flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all duration-150">
+                            <i class="bi bi-bar-chart-fill text-[14px] text-slate-400 group-hover:text-[#8b1e3f] transition-colors"></i>
+                            <span>QPS Status Report</span>
+                        </a>
+                        <a href="#" class="menu-item group flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all duration-150">
+                            <i class="bi bi-clock-history text-[14px] text-slate-400 group-hover:text-[#8b1e3f] transition-colors"></i>
+                            <span>Audit Trail</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- SYSTEM CONFIGURATION -->
+                <div>
+                    <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 px-2.5 mb-4">System Configuration</p>
                     <nav class="space-y-2.5">
                         <a href="#" class="menu-item group flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all duration-150">
                             <i class="bi bi-person-plus text-[14px] text-slate-400 group-hover:text-[#8b1e3f] transition-colors"></i>
                             <span>User Management</span>
                         </a>
+                    </nav>
+                </div>
+
+                <!-- ADMINISTRATIVE -->
+                <div>
+                    <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 px-2.5 mb-4">Administrative</p>
+                    <nav class="space-y-2.5">
                         <a href="#" class="menu-item group flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all duration-150">
                             <i class="bi bi-key text-[14px] text-slate-400 group-hover:text-[#8b1e3f] transition-colors"></i>
                             <span>Change Password</span>
@@ -96,8 +169,17 @@
                 {% endblock %}
             </main>
         </div>
-
     </div>
+
+    <style>
+        .sidebar-scroll {
+            -ms-overflow-style: none;   
+            scrollbar-width: none;      
+        }
+        .sidebar-scroll::-webkit-scrollbar {
+            display: none;              
+        }
+    </style>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {

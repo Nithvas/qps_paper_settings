@@ -26,6 +26,8 @@ INSTALLED_APPS = [
     'core',
     'staff',
     'course',
+    'academic', 
+    'pattern',
 ]
 
 

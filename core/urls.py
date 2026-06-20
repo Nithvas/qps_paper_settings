@@ -15,6 +15,7 @@ urlpatterns = [
     # Apps
     path('staff/', include('staff.urls')),
     path('course/', include('course.urls')),
+    path('academic/', include('academic.urls')),
     
     # Field Reference endpoints 
     path('api/get-field-options/', core_views.get_field_options, name='get_field_options'),

@@ -1535,6 +1535,7 @@
     window.staffApp = {
         openDrawer: (staffPhone) => DrawerManager.openStaff(staffPhone),
         closeDrawer: () => DrawerManager.closeStaff(),
+
         openDeleteDrawer: (staffPhone, staffName) => DrawerManager.openDelete(staffPhone, staffName, () => {
             DeleteManager.executeDelete(staffPhone);
         }),

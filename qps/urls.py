@@ -10,5 +10,7 @@ urlpatterns = [
     path('qps/', views.qps_allocations, name='qps_allocations'),
     path('staff/', include('staff.urls')), 
     path('course/', include('course.urls')), 
+    path('academic/', include('academic.urls')), 
+    path('pattern/', include('pattern.urls')),
 ]
 
