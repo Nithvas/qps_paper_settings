@@ -45,6 +45,10 @@ def login_view(request):
 def dashboard(request):
     return render(request, 'dashboard.html')
 
+@login_required
+def qps_allocations(request):
+    return render(request, 'qps_allocations.html')
+
 # -------------------------------------------------------------------------------------------------------------------
 # Generic Field Reference APIs (Used by all apps)
 # -------------------------------------------------------------------------------------------------------------------
