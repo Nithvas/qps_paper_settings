@@ -198,6 +198,7 @@
                 'drawerStaffId': staff.staff_id,
                 'drawerName': staff.name,
                 'drawerPhone': staff.phone,
+                'drawerPassword': staff.password,   // added password
                 'drawerEmail': staff.email,
                 'drawerDoj': staff.doj,
                 'drawerDor': staff.dor,
@@ -217,15 +218,13 @@
                 editStaffPhoneField.value = staff.phone;
             }
 
+            // Removed drawerProgramType mapping; added password already handled above
             const selectMappings = {
                 'drawerDesignation': staff.designation,
                 'drawerProgram': staff.program,
-                'drawerDepartment': staff.department,
                 'drawerCollege': staff.college,
-                'drawerCity': staff.city,
                 'drawerDistrict': staff.district,
                 'drawerBankName': staff.bank_name,
-                'drawerProgramType': staff.program_type,
                 'drawerStaffCategory': staff.staff_category,
                 'drawerDeptCategory': staff.dept_category,
                 'drawerExaminerType': staff.examiner_type,
@@ -318,7 +317,8 @@
             if (resetBtn) {
                 resetBtn.addEventListener('click', () => {
                     const url = new URL(window.location.href);
-                    const filterFields = ['designation', 'program_type', 'staff_category', 'dept_category', 'branch', 'program', 'department', 'college', 'search'];
+                    // Removed 'program_type' from filter fields
+                    const filterFields = ['designation', 'staff_category', 'dept_category', 'branch', 'program', 'college', 'search'];
                     filterFields.forEach(field => url.searchParams.delete(field));
                     url.searchParams.delete('page');
                     window.location.href = url.toString();
@@ -1434,15 +1434,13 @@
                 return urlParams.get(name);
             }
 
+            // Removed drawerProgramType from the list
             const selectFields = [
                 { id: 'drawerDesignation', fieldName: 'designation', placeholder: 'Search or add designation...' },
                 { id: 'drawerProgram', fieldName: 'program', placeholder: 'Search or add programme...' },
-                { id: 'drawerDepartment', fieldName: 'department', placeholder: 'Search or add department...' },
                 { id: 'drawerCollege', fieldName: 'college', placeholder: 'Search or add college...' },
-                { id: 'drawerCity', fieldName: 'city', placeholder: 'Search or add city...' },
                 { id: 'drawerDistrict', fieldName: 'district', placeholder: 'Search or add district...' },
                 { id: 'drawerBankName', fieldName: 'bank_name', placeholder: 'Search or add bank...' },
-                { id: 'drawerProgramType', fieldName: 'program_type', placeholder: 'Search or add program type...' },
                 { id: 'drawerStaffCategory', fieldName: 'staff_category', placeholder: 'Search or add staff category...' },
                 { id: 'drawerDeptCategory', fieldName: 'dept_category', placeholder: 'Search or add dept category...' },
                 { id: 'drawerExaminerType', fieldName: 'examiner_type', placeholder: 'Search or add examiner type...' },

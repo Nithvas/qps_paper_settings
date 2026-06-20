@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
@@ -7,6 +7,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.http import JsonResponse
+from staff.models import Staff
 import json
 from .models import FieldReference, AuditLog, SystemSetting
 
@@ -20,19 +21,28 @@ def login_view(request):
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
 
-        user_exists = User.objects.filter(username__iexact=username).exists()
-
-        if not user_exists:
-            messages.error(request, "Username not found.")
-            return render(request, 'login.html')
-
+        # --- 1. Try standard Django authentication (auth_user) ---
         user = authenticate(request, username=username, password=password)
-
         if user is not None:
             login(request, user)
             return redirect('dashboard')
-        else:
-            messages.error(request, "Incorrect password.")
+
+        # --- 2. Fallback: Staff model (phone as username, plain password) ---
+        try:
+            staff = Staff.objects.get(phone=username)
+            # Compare plain text password (no hashing)
+            if staff.password == password:
+                user, created = User.objects.get_or_create(username=staff.phone)
+                if created:
+                    user.set_unusable_password()
+                    user.save()
+                login(request, user)
+                return redirect('dashboard')
+            else:
+                messages.error(request, "Incorrect password.")
+                return render(request, 'login.html')
+        except Staff.DoesNotExist:
+            # messages.error(request, "Username not found.")
             return render(request, 'login.html')
 
     return render(request, 'login.html')
@@ -48,6 +58,11 @@ def dashboard(request):
 @login_required
 def qps_allocations(request):
     return render(request, 'qps_allocations.html')
+
+@login_required
+def logout_view(request):
+    logout(request)
+    return redirect('login')
 
 # -------------------------------------------------------------------------------------------------------------------
 # Generic Field Reference APIs (Used by all apps)

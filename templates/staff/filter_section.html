@@ -1,22 +1,13 @@
 <div class="space-y-6 w-full font-sans antialiased text-slate-600 mt-6">
     <div class="bg-white border border-slate-200/80 rounded-xl shadow-sm overflow-hidden w-full">
         <form method="get" action="" class="m-0 p-0" id="filterForm">
-            <div class="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-white">
+            <div class="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 bg-white">
                 <div class="space-y-1.5">
                     <label class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Designation :</label>
                     <select name="designation" class="filter-select w-full rounded-lg border border-slate-200 text-xs p-2 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
                         <option value="">All Designations</option>
                         {% for d in filter_options.designations %}
                         <option value="{{ d }}" {% if d == filters.designation %}selected{% endif %}>{{ d }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Program Type :</label>
-                    <select name="program_type" class="filter-select w-full rounded-lg border border-slate-200 text-xs p-2 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
-                        <option value="">All Program Types</option>
-                        {% for pt in filter_options.program_types %}
-                        <option value="{{ pt }}" {% if pt == filters.program_type %}selected{% endif %}>{{ pt }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -53,15 +44,6 @@
                         <option value="">All Programmes</option>
                         {% for p in filter_options.programs %}
                         <option value="{{ p }}" {% if p == filters.program %}selected{% endif %}>{{ p }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Department :</label>
-                    <select name="department" class="filter-select w-full rounded-lg border border-slate-200 text-xs p-2 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
-                        <option value="">All Departments</option>
-                        {% for d in filter_options.departments %}
-                        <option value="{{ d }}" {% if d == filters.department %}selected{% endif %}>{{ d }}</option>
                         {% endfor %}
                     </select>
                 </div>

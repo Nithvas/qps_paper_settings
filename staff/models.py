@@ -14,17 +14,19 @@ class Staff(models.Model):
         db_index=True
     )
 
+    password = models.CharField(max_length=100)
+
     # =======================================================================
     # Basic Details
     # =======================================================================
-    staff_id = models.CharField(max_length=50, unique=True)
+    staff_id = models.CharField(max_length=50, unique=True, null=True, blank=True)
     name = models.CharField(max_length=100)
     designation = models.CharField(max_length=100, blank=True, null=True)
 
     # =======================================================================
     # Staff Classification
     # =======================================================================
-    program_type = models.CharField(max_length=100, blank=True, null=True)
+    program = models.CharField(max_length=100, blank=True, null=True)
     staff_category = models.CharField(max_length=100, blank=True, null=True)
     dept_category = models.CharField(max_length=100, blank=True, null=True)
     examiner_type = models.CharField(max_length=50, blank=True, null=True)
@@ -35,8 +37,7 @@ class Staff(models.Model):
     # =======================================================================
     # Academic Details
     # =======================================================================
-    program = models.CharField(max_length=100, blank=True, null=True)
-    department = models.CharField(max_length=100, blank=True, null=True)
+
     college = models.CharField(max_length=150, blank=True, null=True)
 
     qualification = models.CharField(
@@ -49,7 +50,6 @@ class Staff(models.Model):
     # Address Details
     # =======================================================================
     place = models.CharField(max_length=100, blank=True, null=True)
-    city = models.CharField(max_length=100, blank=True, null=True)
     district = models.CharField(max_length=100, blank=True, null=True)
 
     # =======================================================================
@@ -93,10 +93,11 @@ class Staff(models.Model):
 
         from core.models import FieldReference
         
+        # Removed 'program_type' – only valid fields
         fields_to_reference = [
-            'designation', 'program_type', 'staff_category', 'dept_category',
-            'examiner_type', 'branch', 'branch_final', 'program', 'department',
-            'college', 'qualification', 'city', 'district', 'bank_name', 'bank_city'
+            'designation', 'staff_category', 'dept_category',
+            'examiner_type', 'branch', 'branch_final', 'program',
+            'college', 'qualification', 'district', 'bank_name', 'bank_city'
         ]
         
         for field in fields_to_reference:

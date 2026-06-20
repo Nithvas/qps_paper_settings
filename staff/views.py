@@ -1,4 +1,3 @@
-# staff/views.py
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -20,27 +19,29 @@ logger = logging.getLogger(__name__)
 
 # -------------------------------------------------------------------------------------------------------------------------
 
-# Display paginated list of staff with search, filters, and sorting
-# Uses: SystemSetting (pagination, logging), AuditLog (optional), FieldReference (filters)
-
 @login_required
 def staff_list(request):
-    
-    staff_queryset = Staff.objects.all()
 
-    # Get pagination setting from database
-    items_per_page = SystemSetting.get_setting('staff_items_per_page', 20)
-    
-    # Get sorting parameters
+    staff_queryset = Staff.objects.all()
+    ALLOWED_PER_PAGE = [25, 50, 75, 100, 500, 1000]
+    default_per_page = SystemSetting.get_setting('staff_items_per_page', 500)
+    per_page = request.GET.get('per_page', default_per_page)
+
+    try:
+        per_page = int(per_page)
+        if per_page not in ALLOWED_PER_PAGE:
+            per_page = default_per_page
+    except (ValueError, TypeError):
+        per_page = default_per_page
+
+    # --- Sorting ---
     sort_by = request.GET.get('sort', 'id')
     sort_dir = request.GET.get('dir', 'desc')
 
-    # Validate sort field
     valid_sort_fields = [
         'id', 'staff_id', 'name', 'designation', 'program',
-        'department', 'college', 'city', 'district', 'doj',
-        'dor', 'phone', 'email', 'bank_account', 'bank_name',
-        'ifsc_code', 'created_at'
+        'college', 'district', 'doj', 'dor', 'phone', 'email',
+        'bank_account', 'bank_name', 'ifsc_code', 'created_at'
     ]
 
     if sort_by in valid_sort_fields:
@@ -51,38 +52,33 @@ def staff_list(request):
     else:
         staff_queryset = staff_queryset.order_by('-id')
 
-    # Search functionality
+    # --- Search ---
     search_query = request.GET.get('search', '')
     if search_query:
         staff_queryset = staff_queryset.filter(
             Q(id__icontains=search_query) |
             Q(staff_id__icontains=search_query) |
             Q(name__icontains=search_query) |
-            Q(department__icontains=search_query) |
             Q(email__icontains=search_query) |
             Q(ifsc_code__icontains=search_query) |
             Q(phone__icontains=search_query) |
             Q(designation__icontains=search_query) |
             Q(program__icontains=search_query) |
             Q(college__icontains=search_query) |
-            Q(city__icontains=search_query) |
             Q(district__icontains=search_query) |
             Q(bank_name__icontains=search_query) |
-            Q(program_type__icontains=search_query) |
             Q(staff_category__icontains=search_query) |
             Q(dept_category__icontains=search_query) |
             Q(branch__icontains=search_query)
         )
 
-    # Filter functionality
+    # --- Filters ---
     filters = {
         'designation': request.GET.get('designation', ''),
-        'program_type': request.GET.get('program_type', ''),
         'staff_category': request.GET.get('staff_category', ''),
         'dept_category': request.GET.get('dept_category', ''),
         'branch': request.GET.get('branch', ''),
         'program': request.GET.get('program', ''),
-        'department': request.GET.get('department', ''),
         'college': request.GET.get('college', ''),
     }
 
@@ -91,24 +87,19 @@ def staff_list(request):
             filter_kwargs = {field: value}
             staff_queryset = staff_queryset.filter(**filter_kwargs)
 
-    # Get unique values for filters from FieldReference
     filter_options = {
         'designations': FieldReference.get_options(Staff, 'designation'),
-        'program_types': FieldReference.get_options(Staff, 'program_type'),
         'staff_categories': FieldReference.get_options(Staff, 'staff_category'),
         'dept_categories': FieldReference.get_options(Staff, 'dept_category'),
         'branches': FieldReference.get_options(Staff, 'branch'),
         'programs': FieldReference.get_options(Staff, 'program'),
-        'departments': FieldReference.get_options(Staff, 'department'),
         'colleges': FieldReference.get_options(Staff, 'college'),
     }
 
-    # Pagination
-    paginator = Paginator(staff_queryset, items_per_page)
+    paginator = Paginator(staff_queryset, per_page)
     page_number = request.GET.get('page', 1)
     staff_page = paginator.get_page(page_number)
 
-    # Audit log for view (optional - can be disabled for performance)
     if SystemSetting.get_setting('log_list_views', False):
         AuditLog.log(
             request=request,
@@ -130,14 +121,13 @@ def staff_list(request):
         'filter_options': filter_options,
         'current_sort': sort_by,
         'current_dir': sort_dir,
+        'per_page': per_page,                     
+        'allowed_per_page': ALLOWED_PER_PAGE,    
     }
 
     return render(request, 'staff/staff_list.html', context)
-
+    
 # -------------------------------------------------------------------------------------------------------------------------
-
-# AJAX endpoint to get field options dynamically from FieldReference
-# Uses: FieldReference (read)
 
 @require_http_methods(["GET"])
 def get_field_options(request):
@@ -148,20 +138,17 @@ def get_field_options(request):
     if not field_name:
         return JsonResponse({'success': False, 'error': 'Field name is required'}, status=400)
     
-    # Map frontend field names to actual model field names
+    # Map frontend field names to actual model field names - removed program_type
     field_mapping = {
         'designation': 'designation',
-        'program_type': 'program_type',
         'staff_category': 'staff_category',
         'dept_category': 'dept_category',
         'examiner_type': 'examiner_type',
         'branch': 'branch',
         'branch_final': 'branch_final',
         'program': 'program',
-        'department': 'department',
         'college': 'college',
         'qualification': 'qualification',
-        'city': 'city',
         'district': 'district',
         'bank_name': 'bank_name',
         'bank_city': 'bank_city',
@@ -173,7 +160,6 @@ def get_field_options(request):
         return JsonResponse({'success': False, 'error': f'Invalid field name: {field_name}'}, status=400)
     
     try:
-        # Get options from FieldReference table
         options = FieldReference.get_options(
             model=Staff,
             field_name=model_field,
@@ -191,9 +177,6 @@ def get_field_options(request):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 # -------------------------------------------------------------------------------------------------------------------------
-
-# Add new staff member
-# Uses: FieldReference (GET - form options), AuditLog (POST - create log)
 
 @require_http_methods(["GET", "POST"])
 @login_required
@@ -220,25 +203,23 @@ def staff_add(request):
             # Create staff member
             staff = Staff()
 
-            # Map form fields to model fields
+            # Map form fields to model fields - added password, removed program_type
             fields_mapping = {
                 'staff_id': 'staff_id',
                 'name': 'name',
                 'designation': 'designation',
                 'program': 'program',
-                'department': 'department',
                 'college': 'college',
                 'doj': 'doj',
                 'dor': 'dor',
                 'phone': 'phone',
+                'password': 'password',
                 'email': 'email',
-                'city': 'city',
                 'district': 'district',
                 'bank_account': 'bank_account',
                 'bank_name': 'bank_name',
                 'ifsc_code': 'ifsc_code',
                 'remark': 'remark',
-                'program_type': 'program_type',
                 'staff_category': 'staff_category',
                 'dept_category': 'dept_category',
                 'examiner_type': 'examiner_type',
@@ -250,7 +231,6 @@ def staff_add(request):
                 'branch_code': 'branch_code',
             }
 
-            # Store changes for audit
             changes = {}
             
             for form_field, model_field in fields_mapping.items():
@@ -274,7 +254,6 @@ def staff_add(request):
             staff.full_clean()
             staff.save()
             
-            # Add audit log
             AuditLog.log(
                 request=request,
                 action='CREATE',
@@ -299,17 +278,14 @@ def staff_add(request):
     context = {
         'field_options': {
             'designations': FieldReference.get_options(Staff, 'designation'),
-            'program_types': FieldReference.get_options(Staff, 'program_type'),
             'staff_categories': FieldReference.get_options(Staff, 'staff_category'),
             'dept_categories': FieldReference.get_options(Staff, 'dept_category'),
             'examiner_types': FieldReference.get_options(Staff, 'examiner_type'),
             'branches': FieldReference.get_options(Staff, 'branch'),
             'branch_finals': FieldReference.get_options(Staff, 'branch_final'),
             'programs': FieldReference.get_options(Staff, 'program'),
-            'departments': FieldReference.get_options(Staff, 'department'),
             'colleges': FieldReference.get_options(Staff, 'college'),
             'qualifications': FieldReference.get_options(Staff, 'qualification'),
-            'cities': FieldReference.get_options(Staff, 'city'),
             'districts': FieldReference.get_options(Staff, 'district'),
             'bank_names': FieldReference.get_options(Staff, 'bank_name'),
             'bank_cities': FieldReference.get_options(Staff, 'bank_city'),
@@ -319,9 +295,6 @@ def staff_add(request):
 
 # -------------------------------------------------------------------------------------------------------------------------
 
-# Edit existing staff member
-# Uses: AuditLog (POST - update log)
-
 @require_http_methods(["GET", "POST"])
 @login_required
 def staff_edit(request, phone):
@@ -329,7 +302,6 @@ def staff_edit(request, phone):
     staff = get_object_or_404(Staff, phone=phone)
 
     if request.method == "GET":
-        # Return staff data as JSON for editing
         data = {
             'success': True,
             'staff': {
@@ -338,19 +310,17 @@ def staff_edit(request, phone):
                 'name': staff.name,
                 'designation': staff.designation or '',
                 'program': staff.program or '',
-                'department': staff.department or '',
                 'college': staff.college or '',
                 'doj': staff.doj.strftime('%Y-%m-%d') if staff.doj else '',
                 'dor': staff.dor.strftime('%Y-%m-%d') if staff.dor else '',
                 'phone': staff.phone,
+                'password': staff.password or '',  # added
                 'email': staff.email or '',
-                'city': staff.city or '',
                 'district': staff.district or '',
                 'bank_account': staff.bank_account or '',
                 'bank_name': staff.bank_name or '',
                 'ifsc_code': staff.ifsc_code or '',
                 'remark': staff.remark or '',
-                'program_type': staff.program_type or '',
                 'staff_category': staff.staff_category or '',
                 'dept_category': staff.dept_category or '',
                 'examiner_type': staff.examiner_type or '',
@@ -366,22 +336,19 @@ def staff_edit(request, phone):
 
     elif request.method == "POST":
         try:
-            # Store old values for audit
             old_values = {
                 'staff_id': staff.staff_id,
                 'name': staff.name,
                 'designation': staff.designation,
                 'program': staff.program,
-                'department': staff.department,
                 'college': staff.college,
                 'phone': staff.phone,
+                'password': staff.password,
                 'email': staff.email,
-                'city': staff.city,
                 'district': staff.district,
                 'bank_account': staff.bank_account,
                 'bank_name': staff.bank_name,
                 'ifsc_code': staff.ifsc_code,
-                'program_type': staff.program_type,
                 'staff_category': staff.staff_category,
                 'dept_category': staff.dept_category,
                 'examiner_type': staff.examiner_type,
@@ -395,11 +362,11 @@ def staff_edit(request, phone):
             
             fields = [
                 'staff_id', 'name', 'designation', 'email', 'program',
-                'department', 'college', 'doj', 'dor', 'city', 'district',
+                'college', 'doj', 'dor', 'district',
                 'bank_account', 'bank_name', 'ifsc_code', 'remark',
-                'program_type', 'staff_category', 'dept_category',
-                'examiner_type', 'branch', 'branch_final', 'place',
-                'qualification', 'bank_city', 'branch_code'
+                'staff_category', 'dept_category', 'examiner_type',
+                'branch', 'branch_final', 'place', 'qualification',
+                'bank_city', 'branch_code', 'password'  # added password
             ]
 
             changes = {}
@@ -425,38 +392,33 @@ def staff_edit(request, phone):
                     if old_values.get(field) is not None:
                         changes[field] = {'old': str(old_values.get(field)), 'new': None}
 
-            # FIXED: Check if phone is being changed and if new phone exists
+            # Phone check
             new_phone = request.POST.get('phone')
             if new_phone and new_phone.strip():
                 new_phone = new_phone.strip()
-                # Only check if the phone number is actually changing
                 if new_phone != old_values['phone']:
                     if Staff.objects.filter(phone=new_phone).exists():
                         return JsonResponse({'success': False, 'error': 'Phone number already exists'}, status=400)
                     staff.phone = new_phone
                     changes['phone'] = {'old': old_values['phone'], 'new': new_phone}
             else:
-                # Phone is required, so this should not happen
                 return JsonResponse({'success': False, 'error': 'Phone number is required'}, status=400)
             
-            # FIXED: Check if staff_id is being changed and if new staff_id exists
+            # Staff ID check
             new_staff_id = request.POST.get('staff_id')
             if new_staff_id and new_staff_id.strip():
                 new_staff_id = new_staff_id.strip()
-                # Only check if the staff_id is actually changing
                 if new_staff_id != old_values['staff_id']:
                     if Staff.objects.filter(staff_id=new_staff_id).exists():
                         return JsonResponse({'success': False, 'error': 'Staff ID already exists'}, status=400)
                     staff.staff_id = new_staff_id
                     changes['staff_id'] = {'old': old_values['staff_id'], 'new': new_staff_id}
             else:
-                # Staff ID is required
                 return JsonResponse({'success': False, 'error': 'Staff ID is required'}, status=400)
 
             staff.full_clean()
             staff.save()
             
-            # Add audit log if there are changes
             if changes:
                 AuditLog.log(
                     request=request,
@@ -476,9 +438,6 @@ def staff_edit(request, phone):
 
 # -------------------------------------------------------------------------------------------------------------------------
 
-# Delete staff member
-# Uses: SystemSetting (soft_delete setting), AuditLog (delete log)
-
 @require_http_methods(["DELETE", "POST"])
 @login_required
 def staff_delete(request, phone):
@@ -486,28 +445,23 @@ def staff_delete(request, phone):
     try:
         staff = get_object_or_404(Staff, phone=phone)
         
-        # Store staff info before deletion for audit
         staff_info = f"{staff.staff_id} - {staff.name}"
         staff_data = {
             'staff_id': staff.staff_id,
             'name': staff.name,
             'phone': staff.phone,
             'email': staff.email,
-            'department': staff.department,
             'designation': staff.designation
         }
         
-        # Check if soft delete is enabled
         soft_delete = SystemSetting.get_setting('soft_delete_staff', False)
         
         if soft_delete:
-            # Implement soft delete if you have a is_active field
             staff.is_active = False
             staff.save()
             message = 'Staff member soft deleted successfully'
             action = 'UPDATE' 
             
-            # Correct way to call log method - pass request as first parameter
             AuditLog.log(
                 request=request,
                 action=action,
@@ -516,18 +470,14 @@ def staff_delete(request, phone):
                 object_repr=f"Soft deleted: {staff_info}"
             )
         else:
-            # Store information before deletion
             staff_id = str(staff.id) 
             staff_app_label = staff._meta.app_label
             staff_model_name = staff.__class__.__name__
             
-            # Hard delete
             staff.delete()
             message = 'Staff member deleted successfully'
             action = 'DELETE'
             
-            # Create audit log entry manually for hard delete
-            # Since the object is deleted, we can't use obj parameter
             audit_data = {
                 'action': action,
                 'changes': staff_data,
@@ -540,7 +490,6 @@ def staff_delete(request, phone):
                 'request_path': request.path,
             }
             
-            # Add user information
             if request.user.is_authenticated:
                 audit_data['user_id'] = str(request.user.id) 
                 audit_data['user_name'] = request.user.username  
@@ -555,8 +504,6 @@ def staff_delete(request, phone):
 
 # -------------------------------------------------------------------------------------------------------------------------
 
-# Save a new field option to FieldReference
-
 @require_http_methods(["POST"])
 @login_required
 def save_field_option(request):
@@ -569,11 +516,10 @@ def save_field_option(request):
         if not field_name or not value:
             return JsonResponse({'success': False, 'error': 'Field name and value required'}, status=400)
         
-        # Validate field name
         valid_fields = [
-            'designation', 'program', 'department', 'college', 'city', 'district',
-            'bank_name', 'program_type', 'staff_category', 'dept_category',
-            'examiner_type', 'branch', 'branch_final', 'place', 'qualification', 'bank_city'
+            'designation', 'program', 'college', 'district',
+            'bank_name', 'staff_category', 'dept_category', 'examiner_type',
+            'branch', 'branch_final', 'place', 'qualification', 'bank_city'
         ]
         
         if field_name not in valid_fields:
@@ -598,23 +544,21 @@ def save_field_option(request):
 
 # -------------------------------------------------------------------------------------------------------------------------
 
-# Upload staff data from Excel file
-# Uses: FieldReference (create new options), AuditLog (bulk upload log)
-
 @require_http_methods(["POST"])
 @login_required
 def staff_upload(request):
-    
     if request.method == "POST" and request.FILES.get('file'):
         try:
             file = request.FILES['file']
-            
-            # Validate file type
             if not file.name.endswith(('.xlsx', '.xls')):
                 return JsonResponse({'success': False, 'error': 'Invalid file format. Please upload Excel file.'}, status=400)
-            
+
             wb = load_workbook(file)
             ws = wb.active
+
+            print(f"\n{'='*60}")
+            print(f"STARTING STAFF UPLOAD: {file.name}")
+            print(f"{'='*60}")
 
             success_count = 0
             update_count = 0
@@ -622,122 +566,190 @@ def staff_upload(request):
             errors = []
             created_staff_ids = []
             updated_staff_ids = []
+            rows_details = []   # for the report
 
             new_field_options = {
-                'designation': set(),
-                'program': set(),
-                'department': set(),
-                'college': set(),
-                'city': set(),
-                'district': set(),
-                'bank_name': set(),
-                'program_type': set(),
-                'staff_category': set(),
-                'dept_category': set(),
-                'examiner_type': set(),
-                'branch': set(),
-                'branch_final': set(),
-                'place': set(),
-                'qualification': set(),
+                'designation': set(), 'program': set(), 'college': set(),
+                'district': set(), 'bank_name': set(), 'staff_category': set(),
+                'dept_category': set(), 'examiner_type': set(), 'branch': set(),
+                'branch_final': set(), 'place': set(), 'qualification': set(),
                 'bank_city': set(),
             }
 
+            total_rows = 0
             for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
                 try:
-                    # Skip empty rows
                     if not row or not any(row):
                         continue
-                        
-                    if not row[6]:  # Phone number is required
-                        errors.append(f"Row {row_idx}: Phone number is required")
+                    total_rows += 1
+
+                    # Extract values (same as before)
+                    program = str(row[0]).strip() if row[0] else None
+                    staff_id = str(row[1]).strip() if row[1] else None
+                    staff_category = str(row[2]).strip() if row[2] else None
+                    dept_category = str(row[3]).strip() if row[3] else None
+                    examiner_type = str(row[4]).strip() if row[4] else None
+                    name = str(row[5]).strip() if row[5] else None
+                    designation = str(row[6]).strip() if row[6] else None
+                    branch = str(row[7]).strip() if row[7] else None
+                    branch_final = str(row[8]).strip() if row[8] else None
+                    college = str(row[9]).strip() if row[9] else None
+                    place = str(row[10]).strip() if row[10] else None
+                    district = str(row[11]).strip() if row[11] else None
+                    qualification = str(row[12]).strip() if row[12] else None
+
+                    doj = None
+                    if len(row) > 13 and row[13]:
+                        try:
+                            doj = datetime.strptime(str(row[13]), '%d-%m-%Y').date()
+                        except ValueError:
+                            if isinstance(row[13], datetime):
+                                doj = row[13].date()
+                            else:
+                                raise ValueError(f"Invalid DOJ format, expected dd-mm-yyyy: {row[13]}")
+
+                    dor = None
+                    if len(row) > 14 and row[14]:
+                        try:
+                            dor = datetime.strptime(str(row[14]), '%d-%m-%Y').date()
+                        except ValueError:
+                            if isinstance(row[14], datetime):
+                                dor = row[14].date()
+                            else:
+                                raise ValueError(f"Invalid DOR format, expected dd-mm-yyyy: {row[14]}")
+
+                    phone = str(row[15]).strip() if len(row) > 15 and row[15] else None
+                    email = str(row[16]).strip() if len(row) > 16 and row[16] else None
+                    bank_account = str(row[17]).strip() if len(row) > 17 and row[17] else None
+                    bank_name = str(row[18]).strip() if len(row) > 18 and row[18] else None
+                    bank_city = str(row[19]).strip() if len(row) > 19 and row[19] else None
+                    branch_code = str(row[20]).strip() if len(row) > 20 and row[20] else None
+                    ifsc_code = str(row[21]).strip() if len(row) > 21 and row[21] else None
+                    remark = str(row[22]).strip() if len(row) > 22 and row[22] else None
+                    password = str(row[23]).strip() if len(row) > 23 and row[23] else ''
+
+                    # ----- Only Phone and Name are required (staff_id is nullable) -----
+                    if not phone:
+                        msg = "Phone number is required"
+                        errors.append(f"Row {row_idx}: {msg}")
                         error_count += 1
+                        print(f"  ❌ ERROR Row {row_idx}: {msg}")   # <-- print error
+                        rows_details.append({'row': row_idx, 'phone': '', 'staff_id': staff_id or '', 'name': name or '', 'status': 'Error', 'error': msg})
+                        continue
+                    if not name:
+                        msg = "Name is required"
+                        errors.append(f"Row {row_idx}: {msg}")
+                        error_count += 1
+                        print(f"  ❌ ERROR Row {row_idx}: {msg}")   # <-- print error
+                        rows_details.append({'row': row_idx, 'phone': phone, 'staff_id': staff_id or '', 'name': '', 'status': 'Error', 'error': msg})
                         continue
 
-                    # Collect field options for FieldReference
-                    if row[2]: new_field_options['designation'].add(str(row[2]).strip())
-                    if row[3]: new_field_options['program'].add(str(row[3]).strip())
-                    if row[4]: new_field_options['department'].add(str(row[4]).strip())
-                    if row[5]: new_field_options['college'].add(str(row[5]).strip())
-                    if row[10]: new_field_options['city'].add(str(row[10]).strip())
-                    if row[11]: new_field_options['district'].add(str(row[11]).strip())
-                    if row[13]: new_field_options['bank_name'].add(str(row[13]).strip())
-                    if len(row) > 16 and row[16]: new_field_options['program_type'].add(str(row[16]).strip())
-                    if len(row) > 17 and row[17]: new_field_options['staff_category'].add(str(row[17]).strip())
-                    if len(row) > 18 and row[18]: new_field_options['dept_category'].add(str(row[18]).strip())
-                    if len(row) > 19 and row[19]: new_field_options['examiner_type'].add(str(row[19]).strip())
-                    if len(row) > 20 and row[20]: new_field_options['branch'].add(str(row[20]).strip())
-                    if len(row) > 21 and row[21]: new_field_options['branch_final'].add(str(row[21]).strip())
-                    if len(row) > 22 and row[22]: new_field_options['place'].add(str(row[22]).strip())
-                    if len(row) > 23 and row[23]: new_field_options['qualification'].add(str(row[23]).strip())
-                    if len(row) > 24 and row[24]: new_field_options['bank_city'].add(str(row[24]).strip())
+                    # Collect field options
+                    if designation: new_field_options['designation'].add(designation)
+                    if program: new_field_options['program'].add(program)
+                    if college: new_field_options['college'].add(college)
+                    if district: new_field_options['district'].add(district)
+                    if bank_name: new_field_options['bank_name'].add(bank_name)
+                    if staff_category: new_field_options['staff_category'].add(staff_category)
+                    if dept_category: new_field_options['dept_category'].add(dept_category)
+                    if examiner_type: new_field_options['examiner_type'].add(examiner_type)
+                    if branch: new_field_options['branch'].add(branch)
+                    if branch_final: new_field_options['branch_final'].add(branch_final)
+                    if place: new_field_options['place'].add(place)
+                    if qualification: new_field_options['qualification'].add(qualification)
+                    if bank_city: new_field_options['bank_city'].add(bank_city)
 
                     staff_data = {
-                        'staff_id': str(row[0]).strip() if row[0] else None,
-                        'name': str(row[1]).strip() if row[1] else None,
-                        'designation': str(row[2]).strip() if row[2] else None,
-                        'program': str(row[3]).strip() if row[3] else None,
-                        'department': str(row[4]).strip() if row[4] else None,
-                        'college': str(row[5]).strip() if row[5] else None,
-                        'phone': str(row[6]).strip() if row[6] else None,
-                        'email': str(row[7]).strip() if row[7] else None,
-                        'doj': row[8] if isinstance(row[8], datetime) else (datetime.strptime(str(row[8]), '%Y-%m-%d').date() if row[8] else None),
-                        'dor': row[9] if isinstance(row[9], datetime) else (datetime.strptime(str(row[9]), '%Y-%m-%d').date() if row[9] else None),
-                        'city': str(row[10]).strip() if row[10] else None,
-                        'district': str(row[11]).strip() if row[11] else None,
-                        'bank_account': str(row[12]).strip() if row[12] else None,
-                        'bank_name': str(row[13]).strip() if row[13] else None,
-                        'ifsc_code': str(row[14]).strip() if row[14] else None,
-                        'remark': str(row[15]).strip() if row[15] else None,
-                        'program_type': str(row[16]).strip() if len(row) > 16 and row[16] else None,
-                        'staff_category': str(row[17]).strip() if len(row) > 17 and row[17] else None,
-                        'dept_category': str(row[18]).strip() if len(row) > 18 and row[18] else None,
-                        'examiner_type': str(row[19]).strip() if len(row) > 19 and row[19] else None,
-                        'branch': str(row[20]).strip() if len(row) > 20 and row[20] else None,
-                        'branch_final': str(row[21]).strip() if len(row) > 21 and row[21] else None,
-                        'place': str(row[22]).strip() if len(row) > 22 and row[22] else None,
-                        'qualification': str(row[23]).strip() if len(row) > 23 and row[23] else None,
-                        'bank_city': str(row[24]).strip() if len(row) > 24 and row[24] else None,
-                        'branch_code': str(row[25]).strip() if len(row) > 25 and row[25] else None,
+                        'staff_id': staff_id,   # may be None
+                        'name': name,
+                        'designation': designation,
+                        'program': program,
+                        'college': college,
+                        'phone': phone,
+                        'password': password,
+                        'email': email,
+                        'doj': doj,
+                        'dor': dor,
+                        'district': district,
+                        'bank_account': bank_account,
+                        'bank_name': bank_name,
+                        'ifsc_code': ifsc_code,
+                        'remark': remark,
+                        'staff_category': staff_category,
+                        'dept_category': dept_category,
+                        'examiner_type': examiner_type,
+                        'branch': branch,
+                        'branch_final': branch_final,
+                        'place': place,
+                        'qualification': qualification,
+                        'bank_city': bank_city,
+                        'branch_code': branch_code,
                     }
 
-                    # Validate required fields
-                    if not staff_data['staff_id']:
-                        errors.append(f"Row {row_idx}: Staff ID is required")
-                        error_count += 1
-                        continue
-                    
-                    if not staff_data['name']:
-                        errors.append(f"Row {row_idx}: Name is required")
-                        error_count += 1
-                        continue
-
-                    # Check if record exists
-                    existing_staff = Staff.objects.filter(phone=staff_data['phone']).first()
-                    
+                    existing_staff = Staff.objects.filter(phone=phone).first()
                     if existing_staff:
-                        # Update existing record
+                        # Update – but DO NOT overwrite staff_id with None
                         for key, value in staff_data.items():
-                            if value is not None:
+                            if value is not None or key != 'staff_id':
                                 setattr(existing_staff, key, value)
-                        existing_staff.save()
-                        update_count += 1
-                        updated_staff_ids.append(existing_staff.id)
+                        try:
+                            existing_staff.save()
+                            update_count += 1
+                            updated_staff_ids.append(existing_staff.id)
+                            # No success print – silent
+                            rows_details.append({'row': row_idx, 'phone': phone, 'staff_id': staff_id or '', 'name': name, 'status': 'Updated', 'error': ''})
+                        except Exception as e:
+                            msg = f"Update failed: {str(e)}"
+                            errors.append(f"Row {row_idx}: {msg}")
+                            error_count += 1
+                            print(f"  ❌ ERROR Row {row_idx}: {msg}")   # <-- print error
+                            rows_details.append({'row': row_idx, 'phone': phone, 'staff_id': staff_id or '', 'name': name, 'status': 'Error', 'error': msg})
                     else:
-                        # Create new record
                         staff = Staff(**staff_data)
-                        staff.full_clean()
-                        staff.save()
-                        success_count += 1
-                        created_staff_ids.append(staff.id)
+                        try:
+                            staff.full_clean()
+                            staff.save()
+                            success_count += 1
+                            created_staff_ids.append(staff.id)
+                            # No success print – silent
+                            rows_details.append({'row': row_idx, 'phone': phone, 'staff_id': staff_id or '', 'name': name, 'status': 'Created', 'error': ''})
+                        except Exception as e:
+                            msg = str(e)
+                            errors.append(f"Row {row_idx}: {msg}")
+                            error_count += 1
+                            print(f"  ❌ ERROR Row {row_idx}: {msg}")   # <-- print error
+                            rows_details.append({'row': row_idx, 'phone': phone, 'staff_id': staff_id or '', 'name': name, 'status': 'Error', 'error': msg})
 
                 except Exception as e:
                     error_count += 1
-                    errors.append(f"Row {row_idx}: {str(e)}")
-                    logger.error(f"Error uploading row {row_idx}: {str(e)}")
+                    msg = str(e)
+                    errors.append(f"Row {row_idx}: {msg}")
+                    print(f"  ❌ ERROR Row {row_idx}: {msg}")   # <-- print error
+                    phone = str(row[15]).strip() if len(row) > 15 and row[15] else ''
+                    staff_id = str(row[1]).strip() if len(row) > 1 and row[1] else ''
+                    name = str(row[5]).strip() if len(row) > 5 and row[5] else ''
+                    rows_details.append({'row': row_idx, 'phone': phone, 'staff_id': staff_id, 'name': name, 'status': 'Error', 'error': msg})
+                    logger.error(f"Error uploading row {row_idx}: {msg}")
 
-            # Add new options to FieldReference
+            # Store report in session
+            request.session['upload_report'] = rows_details
+
+            # ----- Summary (always printed) -----
+            print(f"\n{'='*60}")
+            print(f"UPLOAD SUMMARY for {file.name}")
+            print(f"{'='*60}")
+            print(f"Total rows processed: {total_rows}")
+            print(f"  ✅ New staff created: {success_count}")
+            print(f"  🔄 Existing staff updated: {update_count}")
+            print(f"  ❌ Errors: {error_count}")
+            if errors:
+                print(f"\nFirst 10 errors (out of {len(errors)}):")
+                for err in errors[:10]:
+                    print(f"  - {err}")
+            print(f"{'='*60}\n")
+
+            # Add dropdown options 
             added_options_count = 0
-            
             for field_name, values in new_field_options.items():
                 for value in values:
                     if value:
@@ -753,11 +765,11 @@ def staff_upload(request):
                         except Exception as e:
                             logger.error(f"Error adding {field_name}={value}: {str(e)}")
 
-            # Add audit log for bulk upload with fully populated fields
+            # Audit log 
             AuditLog.objects.create(
                 action='UPLOAD',
-                app_label=Staff._meta.app_label, 
-                model_name=Staff.__name__,        
+                app_label=Staff._meta.app_label,
+                model_name=Staff.__name__,
                 object_repr=f"Bulk upload: {success_count} new, {update_count} updated",
                 changes={
                     'filename': file.name,
@@ -765,7 +777,7 @@ def staff_upload(request):
                     'update_count': update_count,
                     'error_count': error_count,
                     'new_options_added': added_options_count,
-                    'created_staff_ids': created_staff_ids[:10],  # First 10 only to avoid huge data
+                    'created_staff_ids': created_staff_ids[:10],
                     'updated_staff_ids': updated_staff_ids[:10]
                 },
                 ip_address=AuditLog._get_client_ip(request),
@@ -775,7 +787,7 @@ def staff_upload(request):
                 user_name=request.user.username if request.user.is_authenticated else ''
             )
 
-            # Prepare response message
+            # Response (unchanged)
             message_parts = []
             if success_count > 0:
                 message_parts.append(f"{success_count} new staff added")
@@ -783,7 +795,7 @@ def staff_upload(request):
                 message_parts.append(f"{update_count} staff updated")
             if added_options_count > 0:
                 message_parts.append(f"{added_options_count} new dropdown options added")
-            
+
             message = f"Successfully processed: {', '.join(message_parts)}"
             if error_count > 0:
                 message += f". {error_count} errors occurred."
@@ -796,42 +808,43 @@ def staff_upload(request):
                 'success_count': success_count,
                 'update_count': update_count,
                 'error_count': error_count,
-                'errors': errors[:20],  # First 20 errors only
+                'errors': errors[:20],
                 'new_options_added': added_options_count,
                 'created_staff_ids': created_staff_ids,
-                'updated_staff_ids': updated_staff_ids
+                'updated_staff_ids': updated_staff_ids,
+                'report_available': True
             })
 
         except Exception as e:
             logger.error(f"Error in staff upload: {str(e)}")
+            print(f"FATAL ERROR during upload: {str(e)}")
+            import traceback
+            print(traceback.format_exc())
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
     return JsonResponse({'success': False, 'error': 'No file provided'}, status=400)
 
 # -------------------------------------------------------------------------------------------------------------------------
 
-# Export all staff data to Excel
-# Uses: AuditLog (export log with model info)
-
 @login_required
 def staff_export(request):
-    
     try:
         wb = Workbook()
         ws = wb.active
         ws.title = "Staff Data"
 
-        # Style for header
         header_font = Font(bold=True, color="FFFFFF")
         header_fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
         header_alignment = Alignment(horizontal="center", vertical="center")
 
+        # New header order (matching the required sequence)
         headers = [
-            'Staff ID', 'Name', 'Designation', 'Program', 'Department', 'College',
-            'Phone', 'Email', 'DOJ', 'DOR', 'City', 'District', 'Bank Account',
-            'Bank Name', 'IFSC Code', 'Remark', 'Program Type', 'Staff Category',
-            'Dept Category', 'Examiner Type', 'Branch', 'Branch Final', 'Place',
-            'Qualification', 'Bank City', 'Branch Code'
+            'Program', 'Staff ID', 'Staff Category', 'Department Category',
+            'Internal/External Examiner', 'Name', 'Designation', 'Branch',
+            'Branch Final', 'College Name', 'Place', 'District Name',
+            'Qualification', 'Date of Joining (DOJ)', 'Date of Retirement (DOR)',
+            'Phone Number', 'Email ID', 'S.B. Account Number', 'Bank Name',
+            'Bank City Name', 'Branch Code', 'IFSC Code', 'Remarks', 'Password'
         ]
 
         for col_idx, header in enumerate(headers, start=1):
@@ -842,36 +855,35 @@ def staff_export(request):
 
         staff_members = Staff.objects.all().order_by('id')
         total_count = staff_members.count()
-        
-        for row_idx, staff in enumerate(staff_members, start=2):
-            ws.cell(row=row_idx, column=1, value=staff.staff_id)
-            ws.cell(row=row_idx, column=2, value=staff.name)
-            ws.cell(row=row_idx, column=3, value=staff.designation or '')
-            ws.cell(row=row_idx, column=4, value=staff.program or '')
-            ws.cell(row=row_idx, column=5, value=staff.department or '')
-            ws.cell(row=row_idx, column=6, value=staff.college or '')
-            ws.cell(row=row_idx, column=7, value=staff.phone or '')
-            ws.cell(row=row_idx, column=8, value=staff.email or '')
-            ws.cell(row=row_idx, column=9, value=staff.doj.strftime('%Y-%m-%d') if staff.doj else '')
-            ws.cell(row=row_idx, column=10, value=staff.dor.strftime('%Y-%m-%d') if staff.dor else '')
-            ws.cell(row=row_idx, column=11, value=staff.city or '')
-            ws.cell(row=row_idx, column=12, value=staff.district or '')
-            ws.cell(row=row_idx, column=13, value=staff.bank_account or '')
-            ws.cell(row=row_idx, column=14, value=staff.bank_name or '')
-            ws.cell(row=row_idx, column=15, value=staff.ifsc_code or '')
-            ws.cell(row=row_idx, column=16, value=staff.remark or '')
-            ws.cell(row=row_idx, column=17, value=staff.program_type or '')
-            ws.cell(row=row_idx, column=18, value=staff.staff_category or '')
-            ws.cell(row=row_idx, column=19, value=staff.dept_category or '')
-            ws.cell(row=row_idx, column=20, value=staff.examiner_type or '')
-            ws.cell(row=row_idx, column=21, value=staff.branch or '')
-            ws.cell(row=row_idx, column=22, value=staff.branch_final or '')
-            ws.cell(row=row_idx, column=23, value=staff.place or '')
-            ws.cell(row=row_idx, column=24, value=staff.qualification or '')
-            ws.cell(row=row_idx, column=25, value=staff.bank_city or '')
-            ws.cell(row=row_idx, column=26, value=staff.branch_code or '')
 
-        # Auto-adjust column widths
+        for row_idx, staff in enumerate(staff_members, start=2):
+            # Write in the same order as headers
+            ws.cell(row=row_idx, column=1, value=staff.program or '')
+            ws.cell(row=row_idx, column=2, value=staff.staff_id)
+            ws.cell(row=row_idx, column=3, value=staff.staff_category or '')
+            ws.cell(row=row_idx, column=4, value=staff.dept_category or '')
+            ws.cell(row=row_idx, column=5, value=staff.examiner_type or '')
+            ws.cell(row=row_idx, column=6, value=staff.name)
+            ws.cell(row=row_idx, column=7, value=staff.designation or '')
+            ws.cell(row=row_idx, column=8, value=staff.branch or '')
+            ws.cell(row=row_idx, column=9, value=staff.branch_final or '')
+            ws.cell(row=row_idx, column=10, value=staff.college or '')
+            ws.cell(row=row_idx, column=11, value=staff.place or '')
+            ws.cell(row=row_idx, column=12, value=staff.district or '')
+            ws.cell(row=row_idx, column=13, value=staff.qualification or '')
+            ws.cell(row=row_idx, column=14, value=staff.doj.strftime('%d-%m-%Y') if staff.doj else '')
+            ws.cell(row=row_idx, column=15, value=staff.dor.strftime('%d-%m-%Y') if staff.dor else '')
+            ws.cell(row=row_idx, column=16, value=staff.phone or '')
+            ws.cell(row=row_idx, column=17, value=staff.email or '')
+            ws.cell(row=row_idx, column=18, value=staff.bank_account or '')
+            ws.cell(row=row_idx, column=19, value=staff.bank_name or '')
+            ws.cell(row=row_idx, column=20, value=staff.bank_city or '')
+            ws.cell(row=row_idx, column=21, value=staff.branch_code or '')
+            ws.cell(row=row_idx, column=22, value=staff.ifsc_code or '')
+            ws.cell(row=row_idx, column=23, value=staff.remark or '')
+            ws.cell(row=row_idx, column=24, value=staff.password or '')
+
+        # Auto-adjust column widths (unchanged)
         for column in ws.columns:
             max_length = 0
             column_letter = column[0].column_letter
@@ -884,7 +896,6 @@ def staff_export(request):
             adjusted_width = min(max_length + 2, 50)
             ws.column_dimensions[column_letter].width = adjusted_width
 
-        # Add audit log for export with fully populated fields
         AuditLog.objects.create(
             action='EXPORT',
             app_label=Staff._meta.app_label,
@@ -905,10 +916,10 @@ def staff_export(request):
         response = HttpResponse(
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
-        response['Content-Disposition'] = f'attachment; filename=Staff Data.xlsx'
+        response['Content-Disposition'] = 'attachment; filename=Staff Data.xlsx'
         wb.save(response)
         return response
-        
+
     except Exception as e:
         logger.error(f"Error exporting staff: {str(e)}")
         messages.error(request, f"Error exporting data: {str(e)}")
@@ -916,12 +927,8 @@ def staff_export(request):
 
 # -------------------------------------------------------------------------------------------------------------------------
 
-# Download sample Excel template for staff upload
-# No core table usage - just template generation
-
 @login_required
 def staff_sample(request):
-    
     try:
         wb = Workbook()
         ws = wb.active
@@ -931,12 +938,14 @@ def staff_sample(request):
         header_fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
         header_alignment = Alignment(horizontal="center", vertical="center")
 
+        # Same header order as export
         headers = [
-            'Staff ID*', 'Name*', 'Designation', 'Program', 'Department', 'College',
-            'Phone*', 'Email', 'DOJ (YYYY-MM-DD)', 'DOR (YYYY-MM-DD)', 'City', 'District',
-            'Bank Account', 'Bank Name', 'IFSC Code', 'Remark', 'Program Type', 'Staff Category',
-            'Dept Category', 'Examiner Type', 'Branch', 'Branch Final', 'Place',
-            'Qualification', 'Bank City', 'Branch Code'
+            'Program', 'Staff ID', 'Staff Category', 'Department Category',
+            'Internal/External Examiner', 'Name', 'Designation', 'Branch',
+            'Branch Final', 'College Name', 'Place', 'District Name',
+            'Qualification', 'Date of Joining (DOJ)', 'Date of Retirement (DOR)',
+            'Phone Number', 'Email ID', 'S.B. Account Number', 'Bank Name',
+            'Bank City Name', 'Branch Code', 'IFSC Code', 'Remarks', 'Password'
         ]
 
         for col_idx, header in enumerate(headers, start=1):
@@ -945,32 +954,33 @@ def staff_sample(request):
             cell.fill = header_fill
             cell.alignment = header_alignment
 
-        # Sample data row
+        # Sample data row – dates in dd-mm-yyyy format
         sample_data = [
-            'STF001', 'John Doe', 'Professor', 'B.Tech', 'Computer Science',
-            'Engineering College', '9876543210', 'john@example.com', '2020-01-01',
-            '', 'Mumbai', 'Mumbai', '1234567890', 'State Bank of India', 'SBIN0012345',
-            'Sample record', 'Regular', 'Teaching', 'Engineering', 'Internal',
-            'CSE', 'CSE-Final', 'Mumbai', 'PhD', 'Mumbai', '1234'
+            'B.Tech', 'STF001', 'Teaching', 'Engineering',
+            'Internal', 'John Doe', 'Professor', 'CSE',
+            'CSE-Final', 'Engineering College', 'Mumbai', 'Mumbai',
+            'PhD', '01-01-2020', '',  # DOR left blank
+            '9876543210', 'john@example.com', '1234567890', 'State Bank of India',
+            'Mumbai', '1234', 'SBIN0012345', 'Sample record', 'password123'
         ]
 
         for col_idx, value in enumerate(sample_data, start=1):
             ws.cell(row=2, column=col_idx, value=value)
 
-        # Add helpful notes
+        # Instructions (unchanged)
         notes_row = 4
         ws.cell(row=notes_row, column=1, value="Instructions:")
         ws.cell(row=notes_row, column=2, value="* Required fields")
-        
+
         ws.cell(row=notes_row + 1, column=1, value="Date format:")
-        ws.cell(row=notes_row + 1, column=2, value="YYYY-MM-DD (e.g., 2024-01-15)")
-        
+        ws.cell(row=notes_row + 1, column=2, value="dd-mm-yyyy (e.g., 15-01-2025)")
+
         ws.cell(row=notes_row + 2, column=1, value="Phone:")
         ws.cell(row=notes_row + 2, column=2, value="Must be 10 digits, unique")
-        
+
         ws.cell(row=notes_row + 3, column=1, value="IFSC Code:")
         ws.cell(row=notes_row + 3, column=2, value="11 characters (e.g., SBIN0012345)")
-        
+
         ws.cell(row=notes_row + 4, column=1, value="Note:")
         ws.cell(row=notes_row + 4, column=2, value="Remove the sample row before uploading your data")
 
@@ -993,15 +1003,12 @@ def staff_sample(request):
         response['Content-Disposition'] = 'attachment; filename=Staff Template.xlsx'
         wb.save(response)
         return response
-        
+
     except Exception as e:
         logger.error(f"Error generating sample template: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 # -------------------------------------------------------------------------------------------------------------------------
-
-# Get detailed information of a staff member
-# Uses: SystemSetting (log_detail_views), AuditLog (optional view log)
 
 @require_http_methods(["GET"])
 @login_required
@@ -1010,7 +1017,6 @@ def staff_details(request, phone):
     try:
         staff = get_object_or_404(Staff, phone=phone)
         
-        # Add audit log for view (optional)
         if SystemSetting.get_setting('log_detail_views', False):
             AuditLog.log(
                 request=request,
@@ -1027,13 +1033,12 @@ def staff_details(request, phone):
                 'name': staff.name,
                 'designation': staff.designation or '',
                 'program': staff.program or '',
-                'department': staff.department or '',
                 'college': staff.college or '',
                 'doj': staff.doj.strftime('%Y-%m-%d') if staff.doj else '',
                 'dor': staff.dor.strftime('%Y-%m-%d') if staff.dor else '',
                 'phone': staff.phone,
+                'password': staff.password or '', 
                 'email': staff.email or '',
-                'city': staff.city or '',
                 'district': staff.district or '',
                 'place': staff.place or '',
                 'qualification': staff.qualification or '',
@@ -1043,7 +1048,6 @@ def staff_details(request, phone):
                 'branch_code': staff.branch_code or '',
                 'ifsc_code': staff.ifsc_code or '',
                 'remark': staff.remark or '',
-                'program_type': staff.program_type or '',
                 'staff_category': staff.staff_category or '',
                 'dept_category': staff.dept_category or '',
                 'examiner_type': staff.examiner_type or '',

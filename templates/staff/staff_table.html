@@ -26,21 +26,9 @@
                             <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i>
                         </div>
                     </th>
-                    <th data-col="department" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center">
-                        <div class="flex items-center justify-center gap-2">
-                            Department 
-                            <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i>
-                        </div>
-                    </th>
                     <th data-col="college" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center">
                         <div class="flex items-center justify-center gap-2">
                             College 
-                            <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i>
-                        </div>
-                    </th>
-                    <th data-col="city" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center">
-                        <div class="flex items-center justify-center gap-2">
-                            City 
                             <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i>
                         </div>
                     </th>
@@ -106,16 +94,22 @@
                         <span class="text-[12px] font-mono font-semibold text-slate-500">{{ forloop.counter }}</span>
                     </td>
                     
-                    <td class="sticky left-[63px] z-20 px-5 py-4 bg-white group-hover:bg-slate-50 transition">
+                   <td class="sticky left-[63px] z-20 px-5 py-4 bg-white group-hover:bg-slate-50 transition">
                         <div class="flex items-center gap-3">
                             <div class="avatar-{{ avatar_class }} flex items-center justify-center w-8 h-8 text-[11px] font-bold rounded shadow-sm shrink-0">
                                 {{ s.name|slice:":1"|upper }}
                             </div>
+
                             <div class="text-left">
-                                <div class="flex items-center flex-wrap">
-                                    <h4 class="font-bold text-slate-900 text-[13px] tracking-tight whitespace-nowrap">{{ s.name }}</h4>
-                                    <span class="text-[12px] text-slate-600 font-mono font-semibold">{{ s.staff_id }}</span>
-                                </div>
+                                <h4 class="font-bold text-slate-900 text-[13px] tracking-tight">
+                                    {{ s.name }}
+                                </h4>
+
+                                {% if s.staff_id %}
+                                <span class="block text-[12px] text-slate-600 font-semibold mt-0.5">
+                                    {{ s.staff_id }}
+                                </span>
+                                {% endif %}
                             </div>
                         </div>
                     </td>
@@ -126,11 +120,7 @@
                     <td class="px-5 py-4">
                         <span class="font-semibold text-slate-800">{{ s.program|default:"-" }}</span>
                     </td>
-                    <td class="px-5 py-4 whitespace-nowrap">
-                        <span class="inline-flex items-center px-3 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100 text-[11px] font-bold">{{ s.department|default:"-" }}</span>
-                    </td>
                     <td class="px-5 py-4 whitespace-nowrap font-medium text-slate-700">{{ s.college|truncatechars:25|default:"-" }}</td>
-                    <td class="px-5 py-4 whitespace-nowrap font-medium text-slate-700">{{ s.city|truncatechars:15|default:"-" }}</td>
                     <td class="px-5 py-4 text-slate-500">{{ s.district|truncatechars:15|default:"-" }}</td>
                     <td class="px-5 py-4 whitespace-nowrap">
                         <span class="inline-flex text-xs items-center gap-2 text-emerald-700 font-bold">
