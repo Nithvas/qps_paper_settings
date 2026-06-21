@@ -28,6 +28,8 @@ INSTALLED_APPS = [
     'course',
     'academic', 
     'pattern',
+    'syllabus',
+    'allocation'
 ]
 
 

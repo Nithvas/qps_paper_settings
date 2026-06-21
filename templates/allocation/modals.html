@@ -1,0 +1,282 @@
+<!-- ==================== CREATE/EDIT DRAWER ==================== -->
+<div id="allocationDrawer" class="drawer fixed inset-0 z-50 hidden" aria-labelledby="drawer-title" role="dialog">
+    <div class="drawer-backdrop absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" onclick="window.qpsApp.closeDrawer()"></div>
+    <div class="drawer-scrollable absolute inset-y-0 right-0 w-full max-w-3xl bg-slate-50 shadow-2xl overflow-y-auto transition-transform duration-300" style="transform: translateX(0);">
+        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-20">
+            <div>
+                <h2 id="drawer-title" class="text-xl font-bold text-[#8b1e3f]">New QPS Allocation</h2>
+                <p id="drawer-subtitle" class="text-md text-slate-500 mt-0.5">Assign setter and checker for question paper</p>
+            </div>
+            <button onclick="window.qpsApp.closeDrawer()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                <i class="bi bi-x-lg text-sm"></i>
+            </button>
+        </div>
+        
+        <form id="allocationForm" class="px-6 space-y-6">
+            {% csrf_token %}
+            <input type="hidden" name="allocation_id" id="editAllocationId" value="">
+
+            <!-- Section 1: Basic Information -->
+            <div class="bg-white rounded-xl border border-indigo-100 shadow-sm overflow-hidden">
+                <div class="flex items-center gap-2 bg-indigo-50/60 px-5 py-3 border-b border-indigo-100/50">
+                    <i class="bi bi-info-circle text-indigo-600 text-base"></i>
+                    <h3 class="font-bold text-xs tracking-wider text-indigo-900 uppercase">Basic Information</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Academic Year <span class="text-rose-500">*</span></label>
+                        <select name="academic_sem" id="drawerAcademicSem" required class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+                            <option value="">Select Academic Year</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Course <span class="text-rose-500">*</span></label>
+                        <select name="course" id="drawerCourse" required class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+                            <option value="">Select Course</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Assignment Details -->
+            <div class="bg-white rounded-xl border border-emerald-100 shadow-sm overflow-hidden">
+                <div class="flex items-center gap-2 bg-emerald-50/60 px-5 py-3 border-b border-emerald-100/50">
+                    <i class="bi bi-person-badge text-emerald-600 text-base"></i>
+                    <h3 class="font-bold text-xs tracking-wider text-emerald-900 uppercase">Assignment Details</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">QP Setter <span class="text-rose-500">*</span></label>
+                        <select name="qp_setter" id="drawerSetter" required class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100">
+                            <option value="">Select Setter</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Checker</label>
+                        <select name="checker" id="drawerChecker" class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100">
+                            <option value="">Select Checker</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Mail Send Date</label>
+                        <input type="date" name="mail_send_date" id="drawerMailSendDate" 
+                               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Assigned Date</label>
+                        <input type="date" name="assigned_date" id="drawerAssignedDate" 
+                               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Due Date <span class="text-rose-500">*</span></label>
+                        <input type="date" name="due_date" id="drawerDueDate" required 
+                               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Submitted Date</label>
+                        <input type="date" name="submitted_date" id="drawerSubmittedDate" 
+                               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Approved Date</label>
+                        <input type="date" name="approved_date" id="drawerApprovedDate" 
+                               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Status</label>
+                        <select name="status" id="drawerStatus" class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100">
+                            <option value="PENDING">Pending</option>
+                            <option value="ASSIGNED">Assigned</option>
+                            <option value="IN_PROGRESS">In Progress</option>
+                            <option value="SUBMITTED">Submitted</option>
+                            <option value="APPROVED">Approved</option>
+                            <option value="REJECTED">Rejected</option>
+                            <option value="COMPLETED">Completed</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Remarks -->
+            <div class="bg-white rounded-xl border border-purple-100 shadow-sm overflow-hidden">
+                <div class="flex items-center gap-2 bg-purple-50/60 px-5 py-3 border-b border-purple-100/50">
+                    <i class="bi bi-chat-text text-purple-600 text-base"></i>
+                    <h3 class="font-bold text-xs tracking-wider text-purple-900 uppercase">Remarks</h3>
+                </div>
+                <div class="p-5">
+                    <textarea name="remarks" id="drawerRemarks" rows="3" 
+                              class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 resize-none"
+                              placeholder="Add any additional notes or instructions..."></textarea>
+                </div>
+            </div>
+            
+            <div class="flex gap-6 bg-slate-50 p-6 -mx-6 border-t border-slate-200 mt-6">
+                <button type="button" onclick="window.qpsApp.closeDrawer()" 
+                        class="flex-1 px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 font-bold text-sm rounded-xl transition-colors border border-slate-200">
+                    Cancel
+                </button>
+                <button type="submit" form="allocationForm" 
+                        class="flex-1 px-4 py-2.5 bg-[#8b1e3f] hover:bg-[#721833] text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-[0.99]">
+                    <i class="bi bi-save"></i> Save Allocation
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ==================== DELETE DRAWER ==================== -->
+<div id="deleteDrawer" class="drawer fixed inset-0 z-50 hidden" aria-labelledby="delete-drawer-title" role="dialog" aria-modal="true">
+    <div class="drawer-backdrop absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" onclick="window.qpsApp.closeDeleteDrawer()"></div>
+    <div class="absolute inset-y-0 right-0 w-full max-w-xl bg-slate-50 shadow-2xl flex flex-col h-full overflow-hidden transition-transform duration-300" style="transform: translateX(0);">
+        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+            <div>
+                <h2 class="text-xl font-bold text-[#8b1e3f]">Delete Allocation</h2>
+                <p class="text-sm text-slate-500 mt-0.5">This action cannot be undone</p>
+            </div>
+            <button onclick="window.qpsApp.closeDeleteDrawer()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                <i class="bi bi-x-lg text-sm"></i>
+            </button>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-8 text-center">
+                <div class="flex items-center justify-center h-14 w-14 rounded-full bg-rose-50 border border-rose-100 text-rose-600 mb-4 mx-auto">
+                    <i class="bi bi-exclamation-triangle text-2xl"></i>
+                </div>
+                <h3 class="text-base font-bold text-slate-900" id="deleteDrawerMessage">
+                    Are you sure you want to delete this allocation?
+                </h3>
+                <p class="text-xs text-slate-500 mt-2">
+                    This will permanently remove the allocation from the system.
+                </p>
+                <div class="mt-5 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700">
+                    <span class="text-slate-400 font-normal">Course :</span>
+                    <span id="deleteDrawerCourse" class="font-mono font-bold text-rose-600"></span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="px-6 pb-6 flex gap-3 bg-slate-50 shrink-0">
+            <button onclick="window.qpsApp.closeDeleteDrawer()" 
+                    class="flex-1 px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 font-bold text-sm rounded-xl transition-colors border border-slate-200">
+                Cancel
+            </button>
+            <button id="confirmDeleteBtn" 
+                    class="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all">
+                <i class="bi bi-trash3"></i> Delete Permanently
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== UPLOAD DRAWER ==================== -->
+<div id="uploadDrawer" class="drawer fixed inset-0 z-50 hidden" aria-labelledby="upload-drawer-title" role="dialog">
+    <div class="drawer-backdrop absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" onclick="window.qpsApp.closeUploadDrawer()"></div>
+    <div class="drawer-scrollable absolute inset-y-0 right-0 w-full max-w-xl bg-slate-50 shadow-2xl flex flex-col h-full overflow-hidden transition-transform duration-300" style="transform: translateX(0);">
+        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+            <div>
+                <h2 class="text-xl font-bold text-[#8b1e3f]">Upload Allocations</h2>
+                <p class="text-sm text-slate-500 mt-0.5">Bulk upload allocation data from Excel</p>
+            </div>
+            <button onclick="window.qpsApp.closeUploadDrawer()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                <i class="bi bi-x-lg text-sm"></i>
+            </button>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+            <div class="bg-white rounded-xl border-2 border-dashed border-slate-200 hover:border-[#8b1e3f] transition-all p-8 text-center">
+                <input type="file" id="excelFile" accept=".xlsx, .xls" class="hidden" />
+                <div id="uploadArea" class="cursor-pointer" onclick="document.getElementById('excelFile').click()">
+                    <i class="bi bi-box-arrow-in-down-right text-5xl text-emerald-600 mb-3 inline-block"></i>
+                    <h3 class="text-base font-bold text-slate-800 mb-1">Choose Excel File</h3>
+                    <p class="text-xs text-slate-500 mb-3">.xlsx or .xls format, max 5MB</p>
+                    <button type="button" class="px-4 py-2 bg-[#8b1e3f] text-white text-xs font-bold rounded-lg hover:bg-[#721833] transition">
+                        Browse Files
+                    </button>
+                </div>
+                <div id="fileInfo" class="hidden mt-4 p-3 bg-slate-50 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="bi bi-file-earmark-excel text-emerald-600"></i>
+                            <span id="fileName" class="text-sm font-medium text-slate-700"></span>
+                        </div>
+                        <button onclick="window.qpsApp.clearFile()" class="text-red-500 hover:text-red-700">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                <div class="flex items-start gap-3">
+                    <i class="bi bi-info-circle text-blue-600 text-lg"></i>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-bold text-blue-900 mb-1">Template Instructions</h4>
+                        <p class="text-xs text-blue-700 mb-2">Download the sample template for proper format</p>
+                        <a href="#" onclick="window.qpsApp.downloadTemplate()" class="inline-flex items-center gap-2 text-xs font-semibold text-blue-700 hover:text-blue-900">
+                            <i class="bi bi-download"></i> Download Sample Template
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="uploadProgress" class="hidden">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold text-slate-700">Uploading...</span>
+                    <span id="progressPercent" class="text-xs font-bold text-[#8b1e3f]">0%</span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div id="progressBar" class="bg-[#8b1e3f] h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <p id="uploadStatus" class="text-xs text-slate-500 mt-2">Preparing to upload...</p>
+            </div>
+            
+            <div id="uploadResults" class="hidden bg-white rounded-xl border border-slate-200 p-4 space-y-2">
+                <h4 class="text-sm font-bold text-slate-800">Upload Results</h4>
+                <div class="flex gap-4 text-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span>Success: <strong id="successCount">0</strong></span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block w-2 h-2 rounded-full bg-red-500"></span>
+                        <span>Errors: <strong id="errorCount">0</strong></span>
+                    </div>
+                </div>
+                <div id="errorList" class="hidden max-h-40 overflow-y-auto text-xs text-red-600 space-y-1 mt-2 pt-2 border-t border-slate-100"></div>
+            </div>
+        </div>
+        
+        <div class="px-6 pb-6 flex gap-3 bg-slate-50 shrink-0">
+            <button onclick="window.qpsApp.closeUploadDrawer()" 
+                    class="flex-1 px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 font-bold text-sm rounded-xl transition-colors border border-slate-200">
+                Cancel
+            </button>
+            <button id="uploadBtn" onclick="window.qpsApp.uploadFile()" disabled
+                    class="flex-1 px-4 py-2.5 bg-[#8b1e3f] hover:bg-[#721833] text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="bi bi-cloud-upload w-4 h-4"></i> Upload File
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== DETAIL VIEW MODAL ==================== -->
+<div id="detailModal" class="fixed inset-0 z-50 hidden" aria-labelledby="detail-modal-title" role="dialog">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" onclick="window.qpsApp.closeDetailModal()"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10 rounded-t-xl">
+                <div>
+                    <h2 id="detail-modal-title" class="text-xl font-bold text-[#8b1e3f]">Allocation Details</h2>
+                    <p class="text-sm text-slate-500 mt-0.5">Complete allocation information</p>
+                </div>
+                <button onclick="window.qpsApp.closeDetailModal()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                    <i class="bi bi-x-lg text-sm"></i>
+                </button>
+            </div>
+            <div id="detailContent" class="p-6 space-y-4">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+</div>

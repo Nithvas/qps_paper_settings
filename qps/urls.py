@@ -9,10 +9,11 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('dashboard/', views.dashboard, name='dashboard'), 
-    path('qps/', views.qps_allocations, name='qps_allocations'),
     path('staff/', include('staff.urls')), 
     path('course/', include('course.urls')), 
     path('academic/', include('academic.urls')), 
     path('pattern/', include('pattern.urls')),
+    path('syllabus/', include('syllabus.urls')),
+    path('allocation/', include('allocation.urls')),
 ]
 

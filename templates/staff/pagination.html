@@ -34,9 +34,9 @@
                 <div class="flex items-center gap-2">
                     <label for="perPageSelect">Rows per page</label>
                     <select name="per_page" id="perPageSelect" class="bg-transparent pr-4 py-0.5 text-xs font-medium text-slate-900 border-0 border-b border-transparent hover:border-slate-300 focus:ring-0 focus:border-slate-900 transition-colors cursor-pointer">
-                        <option value="25" {% if per_page == 25 %}selected{% endif %}>25</option>
-                        <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
-                        <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                        {% for val in allowed_per_page %}
+                        <option value="{{ val }}" {% if per_page == val %}selected{% endif %}>{{ val }}</option>
+                        {% endfor %}
                     </select>
                 </div>
 

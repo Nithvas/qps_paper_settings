@@ -1,0 +1,73 @@
+<div class="overflow-hidden bg-white rounded-xl border border-slate-200 mt-6">
+    <div class="overflow-x-auto relative" style="max-height: 70vh; overflow-y: auto;">
+        <table class="w-full border-collapse text-sm">
+            <thead class="sticky top-0 z-30 bg-white">
+                <tr class="border-y border-slate-200 text-[11px] uppercase tracking-[0.14em] text-slate-500 font-black select-none">
+                    <th class="sticky bg-white left-0 z-40 px-4 py-4 whitespace-nowrap text-center w-20">S. No.</th>
+                    <th data-col="course_code" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center min-w-[120px]">
+                        <div class="flex items-center justify-center gap-2">Course Code <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i></div>
+                    </th>
+                    <th data-col="course_title" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center">
+                        <div class="flex items-center justify-center gap-2">Course Title <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i></div>
+                    </th>
+                    <th data-col="file" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center">
+                        <div class="flex items-center justify-center gap-2">Syllabus File <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i></div>
+                    </th>
+                    <th data-col="created_at" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center">
+                        <div class="flex items-center justify-center gap-2">Created <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i></div>
+                    </th>
+                    <th data-col="updated_at" class="sortable-th px-5 py-4 whitespace-nowrap cursor-pointer transition group text-center">
+                        <div class="flex items-center justify-center gap-2">Updated <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i></div>
+                    </th>
+                    <th class="sticky right-0 z-40 px-5 py-4 text-center bg-white w-44">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="syllabusTableBody" class="divide-y divide-slate-100 bg-white text-center">
+                {% for syllabus in syllabi %}
+                <tr class="syllabus-row group hover:bg-gradient-to-r hover:from-indigo-50/40 hover:to-transparent transition-all duration-200">
+                    <td class="sticky left-0 z-20 px-4 py-4 bg-white group-hover:bg-slate-50 transition text-center">
+                        <span class="text-[12px] font-mono font-semibold text-slate-500">{{ forloop.counter }}</span>
+                    </td>
+                    <td class="px-5 py-4 text-center font-mono font-bold text-indigo-700">{{ syllabus.course.course_code }}</td>
+                    <td class="px-5 py-4 text-center font-semibold text-slate-800">{{ syllabus.course.course_title }}</td>
+                    <td class="px-5 py-4 text-center">
+                        {% if syllabus.syllabus_file %}
+                            <a href="{{ syllabus.syllabus_file.url }}" target="_blank" class="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-800 font-medium">
+                                <i class="bi bi-file-pdf"></i> Download
+                            </a>
+                        {% else %}
+                            <span class="text-slate-400 text-xs">No file</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-5 py-4 text-center text-slate-600">{{ syllabus.created_at|date:"d M Y" }}</td>
+                    <td class="px-5 py-4 text-center text-slate-600">{{ syllabus.updated_at|date:"d M Y" }}</td>
+                    <td class="sticky right-0 z-20 px-4 py-3 bg-white border-l border-slate-200/80 group-hover:bg-slate-50 transition-colors text-center">
+                        <div class="inline-flex p-0.5 gap-2" role="group">
+                            <button type="button" onclick="window.syllabusApp.openDrawer({{ syllabus.id }})"
+                                    class="inline-flex items-center justify-center w-8 h-8 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="Edit Syllabus">
+                                <i class="bi bi-pencil text-sm"></i>
+                            </button>
+                            <button type="button" onclick="window.syllabusApp.openDeleteModal({{ syllabus.id }}, '{{ syllabus.course.course_code }} - {{ syllabus.course.course_title|escapejs }}')"
+                                    class="inline-flex items-center justify-center w-8 h-8 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete Syllabus">
+                                <i class="bi bi-trash3 text-sm"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="py-12 text-center bg-gradient-to-b from-slate-50 to-white">
+                        <div class="mx-auto">
+                            <div class="w-12 h-12 mx-auto rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shadow-inner mb-4">
+                                <i class="bi bi-file-earmark-text text-2xl text-slate-400"></i>
+                            </div>
+                            <h3 class="text-lg font-black text-slate-800 tracking-tight">No Syllabi Found</h3>
+                            <p class="mt-3 text-sm text-slate-400 leading-relaxed">No syllabi match your search criteria.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

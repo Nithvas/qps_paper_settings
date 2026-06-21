@@ -1,0 +1,213 @@
+{% extends 'layout.html' %}
+{% load static %}
+{% block title %}QPS Allocation | JMC QPS Portal{% endblock %}
+{% block content %}
+
+<div class="min-h-screen mx-auto space-y-6 antialiased">
+    
+    <!-- ==================== HEADER ACTIONS ==================== -->
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between pb-6 border-b border-slate-200 gap-4">
+        <div class="space-y-1">
+            <h2 class="text-2xl font-black tracking-tight text-slate-900">
+                QPS Allocation
+            </h2>
+            <p class="text-xs sm:text-sm font-medium text-slate-500">
+                Question Paper Setter allocation management system - Assign, track, and manage examiner assignments.
+            </p>
+        </div>
+        <div class="flex items-center gap-3 self-start lg:self-center">
+            <button
+                type="button"
+                onclick="window.qpsApp.openDrawer()"
+                class="flex items-center justify-center gap-2 px-5 py-3 bg-[#8b1e3f] text-white text-xs font-bold rounded-lg transition-all duration-150 tracking-wider uppercase shadow-md hover:shadow-lg hover:bg-[#721833]"
+            >
+                <i class="bi bi-plus-circle-fill text-sm leading-none"></i>
+                <span>New Allocation</span>
+            </button>
+            <div class="relative">
+                <button
+                    onclick="window.qpsApp.toggleExcelMenu()"
+                    class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#107C41] hover:bg-[#0d6434] text-white text-xs font-bold rounded-lg tracking-wider uppercase shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-150"
+                >
+                    <i class="bi bi-box-arrow-in-down-right text-sm leading-none"></i>
+                    <span>Excel Actions</span>
+                </button>
+                <div id="excelMenu" class="hidden absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+                    <div class="py-1">
+                        <a href="#" onclick="window.qpsApp.exportAllocations()" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                            </svg>
+                            Download Allocations
+                        </a>
+                        <div class="border-t border-gray-100"></div>
+                        <button onclick="window.qpsApp.openUploadDrawer()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                            Upload Allocations
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== STATS CARDS ==================== -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total</p>
+                    <p class="text-2xl font-black text-slate-800" id="statTotal">{{ total_count|default:0 }}</p>
+                </div>
+                <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                    <i class="bi bi-file-spreadsheet text-lg"></i>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Pending</p>
+                    <p class="text-2xl font-black text-amber-600" id="statPending">{{ pending_count|default:0 }}</p>
+                </div>
+                <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">
+                    <i class="bi bi-clock-history text-lg"></i>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">In Progress</p>
+                    <p class="text-2xl font-black text-blue-600" id="statInProgress">{{ in_progress_count|default:0 }}</p>
+                </div>
+                <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                    <i class="bi bi-arrow-repeat text-lg"></i>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Submitted</p>
+                    <p class="text-2xl font-black text-emerald-600" id="statSubmitted">{{ submitted_count|default:0 }}</p>
+                </div>
+                <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+                    <i class="bi bi-check2-all text-lg"></i>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Approved</p>
+                    <p class="text-2xl font-black text-[#8b1e3f]" id="statApproved">{{ approved_count|default:0 }}</p>
+                </div>
+                <div class="w-10 h-10 rounded-lg bg-rose-50 flex items-center justify-center text-rose-600">
+                    <i class="bi bi-check-circle text-lg"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== FILTERS ==================== -->
+    {% include 'allocation/filters.html' %}
+
+    <!-- ==================== SEARCH BAR ==================== -->
+    <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+        <div class="flex-1 max-w-2xl relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <i class="bi bi-search text-sm"></i>
+            </div>
+            <input type="text" id="globalSearch" value="{{ search|default:'' }}" 
+                   placeholder="Search by course code, setter, checker..." 
+                   autocomplete="off"
+                   class="w-full h-12 pl-10 pr-4 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-800 placeholder:text-slate-400 transition-all focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+        </div>
+        <div class="flex items-center gap-4 text-xs sm:border-l sm:border-slate-200 sm:pl-6">
+            <div class="flex items-center gap-2">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span class="text-slate-400 uppercase tracking-wider text-[12px] font-bold">Total Allocations</span>
+            </div>
+            <span id="allocationTotalCount" class="font-mono bg-white shadow-sm px-2.5 py-1 rounded-md text-slate-700 font-semibold border border-slate-200/80">{{ total_count|default:0 }}</span>
+        </div>
+    </div>
+
+    <!-- ==================== TABLE ==================== -->
+    {% include 'allocation/table.html' %}
+
+    <!-- ==================== PAGINATION ==================== -->
+    {% include 'allocation/pagination.html' %}
+</div>
+
+<!-- ==================== MODALS ==================== -->
+{% include 'allocation/modals.html' %}
+
+<!-- Django messages -->
+<div id="django-messages" class="hidden">
+    {% for msg in messages %}
+        <div class="message" data-level="{{ msg.tags }}" data-message="{{ msg }}"></div>
+    {% endfor %}
+</div>
+
+<script src="{% static 'js/qps_allocation.js' %}"></script>
+
+<style>
+    .avatar-bg1 { background-color: #eef2ff; color: #4f46e5; }
+    .avatar-bg2 { background-color: #ecfdf5; color: #059669; }
+    .avatar-bg3 { background-color: #ffe4e6; color: #e11d48; }
+    .avatar-bg4 { background-color: #fffbeb; color: #d97706; }
+    .avatar-bg5 { background-color: #e0f2fe; color: #0284c7; }
+    .avatar-bg6 { background-color: #f3e8ff; color: #9333ea; }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.625rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-assigned { background: #dbeafe; color: #1e40af; }
+    .status-in_progress { background: #e0e7ff; color: #3730a3; }
+    .status-submitted { background: #d1fae5; color: #065f46; }
+    .status-approved { background: #fce7f3; color: #831843; }
+    .status-rejected { background: #fee2e2; color: #991b1b; }
+    .status-completed { background: #ecfdf5; color: #047857; }
+    
+    .sortable-th {
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .sortable-th:hover {
+        background-color: #f8fafc;
+    }
+    .sortable-th.active .sort-icon {
+        color: #4f46e5;
+    }
+    .sortable-th.asc .sort-icon {
+        transform: rotate(0deg);
+    }
+    .sortable-th.desc .sort-icon {
+        transform: rotate(180deg);
+    }
+    
+    .drawer {
+        transition: all 0.3s ease;
+    }
+    .drawer-scrollable {
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+    }
+    .drawer:not(.hidden) .drawer-scrollable {
+        transform: translateX(0);
+    }
+</style>
+
+{% endblock %}

@@ -56,10 +56,6 @@ def dashboard(request):
     return render(request, 'dashboard.html')
 
 @login_required
-def qps_allocations(request):
-    return render(request, 'qps_allocations.html')
-
-@login_required
 def logout_view(request):
     logout(request)
     return redirect('login')

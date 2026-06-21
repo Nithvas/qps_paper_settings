@@ -1,4 +1,5 @@
 from django.db import models
+from pattern.models import QuestionPattern
 
 class Course(models.Model):
 
@@ -22,12 +23,9 @@ class Course(models.Model):
         unique=True,
         db_index=True
     )
-
     course_id = models.CharField(
         max_length=100,
-        unique=True
     )
-
     course_category = models.CharField(max_length=100)
     course_title = models.CharField(max_length=200)
 
@@ -35,34 +33,62 @@ class Course(models.Model):
     # Academic Information
     # =======================================================================
     semester = models.CharField(max_length=50)
-    part = models.CharField(max_length=50)
-    hours = models.PositiveIntegerField()
-    credit = models.DecimalField(max_digits=4, decimal_places=1)
+    part = models.CharField(max_length=50, blank=True, null=True)
+    hours = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        help_text="Hours (can be '--' or number)"
+    )
+    credit = models.CharField(
+        max_length=10,
+        blank=True,
+        null=True,
+        help_text="Credits (e.g., '3.0', 'N/A')"
+    )
 
     # =======================================================================
     # Marks Information
     # =======================================================================
-    internal_mark = models.PositiveIntegerField()
-    external_mark = models.PositiveIntegerField()
-    total_mark = models.PositiveIntegerField()
-
-    # =======================================================================
-    # Examiner Information
-    # =======================================================================
-    examiner_type = models.CharField(max_length=50)
-
-    examiner = models.CharField(
-        max_length=100,
+    internal_mark = models.CharField(
+        max_length=20,
         blank=True,
-        null=True
+        null=True,
+        help_text="Internal marks (can be '--' or numeric)"
     )
+    external_mark = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        help_text="External marks (can be '--' or numeric)"
+    )
+    total_mark = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        help_text="Total marks (can be '--' or numeric)"
+    )
+
+    # =======================================================================
+    # Examiner Information (only examiner_type)
+    # =======================================================================
+    examiner_type = models.CharField(max_length=50, blank=True, null=True)
 
     # =======================================================================
     # Additional Information
     # =======================================================================
-    remark = models.TextField(
+    remark = models.TextField(blank=True, null=True)
+
+    # =======================================================================
+    # Pattern Association
+    # =======================================================================
+    pattern = models.ForeignKey(
+        QuestionPattern,
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
-        null=True
+        related_name='courses',
+        help_text="Question pattern used for this course"
     )
 
     # =======================================================================
@@ -89,7 +115,6 @@ class Course(models.Model):
             'semester',
             'part',
             'examiner_type',
-            'examiner'
         ]
 
         for field in fields_to_reference:

@@ -1,0 +1,42 @@
+<div id="paginationContainer" class="border-t border-slate-200 bg-slate-50/50 px-6 py-4 rounded-xl">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="text-xs text-slate-500">
+            Showing <span id="pageStart">{{ page_obj.start_index|default:0 }}</span> 
+            to <span id="pageEnd">{{ page_obj.end_index|default:0 }}</span> 
+            of <span id="pageTotal">{{ page_obj.paginator.count|default:0 }}</span> entries
+        </div>
+        <div class="flex items-center gap-1">
+            {% if page_obj.has_previous %}
+                <button onclick="window.qpsApp.goToPage(1)" class="px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition">
+                    <i class="bi bi-chevron-double-left"></i>
+                </button>
+                <button onclick="window.qpsApp.goToPage({{ page_obj.previous_page_number }})" class="px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if num == page_obj.number %}
+                    <button class="px-3.5 py-1.5 text-xs font-bold bg-[#8b1e3f] text-white rounded-lg shadow-sm">
+                        {{ num }}
+                    </button>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <button onclick="window.qpsApp.goToPage({{ num }})" class="px-3.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition">
+                        {{ num }}
+                    </button>
+                {% elif num == page_obj.number|add:'-3' or num == page_obj.number|add:'3' %}
+                    <span class="px-2 text-slate-400">…</span>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <button onclick="window.qpsApp.goToPage({{ page_obj.next_page_number }})" class="px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+                <button onclick="window.qpsApp.goToPage({{ page_obj.paginator.num_pages }})" class="px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition">
+                    <i class="bi bi-chevron-double-right"></i>
+                </button>
+            {% endif %}
+        </div>
+    </div>
+</div>

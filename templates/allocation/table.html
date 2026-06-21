@@ -1,0 +1,79 @@
+<div class="overflow-hidden bg-white rounded-xl border border-slate-200 shadow-sm">
+    <div class="overflow-x-auto relative" style="max-height: 70vh; overflow-y: auto;">
+        <table class="w-full border-collapse text-sm">
+            <thead class="sticky top-0 z-30 bg-white">
+                <tr class="border-y border-slate-200 text-[11px] uppercase tracking-[0.14em] text-slate-500 font-black select-none">
+                    <th class="sticky bg-white left-0 z-40 px-4 py-4 whitespace-nowrap text-center w-16">
+                        <div class="flex items-center justify-center gap-2">#</div>
+                    </th>
+                    <th data-col="academic_sem" class="sortable-th px-4 py-4 whitespace-nowrap cursor-pointer transition group text-center min-w-[140px]">
+                        <div class="flex items-center justify-center gap-2">
+                            Academic Year
+                            <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i>
+                        </div>
+                    </th>
+                    <th data-col="course" class="sortable-th px-4 py-4 whitespace-nowrap cursor-pointer transition group text-center min-w-[160px]">
+                        <div class="flex items-center justify-center gap-2">
+                            Course
+                            <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i>
+                        </div>
+                    </th>
+                    <th data-col="setter" class="sortable-th px-4 py-4 whitespace-nowrap cursor-pointer transition group text-center min-w-[150px]">
+                        <div class="flex items-center justify-center gap-2">
+                            QP Setter
+                            <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i>
+                        </div>
+                    </th>
+                    <th data-col="checker" class="sortable-th px-4 py-4 whitespace-nowrap cursor-pointer transition group text-center min-w-[150px]">
+                        <div class="flex items-center justify-center gap-2">
+                            Checker
+                            <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i>
+                        </div>
+                    </th>
+                    <th data-col="status" class="sortable-th px-4 py-4 whitespace-nowrap cursor-pointer transition group text-center min-w-[130px]">
+                        <div class="flex items-center justify-center gap-2">
+                            Status
+                            <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i>
+                        </div>
+                    </th>
+                    <th data-col="mail_send_date" class="sortable-th px-4 py-4 whitespace-nowrap cursor-pointer transition group text-center min-w-[120px]">
+                        <div class="flex items-center justify-center gap-2">
+                            Mail Sent
+                            <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i>
+                        </div>
+                    </th>
+                    <th data-col="assigned_date" class="sortable-th px-4 py-4 whitespace-nowrap cursor-pointer transition group text-center min-w-[120px]">
+                        <div class="flex items-center justify-center gap-2">
+                            Assigned
+                            <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i>
+                        </div>
+                    </th>
+                    <th data-col="due_date" class="sortable-th px-4 py-4 whitespace-nowrap cursor-pointer transition group text-center min-w-[110px]">
+                        <div class="flex items-center justify-center gap-2">
+                            Due Date
+                            <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i>
+                        </div>
+                    </th>
+                    <th data-col="submitted_date" class="sortable-th px-4 py-4 whitespace-nowrap cursor-pointer transition group text-center min-w-[120px]">
+                        <div class="flex items-center justify-center gap-2">
+                            Submitted
+                            <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i>
+                        </div>
+                    </th>
+                    <th data-col="approved_date" class="sortable-th px-4 py-4 whitespace-nowrap cursor-pointer transition group text-center min-w-[120px]">
+                        <div class="flex items-center justify-center gap-2">
+                            Approved
+                            <i class="bi bi-arrow-down-up sort-icon text-slate-300 text-xs"></i>
+                        </div>
+                    </th>
+                    <th class="sticky right-0 z-40 px-4 py-4 text-center bg-white w-28">
+                        <div class="flex items-center justify-center">Actions</div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="allocationTableBody" class="divide-y divide-slate-100 bg-white text-center">
+                <!-- Dynamic content will be rendered via JavaScript -->
+            </tbody>
+        </table>
+    </div>
+</div>
